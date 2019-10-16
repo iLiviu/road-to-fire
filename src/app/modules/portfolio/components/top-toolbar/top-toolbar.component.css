@@ -1,0 +1,8 @@
+.toolbar-row {
+  overflow: hidden;
+}
+
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

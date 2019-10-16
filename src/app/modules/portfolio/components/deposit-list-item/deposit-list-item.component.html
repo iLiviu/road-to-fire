@@ -1,0 +1,26 @@
+<mat-list-item (click)="view()">
+  <button type="button" aria-label="Actions" mat-icon-button [matMenuTriggerFor]="menu" (click)="onItemMenu($event)" matTooltip="Actions">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="liquidate()">Liquidate</button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="edit()">Edit</button>
+    <button mat-menu-item (click)="delete()">Delete</button>
+  </mat-menu>
+
+  <h4 mat-line>
+    <span fxFlex>{{deposit.description || deposit.currency}}</span>
+    <span>{{viewAsset.currentValue | currency:deposit.currency}}</span>
+
+
+  </h4>
+  <h6 mat-line>
+    <span fxFlex>Maturity: {{deposit.maturityDate | formatDate}}</span>
+    <span>Interest: {{deposit.interestRate | percent:'1.0-2'}} </span>
+
+  </h6>
+  <h6 mat-line>
+    <span fxFlex>{{viewAsset.account.description}} </span>
+  </h6>
+</mat-list-item>

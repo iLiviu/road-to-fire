@@ -1,0 +1,17 @@
+<h2 mat-dialog-title *ngIf="data.title">{{data.title}}</h2>
+<mat-dialog-content fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="center center">
+  <div *ngIf="icon" class="{{icon}}">
+    <mat-icon class="md-icon-36">{{icon}}</mat-icon>
+  </div>
+  <div fxFlex fxLayout="column">
+    <div class="preformatted">{{data.message}}</div>
+    <p *ngIf="data.displayDontShowAgain">
+      <mat-checkbox [(ngModel)]="dontShowAgain">Don't show again</mat-checkbox>
+    </p>
+  </div>
+  
+
+</mat-dialog-content>
+<mat-dialog-actions align="center">
+  <button mat-button [mat-dialog-close]="dontShowAgain">OK</button>
+</mat-dialog-actions>

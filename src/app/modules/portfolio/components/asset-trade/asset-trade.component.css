@@ -1,0 +1,29 @@
+.fill-dialog-height {
+  height: 65vh; 
+}
+
+.fill-dialog-height.handset {
+  height: 90vh;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.dates-list {
+  height: 250px;
+  overflow: auto;
+}
+
+.payment-card {
+  margin: 2px;
+}
+
+.payment-list {
+  height: 100%;
+  overflow: auto;
+}
+
+.bottom-margin { 
+  margin-bottom: 8px;
+}

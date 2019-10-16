@@ -1,0 +1,66 @@
+<h2 mat-dialog-title>
+  <span>{{viewAsset.asset.description}}</span>
+  <button mat-icon-button>
+    <mat-icon aria-label="Copy to clipboard" (click)="copyToClipboard(viewAsset.asset.description)" color="primary"
+      matTooltip="Copy to clipboard">file_copy</mat-icon>
+  </button>
+</h2>
+<mat-dialog-content>
+
+  <div fxLayout="column" fxLayoutGap="8px">
+    <div>
+      <span fxFlex>Balance:</span>
+      <span>{{viewAsset.asset.amount | currency: viewAsset.asset.currency}}</span>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <ng-container *ngIf="deposit">
+      <div>
+        <span fxFlex>Interest rate: </span>
+        <span>{{deposit.interestRate | percent:'1.0-2'}}</span>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div>
+        <span fxFlex>Auto-renew: </span>
+        <span>{{deposit.autoRenew? 'yes':'no'}}</span>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <ng-container *ngIf="deposit.autoRenew">
+        <div>
+          <span fxFlex>Capitalize interest: </span>
+          <span>{{deposit.capitalize? 'yes':'no'}}</span>
+        </div>
+
+        <mat-divider></mat-divider>
+      </ng-container>
+
+      <div>
+        <span fxFlex>Creation date: </span>
+        <span>{{deposit.creationDate | formatDate}}</span>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div>
+        <span fxFlex>Maturity: </span>
+        <span>{{deposit.maturityDate | formatDate}}</span>
+      </div>
+
+      <mat-divider></mat-divider>
+    </ng-container>
+
+    <div>
+      <span fxFlex>Account:</span>
+      <span>{{viewAsset.account.description}}</span>
+    </div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close="edit">Edit</button>
+  <button mat-button mat-dialog-close cdkFocusInitial>Close</button>
+</mat-dialog-actions>

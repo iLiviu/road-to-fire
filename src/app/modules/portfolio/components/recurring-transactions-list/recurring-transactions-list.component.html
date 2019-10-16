@@ -1,0 +1,11 @@
+<ng-container *ngIf="dataLoaded">
+  <mat-nav-list dense>
+    <app-recurring-transactions-list-item *ngFor="let recTx of transactions; trackBy: txIdTrackFn" [transaction]="recTx"></app-recurring-transactions-list-item>
+  </mat-nav-list>
+  <div *ngIf="transactions.length == 0" fxLayout="row" fxLayoutAlign="center center">
+    <div class="text-content">There are no transactions to display.</div>
+  </div>  
+</ng-container>
+<div *ngIf="!dataLoaded" fxLayoutAlign="center center" fxLayout="column">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</div>

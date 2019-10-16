@@ -1,0 +1,9 @@
+<div class="loader-container" *ngIf="loading">
+  <div class="loader">
+    <p>Loading...</p>
+    <svg class="circular" viewBox="25 25 50 50">
+      <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10" />
+    </svg>
+  </div>
+</div>
+<router-outlet  [hidden]="loading"></router-outlet>

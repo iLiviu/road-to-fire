@@ -1,0 +1,22 @@
+<mat-nav-list dense matSort (matSortChange)="sortData()" matSortDisableClear="true" matSortStart="asc">
+  <div matSubHeader class="mat-subheading-1 list-header">
+    <div fxLayout="column" fxFlex>
+      <div>
+        <span fxFlex mat-sort-header="description">Description /</span>
+        <span mat-sort-header="currentValue" arrowPosition="before">Current Value /</span>
+      </div>
+      <div>
+        <span fxFlex mat-sort-header="initialValue">Initial Value /</span>
+        <span mat-sort-header="profitLossPercent" arrowPosition="before">P/L</span>
+      </div>
+      <div>
+        <span mat-sort-header="account">Account</span>
+      </div>
+    </div>
+
+  </div>
+  <app-tradeable-asset-list-item *ngFor="let viewAsset of assets; trackBy: assetIdTrackFn" [viewAsset]="viewAsset"></app-tradeable-asset-list-item>
+</mat-nav-list>
+<div fxLayout="row" fxLayoutAlign="center center" *ngIf="!dataLoaded">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</div>

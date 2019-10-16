@@ -1,0 +1,34 @@
+<mat-sidenav-container fullscreen>
+
+
+  <mat-sidenav #drawer role="navigation" class="sidenav" fixedInViewport="true" [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+    [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="!(isHandset$ | async)" [autoFocus]="false">
+    <div fxLayout="column" fxFlexFill>
+      <mat-nav-list fxFlex>
+        <app-menu-list-item *ngFor="let item of navItems" [item]="item"></app-menu-list-item>
+        <mat-divider></mat-divider>
+        <a mat-list-item class="level0" *ngIf="canInstallApp" (click)="installApp()">
+          <mat-icon class="routeIcon">get_app</mat-icon>
+          Install as App
+        </a>
+        <a mat-list-item *ngIf="loggedIn" class="level0" (click)="logout()">
+          <mat-icon class="routeIcon">exit_to_app</mat-icon>
+          Logout
+        </a>
+      </mat-nav-list>
+      <div fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="center">
+        <span><a [routerLink]="['/portfolio/privacy']">Privacy</a></span>
+        <span><a [routerLink]="['/portfolio/about']">About</a></span>
+      </div>
+    </div>
+
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+
+
+
+</mat-sidenav-container>

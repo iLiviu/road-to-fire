@@ -1,0 +1,40 @@
+<div fxFill fxLayout="column">
+  <mat-toolbar color="primary" class="mat-elevation-z5">
+    <mat-toolbar-row>
+      <span>{{APP_CONSTS.TITLE}}</span>
+    </mat-toolbar-row>
+  </mat-toolbar>
+
+  <div fxFlex fxLayout="column" fxLayoutAlign="center center" class="text-content">
+    <form>
+      <mat-card class="login-card">
+        <mat-card-header>
+          <mat-card-title>Login</mat-card-title>
+        </mat-card-header>
+        <mat-card-content fxLayout="column" fxLayoutAlign="center stretch">
+
+
+          <mat-form-field>
+            <input matInput type="password" [(ngModel)]="password" placeholder="Password" name="password" autocomplete="app-password"
+              required autofocus>
+
+          </mat-form-field>
+          <div>
+            <mat-checkbox [(ngModel)]="rememberMe" name="rememberMe" matTooltip="Avoid having to login on every page reload">Store password on this device</mat-checkbox>
+          </div>
+
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button [disabled]="formSubmitted" type="button" mat-button (click)="forgotPassword()">Forgot Password</button>
+          <button [disabled]="formSubmitted" mat-raised-button (click)="login()" color="primary"  >Login</button>
+        </mat-card-actions>
+      </mat-card>
+
+    </form>
+
+  </div>
+  <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <div><a [routerLink]="['/privacy']">Privacy</a></div>
+    <div><a [routerLink]="['/about']">About</a></div>
+  </div>
+</div>

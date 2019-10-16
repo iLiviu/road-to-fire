@@ -1,0 +1,27 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm" title="{{asset.id? 'Edit':'New'}} Cash Account" (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <mat-form-field>
+        <input matInput type="text" placeholder="Account identifier" required formControlName="description">
+      </mat-form-field>
+      <mat-form-field>
+        <mat-select placeholder="Account Currency" formControlName="currency" required>
+          <mat-option *ngFor="let currency of currencyCodes" [value]="currency.code">
+            {{currency.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput type="number" placeholder="Account balance" required formControlName="amount">
+        <span matPrefix>{{currency.value | currencySymbol}}</span>
+      </mat-form-field>
+      <mat-form-field *ngIf="!asset.id">
+        <input matInput [max]="todayDate" [matDatepicker]="datepicker" placeholder="Transaction Date"
+          formControlName="transactionDate" required>
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-error>Transaction date can't be in the future</mat-error>
+      </mat-form-field>
+    </div>
+  </app-edit-dialog>
+</form>

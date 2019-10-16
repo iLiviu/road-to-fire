@@ -1,0 +1,25 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm" title="Liquidate Deposit" (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <mat-form-field>
+        <mat-select placeholder="Destination Cash Account" formControlName="cashAsset" required>
+          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+            {{asset.description}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput [max]="todayDate" [matDatepicker]="datepicker" placeholder="Transaction Date"
+          formControlName="transactionDate" required>
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-error>Transaction date can't be in the future</mat-error>
+      </mat-form-field>
+
+      <mat-checkbox *ngIf="data.deposit.maturityDate <= transactionDate.value" formControlName="creditInterest">Credit
+        accrued
+        interest</mat-checkbox>
+    </div>
+  </app-edit-dialog>
+</form>

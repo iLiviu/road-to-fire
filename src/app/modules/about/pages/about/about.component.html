@@ -1,0 +1,36 @@
+<mat-toolbar color="primary" class="mat-elevation-z5">
+  <div fxFlex fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px" class="toolbar-row">
+    <button type="button" aria-label="Go Back" mat-icon-button (click)="goBack()"
+      matTooltip="Go Back">
+      <mat-icon aria-label="Go Back">arrow_back</mat-icon>
+    </button>
+    <span>About {{APP_CONSTS.TITLE}}</span>
+  </div>
+</mat-toolbar>
+<div class="text-content page-content">
+  <p class="align-center">Version: {{APP_CONSTS.VERSION}}</p>
+  <p class="align-center">Developed by Liviu Iancuta.</p>
+  <p class="align-center">
+    <b>{{APP_CONSTS.TITLE}}</b> is an open source project. If you want to contribute, make a suggestion or report a
+    bug, go to the Github repository: <a href="{{APP_CONSTS.REPOSITORY_URL}}">{{APP_CONSTS.REPOSITORY_URL}}</a>
+  </p>
+  <p class="align-center">
+    Distributed under the <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GNU General Public License v3.0</a>
+  </p>
+
+  <h2 class="align-center">Credits</h2>
+  <p class="align-center">
+    Application, "bitcoin", "certificate", "commodity" and "tax" icons from <a
+      href="https://www.onlinewebfonts.com">www.onlinewebfonts.com</a>,
+    licensed under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>
+  </p>
+  <p class="align-center">
+    <a href="https://github.com/google/material-design-icons">Material design icons</a> by Google licensed under <a
+      href="https://www.apache.org/licenses/LICENSE-2.0.txt">Apache License Version 2.0.</a>
+  </p>
+  <p class="align-center">
+    The program uses a series of libraries, each with it's own license terms. You can see the full list, and read their
+    licenses <a href="/3rdpartylicenses.txt">here</a>
+  </p>
+
+</div>

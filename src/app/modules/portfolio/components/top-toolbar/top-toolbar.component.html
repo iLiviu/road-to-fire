@@ -1,0 +1,11 @@
+<mat-toolbar color="primary" class="top-toolbar mat-elevation-z5">
+    <mat-toolbar-row fxLayout="row">
+        <div fxFlex fxLayout="row" fxLayoutAlign="start center"  fxLayoutGap="8px" class="toolbar-row">
+            <button type="button" aria-label="Toggle sidenav" mat-icon-button (click)="toggleSideNav()" matTooltip="Toggle sidenav">
+                <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+            </button>
+            <span class="title">{{pageTitle}}</span>
+        </div>
+        <ng-content></ng-content>
+    </mat-toolbar-row>
+</mat-toolbar>

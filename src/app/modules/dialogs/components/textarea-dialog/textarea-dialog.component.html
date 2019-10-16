@@ -1,0 +1,9 @@
+<mat-dialog-content>
+  <mat-form-field class="textarea-container">
+    <textarea  class="textarea" readonly matInput placeholder="" [(ngModel)]="data" #userInput></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="center">
+  <button mat-button (click)="copyToClipboard(userInput)">Copy to Clipboard</button>
+  <button mat-button [mat-dialog-close]>Close</button>
+</mat-dialog-actions>

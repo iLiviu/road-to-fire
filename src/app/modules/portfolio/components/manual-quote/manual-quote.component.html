@@ -1,0 +1,18 @@
+<h2 mat-dialog-title>Manual Quote Update</h2>
+<mat-dialog-content>
+  <form [formGroup]="quotesForm">
+    <div fxLayout="column" formArrayName="quotesFormAssets">
+      <mat-form-field *ngFor="let accountAsset of assets; let i=index">
+        <input matInput type="number" [placeholder]="accountAsset.asset.description" class="right-align"
+          [formControlName]="i" required>
+        <mat-error>Please enter a value greater than 0</mat-error>
+        <span matPrefix>{{accountAsset.asset.currency | currencySymbol}}</span>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button [disabled]="!quotesForm.dirty || !quotesForm.valid" (click)="saveQuotes()">Save</button>
+</mat-dialog-actions>

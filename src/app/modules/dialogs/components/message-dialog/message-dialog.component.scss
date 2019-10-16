@@ -1,0 +1,14 @@
+@import 'src/app/theme_colors.scss';
+
+
+.error {
+  color: $app-error-background;
+}
+
+.info {
+  color: $app-info;
+}
+
+.warning {
+  color: $app-warning;
+}

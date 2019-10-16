@@ -1,0 +1,113 @@
+<div *ngIf="dataLoaded">
+
+  <form [formGroup]="settingsForm">
+    <app-top-toolbar pageTitle="Settings" class="fixed-toolbar">
+      <button mat-stroked-button [disabled]="formSubmitted || !settingsForm.dirty || !settingsForm.valid"
+        (click)="saveSettings()">Save</button>
+    </app-top-toolbar>
+
+    <div class="page-content">
+      <mat-tab-group [swipeTabs]="{hasSideNav: true}" class="mat-tab-group-fill-height">
+        <mat-tab label="General">
+          <div fxLayout="column" class="text-content" fxLayoutGap="8px">
+            <h2>Display</h2>
+            <mat-form-field>
+              <mat-select placeholder="Base Currency" formControlName="baseCurrencyCtl" required>
+                <mat-option *ngFor="let currency of currencyCodes" [value]="currency.code">
+                  {{currency.name}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput type="number" placeholder="Yearly Safe Withdrawal Rate" formControlName="withdrawalRate"
+                required>
+              <span matPrefix>%&nbsp;</span>
+              <mat-error>Please enter a value between 0 and 100</mat-error>
+            </mat-form-field>
+
+            <mat-divider></mat-divider>
+
+            <h2>Security & Backup</h2>
+            <div>
+              <mat-checkbox formControlName="passwordProtect" #passProtect>Password protect application data
+              </mat-checkbox>
+              <div *ngIf="passProtect.checked && !encryptionEnabled">
+                <div>
+                  <mat-form-field>
+                    <input matInput type="password" placeholder="Password" formControlName="configPassword"
+                      autocomplete="app-password">
+                  </mat-form-field>
+                </div>
+                <div class="mat-error">
+                  Warning: The application data is encrypted using the password you set! If you forget your password,
+                  you
+                  won't be able to recover your data!
+                </div>
+              </div>
+            </div>
+            <div *ngIf="passProtect.checked && twoFactorAvailable">
+              <mat-checkbox formControlName="enable2FA" (change)="twoFAChanged()"
+                matTooltip="Restricts access to application when password is stored on device">Enable biometric
+                authentication</mat-checkbox>
+            </div>
+            <div>
+              <mat-checkbox formControlName="saveOnCloud" #cloudStorage>Sync
+                data across your devices </mat-checkbox>
+            </div>
+            <div>
+              <div fxLayout="row" fxLayout.lt-sm="column" fxLayoutAlign="center" fxLayoutGap="16px">
+                <button mat-raised-button (click)="wipeAppData()" color="warn">Clear App Data</button>
+                <button mat-raised-button (click)="importFileInput.click()" color="primary">Import App Data</button>
+                <button mat-raised-button (click)="exportAppDataToFile()" color="primary">Export App Data</button>
+                <button mat-raised-button (click)="exportPortfolioDataToCSV()" color="primary">Export Portfolio To CSV</button>
+
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+        <mat-tab label="Goals">
+          <div fxLayout="column" formArrayName="goals" class="text-content">
+            <div *ngFor="let goal of goals.controls; let i = index" fxLayout="row" fxLayoutAlign="start center">
+              <mat-form-field fxFlex>
+                <input matInput type="number" placeholder="{{portfolioConfig.goals[i].title}}" [formControlName]="i"
+                  min="0">
+                <span matPrefix>&nbsp;{{ baseCurrencyCtl.value | currencySymbol}}</span>
+                <mat-error>Please enter a positive number</mat-error>
+              </mat-form-field>
+              <button mat-icon-button matTooltip="Delete Goal" (click)="deleteGoal(i)">
+                <mat-icon aria-label="Delete Goal">clear</mat-icon>
+              </button>
+
+            </div>
+          </div>
+
+          <div class="fab-bottom-right">
+            <button mat-fab matTooltip="Add Goal" color="primary" (click)="addGoal()">
+              <mat-icon aria-label="Add Goal">add</mat-icon>
+            </button>
+          </div>
+        </mat-tab>
+        <mat-tab label="Portfolio Allocation">
+          <div formGroupName="portfolioAllocation" fxLayout="column" class="text-content">
+            <mat-form-field *ngFor="let assetType of ALL_ASSETS">
+              <input matInput type="number" [placeholder]="ASSET_TYPE_LABELS[assetType]" [formControlName]="assetType"
+                min="0" max="100" required>
+              <span matPrefix>%&nbsp;</span>
+              <mat-error>Please enter a value between 0 and 100</mat-error>
+            </mat-form-field>
+            <p class="mat-error" *ngIf="portfolioAllocation.errors?.invalidAllocation">The sum of all allocations must
+              be 100!</p>
+          </div>
+
+        </mat-tab>
+      </mat-tab-group>
+
+
+    </div>
+  </form>
+  <input #importFileInput type="file" (change)="importAppDataFromFile($event)" style="display:none;" />
+</div>
+
+<div *ngIf="!dataLoaded" class="page-content" fxLayoutAlign="center center" fxLayout="column">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</div>

@@ -1,0 +1,54 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm" title="Transfer from {{data.sourceAsset.description}}"
+    (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <mat-form-field *ngIf="!this.fullAssetTransfer">
+        <input matInput type="number" placeholder="Amount to transfer" required formControlName="amount">
+        <span matPrefix
+          *ngIf="data.sourceAsset.type === AssetType.Cash">{{data.sourceAsset.currency | currencySymbol}}</span>
+        <mat-error>Amount must be between 0 and {{maxAmount - fee.value | number}}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-select placeholder="Destination Account" formControlName="destinationAccount" required>
+          <mat-option *ngFor="let account of data.accounts" [value]="account">
+            {{account.description}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="data.sourceAsset.type === AssetType.Cash">
+        <mat-select placeholder="Destination cash sub-account" formControlName="destinationAsset" required>
+          <mat-option *ngFor="let asset of destinationCashAssets" [value]="asset">
+            {{asset.description}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="destinationCashAssets.length === 0">This account has no {{data.sourceAsset.currency}} cash
+          accounts</mat-error>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="data.sourceAsset.type === AssetType.Cash">
+        <input matInput type="number" placeholder="Fee" formControlName="fee">
+        <span matPrefix>{{ data.sourceAsset.currency | currencySymbol }}</span>
+        <mat-error>Fee must be positive</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="text" placeholder="Transaction Description" formControlName="description">
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput [max]="todayDate" [matDatepicker]="datepicker" required placeholder="Transaction Date"
+          formControlName="transactionDate">
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-error>Transaction date can't be in the future</mat-error>
+      </mat-form-field>
+
+      <mat-checkbox  *ngIf="data.sourceAsset.type === AssetType.Cash" formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
+      <mat-card [hidden]="!enableRecurringTransaction.value">
+        <app-recurring-transaction-input [form]="assetForm" #recurringTransaction></app-recurring-transaction-input>
+      </mat-card>
+    </div>
+  </app-edit-dialog>
+</form>

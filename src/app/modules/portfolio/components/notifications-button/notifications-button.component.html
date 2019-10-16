@@ -1,0 +1,23 @@
+<button type="button" aria-label="Notifications" mat-icon-button matTooltip="Notifications"
+  [disabled]="notifications.length === 0" [matMenuTriggerFor]="notificationsMenu">
+  <mat-icon *ngIf="unreadNotificationsCount > 0" [matBadge]="unreadNotificationsCount" matBadgeColor="warn">
+    notifications</mat-icon>
+  <mat-icon *ngIf="unreadNotificationsCount === 0">notifications</mat-icon>
+</button>
+
+<mat-menu #notificationsMenu="matMenu">
+  <ng-container *ngFor="let notification of notifications; trackBy: notificationIdTrackFn">
+    <div mat-menu-item *ngIf="!notification.pendingDelete" [ngClass]="{'unread': notification.unread}"
+      (click)="viewNotification(notification)">
+      <div>
+        <span fxFlex class="notification-title">{{notification.title}}</span>
+        <span>
+          <button type="button" aria-label="Delete Notification" mat-icon-button color="warn"
+            matTooltip="Delete Notification" (click)="deleteNotificationClick($event,notification)">
+            <mat-icon class="close-icon">close</mat-icon>
+          </button>
+        </span>
+      </div>
+    </div>
+  </ng-container>
+</mat-menu>

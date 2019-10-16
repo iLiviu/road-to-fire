@@ -1,0 +1,33 @@
+<div *ngIf="parentForm" [formGroup]="parentForm" fxLayout="column">
+  <mat-form-field>
+    <mat-select placeholder="Repeats" formControlName="recurringType" required>
+      <mat-option [value]="RecurringTransactionType.Daily">Daily</mat-option>
+      <mat-option [value]="RecurringTransactionType.Weekly">Weekly</mat-option>
+      <mat-option [value]="RecurringTransactionType.BiWeekly">Every 2 weeks</mat-option>
+      <mat-option [value]="RecurringTransactionType.Monthly">Monthly</mat-option>
+      <mat-option [value]="RecurringTransactionType.BiMonthly">Every 2 months</mat-option>
+      <mat-option [value]="RecurringTransactionType.Quarterly">Quarterly</mat-option>
+      <mat-option [value]="RecurringTransactionType.TriAnnual">Tri-annual</mat-option>
+      <mat-option [value]="RecurringTransactionType.SemiAnnual">Semi-annal</mat-option>
+      <mat-option [value]="RecurringTransactionType.Yearly">Yearly</mat-option>
+      <mat-option [value]="RecurringTransactionType.AfterGivenDays">In (x) days</mat-option>
+      <mat-option [value]="RecurringTransactionType.EveryGivenDays">Every (x) days</mat-option>
+      <mat-option [value]="RecurringTransactionType.EveryGivenMonths">Every (x) months</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field *ngIf="recurringType.value >= RecurringTransactionType.AfterGivenDays && recurringType.value <= RecurringTransactionType.EveryGivenMonths">
+    <input matInput type="number" placeholder="Period" formControlName="recurringPeriod" required>
+  </mat-form-field>
+
+  <mat-form-field *ngIf="recurringType.value != RecurringTransactionType.AfterGivenDays">
+    <input matInput type="number" placeholder="Transactions left" formControlName="recurringTransactionsLeft"
+      matTooltip="Leave blank if transactions continue forever">
+  </mat-form-field>
+
+
+  <mat-checkbox formControlName="autoApproveRecurring" matTooltip="The transaction will occur without user having to approve it">
+    Execute recurring transaction automatically
+  </mat-checkbox>
+
+</div>

@@ -1,0 +1,49 @@
+<form [formGroup]="paymentFormGroup">
+  <div mat-dialog-content fxLayout="column">
+
+    <mat-form-field>
+      <input matInput type="number" placeholder="{{data.amountCaption}}" required formControlName="paymentAmount">
+      <span matPrefix *ngIf="data.amountType === PaymentAmountType.Currency">{{data.currency | currencySymbol}}</span>
+      <span matSuffix *ngIf="data.amountType === PaymentAmountType.Percentage">%</span>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput [max]="data.maturityDate" [matDatepicker]="paymentDatePicker" required placeholder="Payment date"
+        formControlName="paymentDate">
+      <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #paymentDatePicker></mat-datepicker>
+      <mat-error>Payment date must be lower than maturity date</mat-error>
+    </mat-form-field>
+
+
+    <div fxLayout="row">
+      <mat-form-field fxFlex>
+        <mat-select placeholder="Repeats before maturity" #recurringPaymentType formControlName="paymentRepeatType"
+          required>
+          <mat-option [value]="RecurringTransactionType.Never">Does not repeat</mat-option>
+          <mat-option [value]="RecurringTransactionType.Daily">Daily</mat-option>
+          <mat-option [value]="RecurringTransactionType.Weekly">Weekly</mat-option>
+          <mat-option [value]="RecurringTransactionType.BiWeekly">Every 2 weeks</mat-option>
+          <mat-option [value]="RecurringTransactionType.Monthly">Monthly</mat-option>
+          <mat-option [value]="RecurringTransactionType.BiMonthly">Every 2 months</mat-option>
+          <mat-option [value]="RecurringTransactionType.Quarterly">Quarterly</mat-option>
+          <mat-option [value]="RecurringTransactionType.TriAnnual">Tri-annual</mat-option>
+          <mat-option [value]="RecurringTransactionType.SemiAnnual">Semi-annal</mat-option>
+          <mat-option [value]="RecurringTransactionType.Yearly">Yearly</mat-option>
+          <mat-option [value]="RecurringTransactionType.EveryGivenDays">Every (x) days</mat-option>
+          <mat-option [value]="RecurringTransactionType.EveryGivenMonths">Every (x) months</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field
+        *ngIf="recurringPaymentType.value >= RecurringTransactionType.AfterGivenDays && recurringPaymentType.value <= RecurringTransactionType.EveryGivenMonths"
+        required>
+        <input matInput type="number" placeholder="Period" formControlName="paymentRepeatPeriod">
+      </mat-form-field>
+    </div>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button [mat-dialog-close]="" cdkFocusInitial>Cancel</button>
+    <button mat-button (click)="dialogClosed(true)" [disabled]="!paymentFormGroup.valid">Add payment date(s)</button>
+  </div>
+</form>

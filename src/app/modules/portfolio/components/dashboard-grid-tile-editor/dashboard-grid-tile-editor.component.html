@@ -1,0 +1,10 @@
+<h2 mat-dialog-title>Grid Tiles Visibility</h2>
+<mat-dialog-content>
+  <div fxLayout="column" fxLayoutGap="16px">
+    <mat-slide-toggle *ngFor="let tile of gridTilesLabels" [(ngModel)]="gridVisibility[tile[0]]">
+      {{tile[1]}}</mat-slide-toggle>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Close</button>
+</mat-dialog-actions>

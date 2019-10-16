@@ -1,0 +1,58 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm" title="{{paymentTypeStr | titlecase}} from {{asset.description}}"
+    (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <mat-form-field>
+        <mat-select placeholder="Cash account" formControlName="cashAsset" required>
+          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+            {{asset.description}} ({{asset.amount | currency:asset.currency}})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="{{isRentable? 'Units':'Amount'}}" formControlName="amount" required>
+        <mat-error *ngIf="amount.errors?.min">Value must be greater than 0</mat-error>
+        <mat-error *ngIf="amount.errors?.invalidInt">Value must be an integer value</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <span matPrefix>@ {{assetCurrency | currencySymbol}}</span>
+        <input matInput type="number" placeholder="{{paymentTypeStr | titlecase}} value" formControlName="dividend"
+          required>
+        <mat-error>Value must be positive</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Fee" formControlName="fee">
+        <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
+        <mat-error>Fee must be positive</mat-error>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="withholdTax">Withold {{paymentTypeStr}} tax</mat-checkbox>
+      <mat-form-field *ngIf="withholdTax.value">
+        <input matInput type="number" placeholder="Tax rate" formControlName="taxRate">
+        <span matSuffix>%</span>
+        <mat-error>Value must be a number between 0 and 100</mat-error>
+      </mat-form-field>
+
+      <mat-checkbox *ngIf="!dividendTx.id" formControlName="updateCashAssetBalance">
+        Automatically credit cash account with {{(amount.value * dividend.value *
+      (withholdTax.value? (100 - taxRate.value) / 100 : 1)  - fee.value) | currency: assetCurrency}}
+      </mat-checkbox>
+
+      <mat-form-field>
+        <input matInput [matDatepicker]="datepicker" required placeholder="Transaction Date"
+          formControlName="transactionDate" (dateInput)="onTxDateChanged()">
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-hint *ngIf="isScheduledTx">Transaction will be scheduled</mat-hint>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
+      <mat-card [hidden]="!enableRecurringTransaction.value">
+        <app-recurring-transaction-input [form]="assetForm" #recurringTransaction></app-recurring-transaction-input>
+      </mat-card>
+    </div>
+  </app-edit-dialog>
+</form>

@@ -1,0 +1,9 @@
+@import 'src/app/theme_colors.scss';
+
+
+
+.list-header {
+  padding: 8px;
+  color: $app-table-header;
+  background-color: $app-table-header-background;
+}

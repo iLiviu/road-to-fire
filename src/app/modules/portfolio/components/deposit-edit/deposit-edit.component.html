@@ -1,0 +1,56 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm" title="{{data.asset.id? 'Edit':'New'}} Deposit" (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <mat-form-field>
+        <input matInput type="text" placeholder="Identifier" required formControlName="description">
+        <mat-error>Please enter a description</mat-error>
+      </mat-form-field>
+      <mat-form-field *ngIf="!data.asset.id">
+        <mat-select placeholder="Source Cash Account" formControlName="cashAsset" required>
+          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+            {{asset.description}} ({{asset.amount | currency:asset.currency}})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Deposit Amount" required formControlName="amount" #depositAmount>
+        <span matPrefix>{{selectedCashAsset.currency | currencySymbol}}</span>
+        <mat-error>Amount must be between 0 and {{selectedCashAsset.amount}}</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput type="number" placeholder="Interest Rate" formControlName="interestRate">
+        <span matSuffix>%</span>
+        <mat-error>Value must be a number</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput [max]="todayDate" [matDatepicker]="datepicker" placeholder="Creation Date"
+          formControlName="creationDate">
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-error>Creation date can't be in the future</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput [min]="todayDate" [matDatepicker]="maturitydatepicker" placeholder="Maturity Date"
+          formControlName="maturityDate">
+        <mat-datepicker-toggle matSuffix [for]="maturitydatepicker"></mat-datepicker-toggle>
+        <mat-datepicker #maturitydatepicker></mat-datepicker>
+        <mat-error>Maturity date can't be in the past</mat-error>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="withholdInterestTax">Withold interest tax</mat-checkbox>
+      <mat-form-field *ngIf="withholdInterestTax.value">
+        <input matInput type="number" placeholder="Tax rate" formControlName="interestTaxRate">
+        <span matSuffix>%</span>
+        <mat-error>Value must be a number between 0 and 100</mat-error>
+      </mat-form-field>
+
+      <mat-checkbox #autoRenewDeposit formControlName="autoRenew">Auto renew on maturity</mat-checkbox>
+      <mat-checkbox *ngIf="autoRenewDeposit.checked" formControlName="capitalize">Capitalize interest</mat-checkbox>
+
+      <mat-checkbox *ngIf="!data.asset.id" formControlName="debitAccount" (change)="debitAccountToggled()">Automatically
+        debit cash account with {{depositAmount.value | currency:selectedCashAsset.currency}}</mat-checkbox>
+    </div>
+  </app-edit-dialog>
+</form>

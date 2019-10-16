@@ -1,0 +1,34 @@
+<div fxLayout="row">
+  <span fxFlex></span>
+  <span fxLayoutAlign="center center">
+    <mat-form-field>
+      <mat-select placeholder="Group by" [(value)]="groupBy" (selectionChange)="groupByChanged()">
+        <mat-option value="0">None</mat-option>
+        <mat-option value="1" *ngIf="multiAccount">Parent Account</mat-option>
+        <mat-option value="2">Currency</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </span>
+</div>
+
+<mat-nav-list dense *ngIf="groupBy === AssetGroupBy.None">
+  <ng-container *ngFor="let viewAsset of assets; trackBy: assetIdTrackFn">
+    <app-cash-list-item *ngIf="viewAsset.asset.type == AssetType.Cash" [viewAsset]="viewAsset"></app-cash-list-item>
+    <app-deposit-list-item *ngIf="viewAsset.asset.type == AssetType.Deposit" [viewAsset]="viewAsset"></app-deposit-list-item>
+
+  </ng-container>
+</mat-nav-list>
+
+<div *ngIf="groupBy !== AssetGroupBy.None">
+  <mat-card class="card" *ngFor="let group of groups | keyvalue">
+    <mat-card-title>{{group.key}}</mat-card-title>
+    <mat-card-content>
+      <mat-nav-list dense>
+        <ng-container *ngFor="let viewAsset of group.value; trackBy: assetIdTrackFn">
+          <app-cash-list-item *ngIf="viewAsset.asset.type == AssetType.Cash" [viewAsset]="viewAsset"></app-cash-list-item>
+          <app-deposit-list-item *ngIf="viewAsset.asset.type == AssetType.Deposit" [viewAsset]="viewAsset"></app-deposit-list-item>
+        </ng-container>
+      </mat-nav-list>
+    </mat-card-content>
+  </mat-card>
+</div>

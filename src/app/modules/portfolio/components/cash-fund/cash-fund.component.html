@@ -1,0 +1,40 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm"
+    title="{{data.transactionType == TransactionType.CreditCash? 'Credit':'Debit'}} {{data.asset.description}}"
+    (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <mat-form-field>
+        <input matInput type="number" placeholder="Amount" required formControlName="amount">
+        <span matPrefix>{{data.asset.currency | currencySymbol}}</span>
+        <mat-error *ngIf="amount.errors?.invalidRange">Amount must be between 0 and {{data.asset.amount - fee.value | number}}
+        </mat-error>
+        <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Fee" formControlName="fee">
+        <span matPrefix>{{data.asset.currency | currencySymbol}}</span>
+        <mat-error *ngIf="fee.errors?.min">Fee must be positive</mat-error>
+      </mat-form-field>
+
+
+      <mat-form-field>
+        <input matInput type="text" placeholder="Transaction Description" formControlName="description">
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput [matDatepicker]="datepicker" placeholder="Transaction Date"
+          formControlName="transactionDate" required (dateInput)="onTxDateChanged()">
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-error>Transaction date can't be in the future</mat-error>
+        <mat-hint *ngIf="isScheduledTx">Transaction will be scheduled</mat-hint>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
+      <mat-card [hidden]="!enableRecurringTransaction.value">
+        <app-recurring-transaction-input [form]="assetForm" #recurringTransaction></app-recurring-transaction-input>
+      </mat-card>
+    </div>
+  </app-edit-dialog>
+</form>

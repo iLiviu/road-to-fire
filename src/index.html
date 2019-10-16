@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Loading...</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" type="image/x-icon" href="assets/img/favicon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#fafafa">
+
+
+  <style>
+    /* loading circle */
+    .loader {
+      margin: 0 auto;
+      width: 60px;
+      position: absolute;
+      display: block;
+      left: 0;
+      right: 0;
+      z-index: 1;
+      -webkit-transform: translate3d(0, -50%, 0);
+      -moz-transform: translate3d(0, -50%, 0);
+      -o-transform: translate3d(0, -50%, 0);
+      -ms-transform: translate3d(0, -50%, 0);
+      transform: translate3d(0, -50%, 0);
+      text-align: center;
+      top: 50%;
+    }
+
+    .loader:before {
+      content: '';
+      display: block;
+      padding-top: 100%;
+    }
+
+    .circular {
+      animation: rotate 2s linear infinite;
+      height: 100%;
+      transform-origin: center center;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
+    }
+
+    .path {
+      stroke-dasharray: 1, 200;
+      stroke-dashoffset: 0;
+      animation: dash 1.5s ease-in-out infinite, color 2s ease-in-out infinite;
+      stroke-linecap: round;
+    }
+
+    @keyframes rotate {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes dash {
+      0% {
+        stroke-dasharray: 1, 200;
+        stroke-dashoffset: 0;
+      }
+
+      50% {
+        stroke-dasharray: 89, 200;
+        stroke-dashoffset: -35px;
+      }
+
+      100% {
+        stroke-dasharray: 89, 200;
+        stroke-dashoffset: -124px;
+      }
+    }
+
+    @keyframes color {
+
+      100%,
+      0% {
+        stroke: #9c27b0;
+      }
+
+      50% {
+        stroke: #ff9800;
+      }
+
+      100% {
+        stroke: #9c27b0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="rstorageWidget" class="remotestorage-widget"></div>
+  <app-root style="height: 100%;">
+    <div class="loader">
+      <p>Loading...</p>
+      <svg class="circular" viewBox="25 25 50 50">
+        <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
+      </svg>
+    </div>
+  </app-root>
+  <noscript>Please enable JavaScript to continue using this application.</noscript>
+</body>
+
+</html>

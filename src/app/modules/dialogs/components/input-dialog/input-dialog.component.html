@@ -1,0 +1,11 @@
+<h2 mat-dialog-title *ngIf="data.title">{{data.title}}</h2>
+<mat-dialog-content>
+  <p>{{data.prompt}}</p>
+  <mat-form-field>
+    <input matInput [type]="inputType" [(ngModel)]="data.response" cdkFocusInitial>
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions  align="center">
+  <button mat-button [mat-dialog-close]="">Cancel</button>
+  <button mat-button [mat-dialog-close]="data.response">OK</button>
+</mat-dialog-actions>

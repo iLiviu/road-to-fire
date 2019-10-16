@@ -1,0 +1,44 @@
+<form [formGroup]="historyForm" fxLayout="column">
+  <app-edit-dialog [form]="historyForm" title="Edit Portfolio History Data" (close)="dialogClosed($event)">
+    <div fxLayout="column" class="text-content">
+      <mat-form-field>
+        <input matInput [max]="todayDate" [matDatepicker]="datepicker" required placeholder="Input Date"
+          formControlName="portfolioDate" (dateInput)="onDateChanged()">
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-error>Portfolio date can't be in the future</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Cash" [formControlName]="AssetType.Cash" required>
+        <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Bonds" [formControlName]="AssetType.Bond" required>
+        <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Commodities" [formControlName]="AssetType.Commodity" required>
+        <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Cryptocurrencies" [formControlName]="AssetType.Cryptocurrency"
+          required>
+        <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Real Estate" [formControlName]="AssetType.RealEstate" required>
+        <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Stocks" [formControlName]="AssetType.Stock" required>
+        <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
+      </mat-form-field>
+    </div>
+  </app-edit-dialog>
+</form>

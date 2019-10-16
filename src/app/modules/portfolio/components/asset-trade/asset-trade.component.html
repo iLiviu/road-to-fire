@@ -1,0 +1,220 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm"
+    title="{{data.action === AssetTradeAction.BUY? 'Buy '+assetLabel:((data.action === AssetTradeAction.SELL)?'Sell ':'Edit ') + data.asset.description}}"
+    (close)="dialogClosed($event)" #editDialog>
+    <div [ngClass]="{ 'header-less-tabs': singleTabEdit, 'handset': editDialog.isHandset}" class="fill-dialog-height">
+      <mat-tab-group [swipeTabs]="{hasSideNav: true}" class="mat-tab-group-fill-height">
+        <mat-tab label="Main">
+          <div fxLayout="column" class="text-content">
+            <mat-form-field
+              *ngIf="data.assetType !== AssetType.RealEstate && !isMutualFund && data.action !== AssetTradeAction.SELL">
+              <input type="text" placeholder="Securities Exchange Code" matInput [formControl]="exchange"
+                [matAutocomplete]="exchangeCode">
+              <mat-autocomplete #exchangeCode="matAutocomplete">
+                <mat-option *ngFor="let exchange of filteredSupportedExchanges | async" [value]="exchange.code">
+                  {{exchange.code}} - {{exchange.name}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="data.assetType !== AssetType.RealEstate && data.action !== AssetTradeAction.SELL">
+              <input matInput type="text" placeholder="Symbol" formControlName="symbol">
+              <mat-error>Please enter either short stock symbol or ISIN</mat-error>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="data.action !== AssetTradeAction.SELL">
+              <input matInput type="text" placeholder="Title" formControlName="description" required>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="stockLikeAsset && data.action !== AssetTradeAction.SELL">
+              <mat-select placeholder="Stock type" formControlName="stockType" required>
+                <mat-option [value]="AssetType.Stock">Stock</mat-option>
+                <mat-option [value]="AssetType.StockETF">Stock ETF</mat-option>
+                <mat-option [value]="AssetType.BondETF">Bond ETF</mat-option>
+                <mat-option [value]="AssetType.MoneyMarketETF">Money Market ETF</mat-option>
+                <mat-option [value]="AssetType.CommodityETF">Commodity ETF</mat-option>
+                <mat-option [value]="AssetType.StockMutualFund">Stock Mutual Fund</mat-option>
+                <mat-option [value]="AssetType.BondMutualFund">Bond Mutual Fund</mat-option>
+                <mat-option [value]="AssetType.CommodityMutualFund">Commodity Mutual Fund</mat-option>
+                <mat-option [value]="AssetType.MoneyMarketMutualFund">Money Market Mutual Fund</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="data.action !== AssetTradeAction.SELL">
+              <mat-select placeholder="Asset Region" formControlName="region">
+                <mat-option [value]="AssetRegion.Unspecified">Unspecified</mat-option>
+                <mat-option [value]="AssetRegion.NorthAmerica">North America</mat-option>
+                <mat-option [value]="AssetRegion.LatinAmerica">Latin America</mat-option>
+                <mat-option [value]="AssetRegion.DevelopedEurope">Developed Europe</mat-option>
+                <mat-option [value]="AssetRegion.EmergingEurope">Emerging Europe</mat-option>
+                <mat-option [value]="AssetRegion.Pacific">Pacific</mat-option>
+                <mat-option [value]="AssetRegion.Asia">Asia</mat-option>
+                <mat-option [value]="AssetRegion.Africa">Africa</mat-option>
+                <mat-option [value]="AssetRegion.EmergingGlobal">Emerging Global</mat-option>
+                <mat-option [value]="AssetRegion.All">Global</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="data.action !== AssetTradeAction.EDIT">
+              <mat-select placeholder="Cash account" formControlName="cashAsset" required>
+                <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                  {{asset.description}} ({{asset.amount | currency:asset.currency}})
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="number" placeholder="Amount" formControlName="amount" required>
+              <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
+              <mat-error *ngIf="amount.errors?.max">Amount can not exceed {{data.position.amount}}</mat-error>
+              <mat-error *ngIf="amount.errors?.invalidTransaction">Transaction value exceeds cash balance
+                ({{cashAsset.value?.amount | currency: assetCurrency}})</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <span matPrefix>@</span>
+              <input matInput type="number" placeholder="Price per unit" formControlName="price" required>
+              <span matPrefix>{{assetCurrency | currencySymbol}}</span>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="data.action !== AssetTradeAction.EDIT">
+              <input matInput type="number" placeholder="Fee" formControlName="fee">
+              <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
+              <mat-error>Fee must be positive</mat-error>
+            </mat-form-field>
+
+            <ng-container *ngIf="data.assetType === AssetType.Bond && data.action !== AssetTradeAction.SELL">
+              <mat-form-field>
+                <input matInput type="number" placeholder="Coupon interest rate" formControlName="couponRate" required>
+                <span matSuffix>%</span>
+              </mat-form-field>
+
+              <mat-form-field>
+                <input matInput type="number" placeholder="Principal value" formControlName="principalAmount" required>
+                <span matPrefix>{{assetCurrency | currencySymbol}}</span>
+              </mat-form-field>
+
+              <mat-form-field>
+                <input matInput [matDatepicker]="datepicker" placeholder="Maturity Date" formControlName="maturityDate"
+                  required>
+                <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+                <mat-datepicker #datepicker></mat-datepicker>
+              </mat-form-field>
+            </ng-container>
+
+            <mat-checkbox *ngIf="data.action !== AssetTradeAction.EDIT" formControlName="updateCashAssetBalance"
+              (change)="updateCashAssetBalanceToggled()">
+              Automatically {{data.action === AssetTradeAction.BUY? 'debit':'credit'}} cash account with {{(amount.value *
+      price.value + fee.value * (data.action === AssetTradeAction.BUY? 1:-1) ) | currency: assetCurrency}}
+            </mat-checkbox>
+
+            <mat-form-field>
+              <input matInput [max]="todayDate" [matDatepicker]="datepicker" required placeholder="Transaction Date"
+                formControlName="transactionDate">
+              <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+              <mat-datepicker #datepicker></mat-datepicker>
+              <mat-error>Transaction date can't be in the future</mat-error>
+            </mat-form-field>
+          </div>
+        </mat-tab>
+        <mat-tab *ngIf="!singleTabEdit" label="Interest payment dates">
+          <div fxLayout="column" fxLayoutGap="8px" class="full-height">
+            <mat-toolbar>
+              <ng-container *ngIf="interestPayments.selectedOptions.selected.length === 0">
+                <span fxFlex> </span>
+                <button type="button" aria-label="Add Payment date(s)" (click)="addInterestPayment()" mat-button
+                  color="primary">
+                  <mat-icon>add</mat-icon>
+                  Add date(s)
+                </button>
+              </ng-container>
+              <ng-container *ngIf="interestPayments.selectedOptions.selected.length > 0">
+                <span fxFlex>{{interestPayments.selectedOptions.selected.length}} selected</span>
+                <button type="button" aria-label="Check All" mat-button color="primary"
+                  (click)="checkAllPayments(interestPayments)">
+                  <mat-icon>
+                    {{ interestPayments.selectedOptions.selected.length === interestPayments.options.length? 'check_box': 'check_box_outline_blank'}}
+                  </mat-icon>
+                  Check All
+                </button>
+
+                <button type="button" aria-label="Delete Payments" mat-icon-button color="primary"
+                  matTooltip="Delete Payments" (click)="deleteInterestPayments(interestPayments)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </ng-container>
+
+            </mat-toolbar>
+
+            <mat-selection-list class="payment-list" #interestPayments>
+              <mat-list-option *ngFor="let interestPayment of interestPaymentSchedule">
+                <p matLine>
+                  <span fxFlex>{{ interestPayment.paymentDate | formatDate}}</span>
+                  <span *ngIf="interestPayment.couponRate">{{ interestPayment.couponRate | percent:'1.0-2'}}</span>
+                </p>
+              </mat-list-option>
+            </mat-selection-list>
+
+            <mat-form-field>
+              <input matInput [matDatepicker]="previousInterestDatepicker" placeholder="Previous payment date"
+                formControlName="previousInterestPaymentDate">
+              <mat-datepicker-toggle matSuffix [for]="previousInterestDatepicker"></mat-datepicker-toggle>
+              <mat-datepicker #previousInterestDatepicker></mat-datepicker>
+            </mat-form-field>
+            
+            <mat-checkbox formControlName="withholdInterestTax" class="bottom-margin">Withold interest tax</mat-checkbox>
+            <mat-form-field *ngIf="withholdInterestTax.value">
+              <input matInput type="number" placeholder="Tax rate" formControlName="interestTaxRate">
+              <span matSuffix>%</span>
+              <mat-error>Value must be a number between 0 and 100</mat-error>
+            </mat-form-field>
+
+
+          </div>
+        </mat-tab>
+        <mat-tab *ngIf="!singleTabEdit" label="Principal payment dates">
+          <div fxLayout="column" class="full-height">
+            <mat-toolbar>
+              <ng-container *ngIf="principalPayments.selectedOptions.selected.length === 0">
+                <span fxFlex> </span>
+                <button type="button" aria-label="Add Payment date(s)" (click)="addPrincipalPayment()" mat-button
+                  color="primary">
+                  <mat-icon>add</mat-icon>
+                  Add date(s)
+                </button>
+              </ng-container>
+              <ng-container *ngIf="principalPayments.selectedOptions.selected.length > 0">
+                <span fxFlex>{{principalPayments.selectedOptions.selected.length}} selected</span>
+                <button type="button" aria-label="Check All" mat-button color="primary"
+                  (click)="checkAllPayments(principalPayments)">
+                  <mat-icon>
+                    {{ principalPayments.selectedOptions.selected.length === principalPayments.options.length? 'check_box': 'check_box_outline_blank'}}
+                  </mat-icon>
+                  Check All
+                </button>
+
+                <button type="button" aria-label="Delete Payments" mat-icon-button color="primary"
+                  matTooltip="Delete Payments" (click)="deletePrincipalPayments(principalPayments)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </ng-container>
+
+            </mat-toolbar>
+            <mat-selection-list class="payment-list" #principalPayments>
+              <mat-list-option *ngFor="let principalPayment of principalPaymentSchedule">
+                <p matLine>
+                  <span fxFlex>{{ principalPayment.date | formatDate}}</span>
+                  <span>{{ principalPayment.amount | currency: assetCurrency}}</span>
+                </p>
+              </mat-list-option>
+            </mat-selection-list>
+
+
+          </div>
+        </mat-tab>
+
+      </mat-tab-group>
+    </div>
+
+  </app-edit-dialog>
+</form>

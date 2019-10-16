@@ -1,0 +1,20 @@
+{
+  "name": "Road To FIRE",
+  "short_name": "Road To FIRE",
+  "description": "Asset Portfolio manager.",
+  "theme_color": "#fff",
+  "background_color": "#fff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/?utm_source=homescreen",
+  "icons": [  {
+    "src": "/assets/img/favicon_192.png",
+    "type": "image/png",
+    "sizes": "192x192"
+  },
+  {
+    "src": "/assets/img/favicon_512.png",
+    "type": "image/png",
+    "sizes": "512x512"
+  }]
+}

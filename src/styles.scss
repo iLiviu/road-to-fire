@@ -1,0 +1,213 @@
+@import './app/theme.scss';
+@import url('https://fonts.googleapis.com/css?family=Material+Icons');
+@import url('https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300');
+
+
+html, body {
+  height: 100%;
+  width: 100%;
+
+  font-family: 'Roboto Condensed', Arial, sans-serif;
+  margin: 0;
+
+  /* behave like an app and disable text selection */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;  
+}
+
+.fab-bottom-right {
+    z-index:100; 
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+}
+
+
+.mat-list-item-content {
+  padding: 0 8px !important;
+}
+
+.mat-nav-list .mat-list-item {
+  width: auto !important;
+}
+
+.mat-nav-list .mat-list-item .mat-list-icon {
+  padding: 0px !important;
+  
+}
+
+.card {
+  margin: 16px;
+}
+
+.page-content { 
+  overflow: auto;
+  height: calc(100vh - 64px);
+  max-height: calc(100vh - 64px);
+  box-sizing: border-box;
+}
+
+.text-content {
+  padding: 16px;
+
+}
+
+.positive {
+  color: $app-positive;
+}
+
+.negative {
+  color: $app-negative;
+}
+
+.neutral {
+  color: $app-neutral;
+}
+
+.success-panel {
+  background: $app-info-background;
+}
+
+.success-panel .mat-simple-snackbar-action {
+  color: $app-info-action;
+
+}
+
+.error-panel {
+  background: $app-error-background;
+}
+
+.full-screen-dialog {
+  height: 100vh;
+  width: 100vw !important;
+  max-width: none !important;
+}
+
+.desktop-dialog {
+  min-width: 450px;
+}
+
+.full-screen-dialog .mat-dialog-container {
+    padding: 0px;
+}
+
+.loader-container {
+  height: 100vh;
+  width: 100vw;
+  position:absolute; 
+  left: 0px; 
+  top:0px; 
+  background: $app-background-color; 
+  z-index: 9;
+
+}
+
+.right-align {
+  text-align: right !important;
+}
+
+.align-center {
+  text-align: center;
+
+}
+
+.remotestorage-widget {
+  position:fixed; 
+  left: 0px; 
+  bottom: 0px;
+  z-index: 3;
+  display: none;
+}
+
+@mixin md-icon-size($size: 24px) {
+  font-size: $size !important;
+  height: $size !important;
+  width: $size !important;
+}
+
+.md-icon-16 {
+  @include md-icon-size(16px);
+}
+
+.md-icon-18 {
+  @include md-icon-size(18px);
+}
+
+.md-icon-24 {
+  @include md-icon-size(24px);
+}
+
+.md-icon-36 {
+  @include md-icon-size(36px);
+}
+
+.md-icon-48 {
+  @include md-icon-size(48px);
+}
+
+.preformatted {
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+.top-toolbar {
+  position: relative;
+  z-index: 1;
+}
+
+.page-progressbar {
+  position: fixed !important;
+  top: calc(50vh - 50px);
+  left: calc(50vw - 50px);
+}
+
+
+/* unvisited link */
+a:link {
+    color:$app-link-color;
+}
+
+/* visited link */
+a:visited {
+    color: $app-link-color;
+}
+
+/* mouse over link */
+a:hover {
+    color: $app-link-hover-color;
+}
+
+/* selected link */
+a:active {
+    color: $app-link-active-color;
+}
+
+.mat-tab-group-fill-height {
+  height: 100%;
+}
+.mat-tab-group.mat-tab-group-fill-height .mat-tab-body-wrapper {
+    flex: 1 1 100%;
+ }
+
+ .cdk-virtual-scroll-viewport.list-viewport .cdk-virtual-scroll-content-wrapper {
+  max-width: 100%;
+ }
+
+ #remotestorage-widget {
+   position: relative !important;
+ }
+
+ .header-less-tabs .mat-tab-group .mat-tab-header { 
+   display: none; 
+  }
+
+  [hidden] {
+  display: none !important;
+}

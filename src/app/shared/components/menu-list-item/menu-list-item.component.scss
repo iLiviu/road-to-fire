@@ -1,0 +1,37 @@
+@import '../../../theme_colors.scss';
+
+:host {
+  display: block;
+  outline: none;
+
+  .mat-list-item.active {
+    background-color: $app-selected-background;
+  }
+  &:hover,
+  &:focus {
+    >.mat-list-item:not(.expanded) {
+      background-color: $app-hover-background !important;
+    }
+  }
+}
+
+.mat-list-item {
+  padding: 5px 0;
+
+  .routeIcon {
+    margin-right: 20px;
+  }
+}
+
+.level0 {
+    padding-left: 0px;
+}
+
+.level1 {
+    padding-left: 24px;
+}
+
+.level2 {
+    padding-left: 48px;
+}
+

@@ -1,0 +1,44 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm" title="Exchange" (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <mat-form-field>
+        <mat-select placeholder="Destination Account" formControlName="destinationAsset" required>
+          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+            {{asset.description}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput type="number" placeholder="Exchange Amount" required formControlName="amount">
+        <span matPrefix>{{data.sourceAsset.currency | currencySymbol}}</span>
+        <mat-error>Amount must be between 0 and {{data.sourceAsset.amount - fee.value | number}}</mat-error>
+
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput type="number" placeholder="Exchange rate" required formControlName="rate">
+        <mat-error>Rate must be positive</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Fee" formControlName="fee">
+        <span matPrefix>{{ data.sourceAsset.currency | currencySymbol }}</span>
+        <mat-error>Fee must be positive</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput type="text" placeholder="Transaction Description" formControlName="description">
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput [max]="todayDate" [matDatepicker]="datepicker" placeholder="Transaction Date"
+          formControlName="transactionDate" required>
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-error>Transaction date can't be in the future</mat-error>
+      </mat-form-field>
+      <div *ngIf="destinationAsset.value">
+        {{destinationAsset.value.description}} will be credited with {{amount.value*rate.value |
+      currency:destinationAsset.value.currency}}
+      </div>
+    </div>
+  </app-edit-dialog>
+</form>

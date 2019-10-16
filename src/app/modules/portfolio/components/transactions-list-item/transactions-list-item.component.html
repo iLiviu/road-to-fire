@@ -1,0 +1,32 @@
+<mat-list-item class="list-item" [ngClass]="{'positive':isCredit, 'negative':isDebit}" (click)="viewTransaction()">
+    <mat-checkbox class="item-checkbox" [(ngModel)]="selected" (click)="preventDefault($event)" (change)="selectionChanged($event)">
+    </mat-checkbox>
+  <mat-icon mat-list-icon>{{TRANSACTION_ICONS[tx.type]}}</mat-icon>
+
+  <h6 mat-line>
+    <span fxFlex>{{tx.description}}</span>
+  </h6>
+
+  <p mat-line>
+    <span *ngIf="tx.type !== TransactionType.Transfer" fxFlex>
+      {{tx.asset.accountDescription}}
+    </span>
+    <span *ngIf="tx.type === TransactionType.Transfer" fxFlex>{{tx.asset.description}}
+      ({{tx.asset.accountDescription }}) &gt;
+      {{tx.otherAsset.description}} ({{tx.otherAsset.accountDescription }})
+    </span>
+
+    <span *ngIf="tx.type !== TransactionType.Exchange">
+      {{(isDebit? '-':'') + tx.value | currency:tx.asset.currency}}
+    </span>
+    <span *ngIf="tx.type === TransactionType.Exchange">
+      {{tx.amount | currency:tx.asset.currency}} > {{tx.value | currency:tx.otherAsset.currency }}
+    </span>
+  </p>
+
+  <p mat-line>
+    <span fxFlex>{{tx.date | formatDate}}</span>
+    <span *ngIf="tx.fee">Fee: {{ tx.fee | currency:tx.asset.currency}}</span>
+  </p>
+
+</mat-list-item>

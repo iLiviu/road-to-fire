@@ -1,0 +1,21 @@
+<mat-list-item (click)="view()">
+  <button type="button" aria-label="Actions" mat-icon-button [matMenuTriggerFor]="menu" (click)="onItemMenu($event)" matTooltip="Actions">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="creditAccount()">Credit</button>
+    <button mat-menu-item (click)="debitAccount()">Debit</button>
+    <button mat-menu-item (click)="exchange()">Exchange</button>
+    <button mat-menu-item (click)="transfer()">Transfer</button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="edit()">Edit</button>
+    <button mat-menu-item (click)="delete()">Delete</button>
+  </mat-menu>
+  <h4 mat-line>
+    <span fxFlex>{{viewAsset.asset.description || viewAsset.asset.currency}}</span>
+    <span [ngClass]="{'negative': viewAsset.currentValue < 0 }">{{viewAsset.currentValue | currency:viewAsset.asset.currency}}</span>
+  </h4>
+  <h6 mat-line>
+    <span fxFlex>{{viewAsset.account.description}} </span>
+  </h6>
+</mat-list-item>

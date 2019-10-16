@@ -1,0 +1,14 @@
+@import 'src/app/theme_colors.scss';
+
+.list-item {
+  max-width: 100%;
+
+}
+
+.positive {
+  color: $app-positive;
+}
+
+.negative {
+  color: $app-negative;
+}

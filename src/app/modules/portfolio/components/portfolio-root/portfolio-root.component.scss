@@ -1,0 +1,16 @@
+ @import 'src/app/shared/components/menu-list-item/menu-list-item.component.scss';
+ 
+ .sidenav {
+    width: 260px;
+}
+
+.app-container {    
+    min-width: 100%;
+    min-height: 100%;
+    height: 100%;
+}
+
+.mat-list-item:hover,
+.mat-list-item:focus {
+      background-color: $app-hover-background !important;
+  }

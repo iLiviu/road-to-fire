@@ -1,0 +1,128 @@
+<mat-toolbar color="primary" class="top-toolbar mat-elevation-z5">
+  <mat-toolbar-row fxLayout="row">
+    <div fxFlex>
+      <span>{{APP_CONSTS.TITLE}}</span>
+    </div>
+    <button mat-stroked-button [disabled]="wizardDone" (click)="onSkipWizard()">Skip Wizard</button>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<div class="page-content">
+  <mat-vertical-stepper linear labelPosition="bottom">
+    <mat-step label="Welcome">
+      <p>{{APP_CONSTS.TITLE}} let's you keep track of your financial assets. It's aimed at passive investors, that don't
+        need to know how they're assets are doing in real-time. Because your privacy is important, all data is saved on
+        your device or your cloud storage account. No data about your portfolio is sent to us (other than asset symbols,
+        in order to get their current price).</p>
+      <p>Let's go through some steps to setup the basic configuration for the app. If you are already familiar with the
+        app, you can skip this wizard.</p>
+      <div fxLayout="row" fxLayoutAlign="end">
+        <button type="button" mat-raised-button matStepperNext color="primary">Next</button>
+      </div>
+    </mat-step>
+
+    <mat-step label="Sync to Cloud" [stepControl]="cloudSyncForm">
+      <form [formGroup]="cloudSyncForm">
+        <p>
+          The application's data is stored in your browser's local storage by default. This means that if you uninstall
+          your browser, switch to another browser or device, clear your browsing data, or browser decides to clear it if you run
+          out of space, the application's data will be lost. To avoid this, you can let the app store the data on your cloud storage account.
+          This way, you will be able to switch between devices, and your data will be automatically synced between them. You can use
+          your RemoteStorage, Dropbox or Google Drive account (we recommend RemoteStorage as it works the best with the
+          app. You can either <a href="https://wiki.remotestorage.io/Servers" target="_blank">host your own
+            RemoteStorage
+            server</a>, or use a free service like <a href="https://5apps.com/storage" target="_blank">5apps</a>).
+        </p>
+        <p>
+          You will be able to connect with your cloud storage account after you finish the wizard.
+        </p>
+        <mat-checkbox formControlName="saveOnCloud">Sync data across your
+          devices </mat-checkbox>
+        <div fxLayout="row" fxLayoutAlign="end">
+          <button type="button" mat-raised-button matStepperNext color="primary"
+            [disabled]="!cloudSyncForm.valid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step label="Encryption" [stepControl]="encryptionForm">
+      <form [formGroup]="encryptionForm">
+        <p>
+          Encrypting the application data helps protect your privacy if you share your computer or your cloud storage
+          account.
+        </p>
+        <p class="mat-error">
+          Warning: The application data is encrypted using the password you set! If you forget your password, you
+          won't be able to recover your data!
+        </p>
+
+        <mat-checkbox formControlName="passwordProtect" (change)="onPasswordProtectionToggled()" #passProtect>Password
+          protect application data</mat-checkbox>
+
+        <div *ngIf="passProtect.checked" fxLayout="column">
+          <mat-form-field>
+            <input matInput type="password" placeholder="Password" formControlName="configPassword"
+              autocomplete="app-password" required>
+          </mat-form-field>
+
+          <mat-form-field>
+            <input matInput type="password" placeholder="Confirm Password" formControlName="configPasswordConfirm"
+              autocomplete="app-password" required>
+            <mat-error *ngIf="configPasswordConfirm.errors?.different">Passwords do not match</mat-error>
+          </mat-form-field>
+
+        </div>
+
+        <div fxLayout="row" fxLayoutAlign="end">
+          <button type="button" mat-raised-button matStepperNext color="primary"
+            [disabled]="!encryptionForm.valid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step label="Base Currency" [stepControl]="baseCurrencyForm">
+      <form [formGroup]="baseCurrencyForm" fxLayout="column">
+        <p>If you have assets that are based in different currencies, the total value of your assets will be calculated
+          in the currency you set as default (base). For example, if you have both US Dollars and Euro cash accounts,
+          and your base currency is set to Euro, the sum of your assets will be calculated in Euros based on the current
+          USD/EUR forex exchange rate that the program will automatically get.
+        </p>
+        <mat-form-field>
+          <mat-select placeholder="Base Currency" required formControlName="baseCurrency" #baseCurrencyCtl>
+            <mat-option *ngFor="let currency of currencyCodes" [value]="currency.code">
+              {{currency.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div fxLayout="row" fxLayoutAlign="end">
+          <button type="button" mat-raised-button matStepperNext color="primary"
+            [disabled]="!baseCurrencyForm.valid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step label="FIRE" [stepControl]="fireForm">
+      <form [formGroup]="fireForm" (ngSubmit)="onWizardDone()" fxLayout="column">
+        <mat-form-field>
+          <input matInput type="number" placeholder="Financial Independence Goal" formControlName="fireNumber" min="0"
+            required>
+          <span matPrefix>&nbsp;{{ baseCurrencyCtl.value | currencySymbol}}</span>
+          <mat-error>Please enter a positive number</mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+          <input matInput type="number" placeholder="Safe Withdrawal Rate" formControlName="swr" min="0" required>
+          <span matPrefix>%</span>
+          <mat-error>Please enter a positive number</mat-error>
+        </mat-form-field>
+
+        <div fxLayout="row" fxLayoutAlign="end">
+          <button type="submit" mat-raised-button matStepperNext color="primary"
+            [disabled]="wizardDone || !fireForm.valid">Finish</button>
+        </div>
+
+      </form>
+
+
+    </mat-step>
+
+
+  </mat-vertical-stepper>
+</div>

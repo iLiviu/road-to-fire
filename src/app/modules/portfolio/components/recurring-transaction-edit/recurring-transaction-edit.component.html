@@ -1,0 +1,84 @@
+<form *ngIf="assetForm" [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm" title="Edit Recurring Transaction" (close)="dialogClosed($event)">
+
+    <div fxLayout="column" class="text-content">
+      <mat-form-field>
+        <input matInput type="text" placeholder="Transaction Description" formControlName="description">
+      </mat-form-field>
+
+      <p>
+        <app-recurring-transaction-input [form]="assetForm" [recurringTransaction]="recTx" #recTxInput>
+        </app-recurring-transaction-input>
+      </p>
+
+      <mat-form-field>
+        <input matInput [matDatepicker]="datepicker" placeholder="Start Date" formControlName="transactionDate"
+          required>
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+      </mat-form-field>
+
+
+      <ng-container *ngIf="sourceAccount">
+        <mat-form-field>
+          <mat-select placeholder="{{isCredit? 'Destination':'Source'}} Account" formControlName="sourceAccount"
+            required>
+            <mat-option *ngFor="let account of accounts" [value]="account">
+              {{account.description}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-select placeholder="{{isCredit? 'Destination':'Source'}} cash sub-account" formControlName="sourceAsset"
+            required>
+            <mat-option *ngFor="let asset of sourceCashAssets" [value]="asset">
+              {{asset.description}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="sourceCashAssets.length === 0">This account has no cash accounts</mat-error>
+        </mat-form-field>
+      </ng-container>
+
+      <ng-container *ngIf="destinationAccount">
+        <mat-form-field>
+          <mat-select placeholder="Destination Account" formControlName="destinationAccount" required>
+            <mat-option *ngFor="let account of accounts" [value]="account">
+              {{account.description}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field *ngIf="sourceAsset.value?.type === AssetType.Cash">
+          <mat-select placeholder="Destination cash sub-account" formControlName="destinationAsset" required>
+            <mat-option *ngFor="let asset of destinationCashAssets" [value]="asset">
+              {{asset.description}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="destinationCashAssets.length === 0">This account has no {{sourceAsset.value?.currency}}
+            cash
+            accounts</mat-error>
+        </mat-form-field>
+      </ng-container>
+
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Value" required formControlName="amount">
+        <span matPrefix>{{sourceAsset?.value?.currency | currencySymbol}}</span>
+        <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Fee" formControlName="fee">
+        <span matPrefix>{{sourceAsset?.value?.currency | currencySymbol}}</span>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="withholdingTax">
+        <input matInput type="number" placeholder="Withhold tax" formControlName="withholdingTax">
+        <span matPrefix>{{sourceAsset?.value?.currency | currencySymbol}}</span>
+      </mat-form-field>
+
+    </div>
+
+  </app-edit-dialog>
+</form>

@@ -1,0 +1,103 @@
+<div *ngIf="dataLoaded">
+  <app-top-toolbar pageTitle="Capital Gains" class="fixed-toolbar">
+    <app-notifications-button></app-notifications-button>
+  </app-top-toolbar>
+
+  <div class="page-content text-content" fxLayout="column" fxLayoutGap="16px">
+      <div fxLayout="row">
+        <mat-form-field fxFlex="50">
+          <mat-select placeholder="Tax Year" [(ngModel)]="currentYear" (selectionChange)="onYearChanged()">
+            <mat-option *ngFor="let year of years" [value]="year">
+              {{year}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="50">
+          <mat-select placeholder="Group By" [(ngModel)]="salesGroupBy" (selectionChange)="onYearChanged()">
+            <mat-option [value]="SalesGroupBy.None">None</mat-option>
+            <mat-option [value]="SalesGroupBy.Asset">Asset</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+    <ng-container *ngIf="yearAssetsCapitalGains.length > 0">
+      <div>
+        <span fxFlex>Gross Total P/L:</span>
+        <span [ngClass]="(totalProfitLoss<0)? 'negative':'positive'">
+          {{totalProfitLoss | currency:baseCurrency }} ({{totalProfitLossPercent | percent:'1.0-2' }})
+        </span>
+      </div>
+      <div>
+        <span fxFlex>Net Total P/L:</span>
+        <span [ngClass]="(grossTotalProfitLoss<0)? 'negative':'positive'">
+          {{grossTotalProfitLoss | currency:baseCurrency }} ({{grossTotalProfitLossPercent | percent:'1.0-2' }})
+        </span>
+      </div>
+
+
+      <table mat-table [dataSource]="yearAssetsCapitalGains" class="mat-elevation-z8">
+
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef> Asset </th>
+          <td mat-cell *matCellDef="let element"> {{element.description}} </td>
+        </ng-container>
+
+        <!-- Weight Column -->
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell *matHeaderCellDef> Amount </th>
+          <td mat-cell *matCellDef="let element"> {{element.amount | number}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="buyDate">
+          <th mat-header-cell *matHeaderCellDef> Buy Date </th>
+          <td mat-cell *matCellDef="let element"> {{element.buyDate | formatDate}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="buyPrice">
+          <th mat-header-cell *matHeaderCellDef> Buy Price </th>
+          <td mat-cell *matCellDef="let element"> {{element.buyPrice | currency:element.currency}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="sellPrice">
+          <th mat-header-cell *matHeaderCellDef> Sell Price </th>
+          <td mat-cell *matCellDef="let element"> {{element.sellPrice | currency:element.currency}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="PL">
+          <th mat-header-cell *matHeaderCellDef> Profit/Loss </th>
+          <td mat-cell *matCellDef="let element" [ngClass]="(element.profitLoss<0)? 'negative':'positive'">
+            {{element.profitLoss | currency:element.currency}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="PLPercent">
+          <th mat-header-cell *matHeaderCellDef> Profit/Loss % </th>
+          <td mat-cell *matCellDef="let element" [ngClass]="(element.profitLoss<0)? 'negative':'positive'">
+            {{element.profitLossPercent | percent:'1.0-2' }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="Fees">
+          <th mat-header-cell *matHeaderCellDef> Fees </th>
+          <td mat-cell *matCellDef="let element">
+            {{element.fees | currency:element.currency }} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+    </ng-container>
+    <ng-container *ngIf="yearAssetsCapitalGains.length === 0">
+      <p class="align-center">
+        No sell transactions recorded for {{currentYear}}
+      </p>
+    </ng-container>
+  </div>
+
+</div>
+
+<div *ngIf="!dataLoaded" class="page-content" fxLayoutAlign="center center" fxLayout="column">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</div>

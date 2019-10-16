@@ -1,0 +1,14 @@
+<a mat-list-item class="level{{depth}}" (click)="onItemSelected(item)"
+              [ngClass]="{'active': isRouteActive(item), 'expanded': expanded}">
+  <mat-icon *ngIf="item.icon" class="routeIcon">{{item.icon}}</mat-icon>
+  <mat-icon *ngIf="item.svgIcon" class="routeIcon" svgIcon="{{item.svgIcon}}"></mat-icon>
+  {{item.title}}
+  <span fxFlex *ngIf="item.children && item.children.length">
+    <span fxFlex></span>
+    <mat-icon [@indicatorRotate]="expanded ? 'expanded': 'collapsed'">expand_more</mat-icon>
+  </span>
+</a>
+<div *ngIf="expanded">
+  <app-menu-list-item *ngFor="let child of item.children" [item]="child" [depth]="depth + 1">
+  </app-menu-list-item>
+</div>

@@ -1,0 +1,53 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm"
+    title="Add cost for {{data.asset.description}}"
+    (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <mat-form-field>
+        <input matInput type="number" placeholder="Amount" required formControlName="amount">
+        <span matPrefix>{{data.asset.currency | currencySymbol}}</span>
+        <mat-error *ngIf="amount.errors?.invalidRange">Amount must be between 0 and
+          {{cashAsset.value.amount - fee.value | number}}
+        </mat-error>
+        <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-select placeholder="Cash account" formControlName="cashAsset" required (selectionChange)="cashAssetChanged()">
+          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+            {{asset.description}} ({{asset.amount | currency:asset.currency}})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Fee" formControlName="fee">
+        <span matPrefix>{{data.asset.currency | currencySymbol}}</span>
+        <mat-error *ngIf="fee.errors?.min">Fee must be positive</mat-error>
+      </mat-form-field>
+
+
+      <mat-form-field>
+        <input matInput type="text" placeholder="Transaction Description" formControlName="description">
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput [matDatepicker]="datepicker" placeholder="Transaction Date" formControlName="transactionDate"
+          required (dateInput)="onTxDateChanged()">
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-error>Transaction date can't be in the future</mat-error>
+        <mat-hint *ngIf="isScheduledTx">Transaction will be scheduled</mat-hint>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="updateCashAssetBalance" (change)="updateCashAssetBalanceToggled()">
+        Automatically debit cash account with {{(amount.value + fee.value ) | currency: data.asset.currency}}
+      </mat-checkbox>
+
+      <mat-checkbox formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
+      <mat-card [hidden]="!enableRecurringTransaction.value">
+        <app-recurring-transaction-input [form]="assetForm" #recurringTransaction></app-recurring-transaction-input>
+      </mat-card>
+    </div>
+  </app-edit-dialog>
+</form>

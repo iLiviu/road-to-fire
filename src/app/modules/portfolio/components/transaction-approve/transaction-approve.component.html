@@ -1,0 +1,96 @@
+<form [formGroup]="txForm">
+  <h2 mat-dialog-title>
+    Approve Transaction
+  </h2>
+  <mat-dialog-content>
+    <div fxLayout="column">
+      <p>
+        <span fxFlex>Description:</span>
+        <span>{{tx.description}}</span>
+      </p>
+
+      <p>
+        <span fxFlex>Date: </span>
+        <span>{{tx.date | formatDate}}</span>
+      </p>
+
+      <ng-container *ngIf="exchangeTx">
+        <p>
+          <span fxFlex>Debited from {{tx.asset.description}} ({{tx.asset.accountDescription}}): </span>
+          <span class="negative">
+            {{tx.amount | currency:tx.asset.currency}}
+          </span>
+        </p>
+
+        <p>
+          <span fxFlex>Credited to {{tx.otherAsset.description}}: </span>
+          <span class="positive">
+            {{tx.value | currency:tx.otherAsset.currency }}
+          </span>
+        </p>
+      </ng-container>
+
+      <ng-container *ngIf="!exchangeTx">
+        <p>
+          <span fxFlex>Value: </span>
+          <span [ngClass]="{'positive': isCredit, 'negative': isDebit}">
+            {{(isDebit? '-':'') + tx.value | currency:tx.asset.currency}}
+          </span>
+        </p>
+
+        <ng-container *ngIf="!tradeTx">
+          <ng-container *ngIf="tx.asset.id">
+            <p>
+              <span fxFlex>{{isCredit? 'Destination':'Source'}}: </span>
+              <span>{{tx.asset.description}} ({{tx.asset.accountDescription}})</span>
+            </p>
+          </ng-container>
+
+          <ng-container *ngIf="!tx.asset.id">
+            <mat-form-field>
+              <mat-select placeholder="Cash account" formControlName="mainAsset" required>
+                <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                  {{asset.description}} ({{asset.amount | currency:asset.currency}})
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </ng-container>
+
+
+        </ng-container>
+
+        <ng-container *ngIf="twoWayTx">
+          <ng-container *ngIf="tx.otherAsset.id">
+            <p>
+              <span fxFlex>{{tradeTx? 'Cash account':'Destination'}}: </span>
+              <span>{{tx.otherAsset.description}} ({{tx.otherAsset.accountDescription?
+                tx.otherAsset.accountDescription:tx.asset.accountDescription}})</span>
+            </p>
+          </ng-container>
+
+          <ng-container *ngIf="!tx.otherAsset.id">
+            <mat-form-field>
+              <mat-select placeholder="Destination Cash account" formControlName="otherAsset" required>
+                <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                  {{asset.description}} ({{asset.amount | currency:asset.currency}})
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </ng-container>
+
+        </ng-container>
+      </ng-container>
+
+      <p *ngIf="tx.fee">
+        <span fxFlex>Fee: </span>
+        <span>{{tx.fee | currency:tx.asset.currency}}</span>
+      </p>
+
+    </div>
+
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">Cancel</button>
+    <button mat-button (click)="approve()" [disabled]="!txForm.valid">Approve</button>
+  </mat-dialog-actions>
+</form>

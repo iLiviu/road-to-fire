@@ -1,0 +1,7 @@
+<app-top-toolbar pageTitle="Scheduled Transactions">
+  <app-notifications-button></app-notifications-button>
+</app-top-toolbar>
+
+<div class="page-content">
+  <app-recurring-transactions-list [transactions]="transactions" [dataLoaded]="transactionsLoaded"></app-recurring-transactions-list>  
+</div>

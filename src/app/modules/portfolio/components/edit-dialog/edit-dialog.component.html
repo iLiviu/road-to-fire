@@ -1,0 +1,35 @@
+<ng-template #content>
+  <ng-content></ng-content>
+</ng-template>
+<ng-container *ngIf="!isHandset">
+
+  <h2 mat-dialog-title>{{title}}</h2>
+  <mat-dialog-content>
+    <div fxLayout="column">
+      <ng-container *ngTemplateOutlet="content"></ng-container>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button type="button" aria-label="Cancel" mat-button (click)="cancel()">Cancel</button>
+    <button mat-button (click)="save()" [disabled]="!editForm.dirty || !editForm.valid">Save</button>
+  </mat-dialog-actions>
+</ng-container>
+
+<ng-container *ngIf="isHandset">
+  <mat-toolbar color="primary" class="top-toolbar mat-elevation-z5">
+    <mat-toolbar-row fxLayout="row">
+      <div fxFlex fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px" class="title-container">
+        <button type="button" aria-label="Cancel" mat-icon-button (click)="cancel()" matTooltip="Cancel">
+          <mat-icon aria-label="Cancel">close</mat-icon>
+        </button>
+        <span class="title">{{title}}</span>
+      </div>
+      <button mat-stroked-button (click)="save()" [disabled]="!editForm.dirty || !editForm.valid">Save</button>
+    </mat-toolbar-row>
+  </mat-toolbar>
+
+
+  <div class="page-content">
+    <ng-container *ngTemplateOutlet="content"></ng-container>
+  </div>
+</ng-container>

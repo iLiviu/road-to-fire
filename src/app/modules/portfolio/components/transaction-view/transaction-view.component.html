@@ -1,0 +1,89 @@
+<h2 mat-dialog-title>
+  {{tx.description}}
+</h2>
+<mat-dialog-content>
+
+  <div fxLayout="column" fxLayoutGap="8px">
+    <div>
+      <span fxFlex>Date: </span>
+      <span>{{tx.date | formatDate}}</span>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <ng-container *ngIf="exchangeTx">
+      <div>
+        <span fxFlex>Debited from {{tx.asset.description}} ({{tx.asset.accountDescription}}): </span>
+        <span class="negative">
+          {{tx.amount | currency:tx.asset.currency}}
+        </span>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div>
+        <span fxFlex>Credited to {{tx.otherAsset.description}}: </span>
+        <span class="positive">
+          {{tx.value | currency:tx.otherAsset.currency }}
+        </span>
+      </div>
+
+      <mat-divider></mat-divider>
+    </ng-container>
+
+    <ng-container *ngIf="!exchangeTx">
+      <div>
+        <span fxFlex>Value: </span>
+        <span [ngClass]="{'positive': isCredit, 'negative': isDebit}">
+          {{(isDebit? '-':'') + tx.value | currency:tx.asset.currency}}
+        </span>
+      </div>
+
+      <mat-divider></mat-divider>
+    </ng-container>
+
+    <ng-container *ngIf="tx.fee">
+      <div>
+        <span fxFlex>Fee: </span>
+        <span>{{tx.fee | currency:tx.asset.currency}}</span>
+      </div>
+
+      <mat-divider></mat-divider>
+    </ng-container>
+
+    <ng-container *ngIf="tx.withholdingTax">
+      <div>
+        <span fxFlex>Withholding tax: </span>
+        <span>{{tx.withholdingTax | currency:tx.asset.currency}}</span>
+      </div>
+
+      <mat-divider></mat-divider>
+    </ng-container>
+
+
+    <ng-container *ngIf="!exchangeTx">
+      <ng-container *ngIf="!tradeTx">
+        <div>
+          <span fxFlex>{{isCredit? 'Destination':'Source'}}: </span>
+          <span>{{tx.asset.description}} ({{tx.asset.accountDescription}})</span>
+        </div>
+
+        <mat-divider></mat-divider>
+      </ng-container>
+
+      <ng-container *ngIf="transferTx || tradeTx">
+        <div>
+          <span fxFlex>{{tradeTx? 'Cash account':'Destination'}}: </span>
+          <span>{{tx.otherAsset.description}} ({{tx.otherAsset.accountDescription?
+          tx.otherAsset.accountDescription:tx.asset.accountDescription}})</span>
+        </div>
+        
+        <mat-divider></mat-divider>
+      </ng-container>
+
+    </ng-container>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

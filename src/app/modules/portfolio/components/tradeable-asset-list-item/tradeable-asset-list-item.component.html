@@ -1,0 +1,77 @@
+<ng-container *ngIf="viewAsset.children">
+  <mat-list-item (click)="onGroupSelected()">
+    <button type="button" aria-label="Actions" mat-icon-button [matMenuTriggerFor]="groupmenu" (click)="onItemMenu($event)"
+      matTooltip="Actions">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-icon mat-icon-button [@indicatorRotate]="expanded ? 'expanded': 'collapsed'">expand_more</mat-icon>
+    <mat-menu #groupmenu="matMenu">
+      <button mat-menu-item (click)="buy()">Buy Again</button>
+      <button *ngIf="isStockLike" mat-menu-item (click)="payDividend()">Pay dividend</button>
+      <button *ngIf="viewAsset.asset.positions.length > 1" mat-menu-item (click)="mergePositions()">Merge positions</button>
+      
+      <button mat-menu-item (click)="transfer()">Transfer all positions</button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="delete()">Delete</button>
+    </mat-menu>    
+    <h4 mat-line>
+      <span fxFlex>{{viewAsset.asset.description}}</span>
+      <span>{{viewAsset.currentValue | currency:viewAsset.asset.currency}}</span>
+    </h4>
+    <h6 mat-line class="mat-h4">
+      <span fxFlex>{{viewAsset.asset.amount}} @ {{viewAsset.asset.buyPrice | currency:viewAsset.asset.currency}}
+        ({{viewAsset.initialValue |
+        currency:viewAsset.asset.currency}})</span>
+      <span [ngClass]="(viewAsset.profitLoss<0)? 'negative':'positive'">{{viewAsset.profitLoss |
+        currency:viewAsset.asset.currency}}
+        ({{viewAsset.profitLossPercent | percent:'1.0-2'}})</span>
+    </h6>
+    <h6 mat-line>
+      <span fxFlex>{{viewAsset.account.description}} </span>
+    </h6>
+  </mat-list-item>
+<div *ngIf="expanded">
+  <app-tradeable-asset-list-item *ngFor="let asset of viewAsset.children; trackBy: assetIdTrackFn" [viewAsset]="asset" [depth]="1">
+  </app-tradeable-asset-list-item>
+</div>  
+</ng-container>
+
+<ng-container *ngIf="!viewAsset.children">
+  <mat-list-item (click)="view()" [ngClass]="{'level1': depth > 0}">
+    <button type="button" aria-label="Actions" mat-icon-button [matMenuTriggerFor]="menu" (click)="onItemMenu($event)"
+      matTooltip="Actions">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-icon *ngIf="!depth" mat-icon-button></mat-icon>
+    <mat-menu #menu="matMenu">
+      <button *ngIf="!depth" mat-menu-item (click)="buy()">Buy Again</button>
+      <button mat-menu-item (click)="sell()">Sell</button>
+      <button *ngIf="isStockLike && !depth" mat-menu-item (click)="payDividend()">Pay dividend</button>
+      <button *ngIf="isRentable" mat-menu-item (click)="payRent()">Pay rent</button>
+      <button *ngIf="isRentable" mat-menu-item (click)="addCost()">Add cost</button>
+      <button *ngIf="isInterestPayer && !depth" mat-menu-item (click)="payInterest()">Pay interest</button>
+      <button mat-menu-item (click)="transfer()">Transfer</button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="delete()">Delete</button>
+      <button mat-menu-item (click)="edit()">Edit</button>
+    </mat-menu>
+
+    <h4 mat-line>
+      <span fxFlex><ng-container *ngIf="!depth">{{viewAsset.asset.description}}</ng-container></span>
+      <span>{{viewAsset.currentValue | currency:viewAsset.asset.currency}}</span>
+    </h4>
+    <h6 mat-line class="mat-h4">
+      <span fxFlex>{{viewAsset.position.amount}} @ {{viewAsset.position.buyPrice | currency:viewAsset.asset.currency}}
+        ({{viewAsset.initialValue |
+        currency:viewAsset.asset.currency}})</span>
+      <span [ngClass]="(viewAsset.profitLoss<0)? 'negative':'positive'">{{viewAsset.profitLoss |
+        currency:viewAsset.asset.currency}}
+        ({{viewAsset.profitLossPercent | percent:'1.0-2'}})</span>
+    </h6>
+    <h6 *ngIf="!depth" mat-line>
+      <span fxFlex>{{viewAsset.account.description}} </span>
+    </h6>
+
+  </mat-list-item>
+</ng-container>
+<mat-divider *ngIf="!depth"></mat-divider>

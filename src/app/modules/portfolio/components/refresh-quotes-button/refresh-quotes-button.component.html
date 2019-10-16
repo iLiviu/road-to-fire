@@ -1,0 +1,4 @@
+<button type="button" aria-label="Refresh asset prices" mat-icon-button [disabled]="assetPricesUpdating" (click)="refreshAssetPrices()"
+  matTooltip="Refresh asset prices">
+  <mat-icon [@rotatedState]='buttonState'>refresh</mat-icon>
+</button>
