@@ -124,7 +124,7 @@ export class RemoteStorageService extends StorageService implements StorageSeria
   }
 
   isCloudSyncEnabled() {
-    return this.remoteStorage.remote && this.remoteStorage.remote.token;
+    return (this.remoteStorage.remote && this.remoteStorage.remote.token) ? true : false;
   }
 
   disableCloudSync() {
