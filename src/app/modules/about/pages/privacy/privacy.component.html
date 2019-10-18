@@ -9,5 +9,27 @@
   </mat-toolbar>
 
   <div fxFlex fxLayout="column" fxLayoutAlign="center center" class="text-content">
-    <p>We don’t store any of your data. All data is stored in your local browser and (optionally) your cloud storage account.</p>
+    <p>We don’t store any of your data. All data is stored in your local browser and (optionally) your cloud storage
+      account.</p>
+
+    <h4>Google/Dropbox account permissions</h4>
+    <p>
+      When you connect your storage to Google Drive/Dropbox, the app will request an "authorization token" from
+      Google/Dropbox that is sent directly to the app and stored on your device only, it does not go though our servers.
+      This way we have no way to access your account's information or data. This "authorization token" is the one used
+      by
+      the app to communicate to the Google Drive or Dropbox APIs on behalf of your Google or Dropbox account,
+      respectively. The "authorization token" grants the app read & write access to all your files and folders in your
+      Google Drive/Dropbox account, since there is no option to request access to a single folder, however the app will
+      only access and modify files in the "remotestorage" folder. No other data or user info from your Google/Dropbox
+      account is accessed by the app.
+    </p>
+
+    <h4>RemoteStorage service provider account permissions</h4>
+    <p>When you connect your storage to a RemoteStorage service provider, the app will request an "authorization token"
+      from your provider that is sent directly to the app and stored on your device only, it does not go though our
+      servers. This way we have no way to access your account's information or data. This "authorization token" is the
+      one used by the app to communicate to your RemoteStorage provider on behalf of your account. The "authorization
+      token" grants the app read & write access to "roadtofire" and "asset-portfolio" folders in your storage account.
+    </p>
   </div>
