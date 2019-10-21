@@ -154,20 +154,22 @@
                 </p>
               </mat-list-option>
             </mat-selection-list>
+            <div fxLayout="column" fxLayoutGap="8px" class="text-content">
+              <mat-form-field>
+                <input matInput [matDatepicker]="previousInterestDatepicker" placeholder="Previous payment date"
+                  formControlName="previousInterestPaymentDate">
+                <mat-datepicker-toggle matSuffix [for]="previousInterestDatepicker"></mat-datepicker-toggle>
+                <mat-datepicker #previousInterestDatepicker></mat-datepicker>
+              </mat-form-field>
 
-            <mat-form-field>
-              <input matInput [matDatepicker]="previousInterestDatepicker" placeholder="Previous payment date"
-                formControlName="previousInterestPaymentDate">
-              <mat-datepicker-toggle matSuffix [for]="previousInterestDatepicker"></mat-datepicker-toggle>
-              <mat-datepicker #previousInterestDatepicker></mat-datepicker>
-            </mat-form-field>
-            
-            <mat-checkbox formControlName="withholdInterestTax" class="bottom-margin">Withold interest tax</mat-checkbox>
-            <mat-form-field *ngIf="withholdInterestTax.value">
-              <input matInput type="number" placeholder="Tax rate" formControlName="interestTaxRate">
-              <span matSuffix>%</span>
-              <mat-error>Value must be a number between 0 and 100</mat-error>
-            </mat-form-field>
+              <mat-checkbox formControlName="withholdInterestTax" class="bottom-margin">Withold interest tax
+              </mat-checkbox>
+              <mat-form-field *ngIf="withholdInterestTax.value">
+                <input matInput type="number" placeholder="Tax rate" formControlName="interestTaxRate">
+                <span matSuffix>%</span>
+                <mat-error>Value must be a number between 0 and 100</mat-error>
+              </mat-form-field>
+            </div>
 
 
           </div>
