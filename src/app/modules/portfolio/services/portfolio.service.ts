@@ -23,6 +23,7 @@ import { BondAsset } from '../models/bond-asset';
 import { TwoWayTransaction } from '../models/two-way-transaction';
 import { FloatingMath } from 'src/app/shared/util';
 import { PortfolioHistory } from '../models/portfolio-history';
+import { UserAppError } from 'src/app/shared/models/user-app-error';
 
 
 enum ChangeAction {
@@ -673,7 +674,7 @@ export class PortfolioService {
         if (lowestUpdateTime && !silentUpdate) {
           const lastUpdate = (lowestUpdateTime / 60 / 60).toFixed(1);
           const checkPeriod = Math.round(APP_CONSTS.QUOTE_CACHE_TIMEOUT / 60 / 60);
-          throw new Error(`Slow down! You last updated the prices ${lastUpdate} hours ago.
+          throw new UserAppError(`Slow down! You last updated the prices ${lastUpdate} hours ago.
                         Try checking prices at least ${checkPeriod} hours apart. `);
         }
       }
