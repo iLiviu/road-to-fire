@@ -33,10 +33,18 @@
 
     <ng-container *ngIf="!exchangeTx">
       <div>
-        <span fxFlex>Value: </span>
-        <span [ngClass]="{'positive': isCredit, 'negative': isDebit}">
-          {{(isDebit? '-':'') + tx.value | currency:tx.asset.currency}}
-        </span>
+        <ng-container *ngIf="!transferTx || includesCash">
+          <span fxFlex>Value: </span>
+          <span [ngClass]="{'positive': isCredit, 'negative': isDebit}">
+            {{(isDebit? '-':'') + tx.value | currency:tx.asset.currency}}
+          </span>
+        </ng-container>
+        <ng-container *ngIf="transferTx && !includesCash">
+          <span fxFlex>Amount: </span>
+          <span>
+            {{tx.value | number}}
+          </span>
+        </ng-container>
       </div>
 
       <mat-divider></mat-divider>
@@ -77,7 +85,7 @@
           <span>{{tx.otherAsset.description}} ({{tx.otherAsset.accountDescription?
           tx.otherAsset.accountDescription:tx.asset.accountDescription}})</span>
         </div>
-        
+
         <mat-divider></mat-divider>
       </ng-container>
 

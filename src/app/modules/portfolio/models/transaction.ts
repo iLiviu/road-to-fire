@@ -5,6 +5,7 @@ export enum TransactionType {
   DebitCash = Cash | Debit,
   CreditCash = Cash | Credit,
   Transfer = 8,
+  CashTransfer = 8 | Cash,
   Exchange = 16,
   Trade = 32,
   Buy = Trade | Debit,

@@ -23,6 +23,7 @@ export class TransactionViewComponent implements OnInit {
   exchangeTx: ExchangeTransaction;
   isCredit: boolean;
   isDebit: boolean;
+  includesCash: boolean;
   transferTx: TransferTransaction;
   tradeTx: TradeTransaction;
   twoWayTx: TwoWayTransaction;
@@ -43,6 +44,7 @@ export class TransactionViewComponent implements OnInit {
     }
     this.isCredit = tx.isCredit();
     this.isDebit = tx.isDebit();
+    this.includesCash = tx.includesCash();
   }
 
 

@@ -19,6 +19,8 @@ export class TransactionsListItemComponent implements OnChanges {
   @Input('transaction') tx: Transaction;
   isCredit: boolean;
   isDebit: boolean;
+  isTransfer: boolean;
+  includesCash: boolean;
   @Input() selected: boolean;
   @Output() selectStateChange = new EventEmitter<boolean>();
 
@@ -31,6 +33,8 @@ export class TransactionsListItemComponent implements OnChanges {
     if (changes.tx) {
       this.isCredit = this.tx.isCredit();
       this.isDebit = this.tx.isDebit();
+      this.isTransfer = this.tx.isTransfer();
+      this.includesCash = this.tx.includesCash();
     }
   }
 

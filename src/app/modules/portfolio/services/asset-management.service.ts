@@ -59,6 +59,7 @@ import {
   CostTransactionEditComponent, CostTransactionEditData, CostTransactionEditResponse
 } from '../components/cost-transaction-edit/cost-transaction-edit.component';
 import { CapitalCostTransaction, CapitalCostTransactionData } from '../models/capital-cost-transaction';
+import { UserAppError } from 'src/app/shared/models/user-app-error';
 
 interface PortfolioCSVRow {
   instrument: string;
@@ -525,7 +526,15 @@ export class AssetManagementService {
 
       if (result) {
         let destinationAsset = result.destinationAsset;
-        const totalAmount = FloatingMath.fixRoundingError(result.amount + result.fee);
+        let totalAmount = result.amount;
+        let txType: TransactionType;
+        // for tradeable assets, total amount means the number of units transferred, so don't add fee
+        if (!sourceAsset.asset.isTradeable()) {
+          totalAmount = FloatingMath.fixRoundingError(totalAmount + result.fee);
+          txType = TransactionType.CashTransfer;
+        } else {
+          txType = TransactionType.Transfer;
+        }
 
         const txData: TransferTransactionData = {
           asset: {
@@ -539,13 +548,13 @@ export class AssetManagementService {
           date: result.transactionDate,
           description: result.description,
           otherAsset: {
-            id: destinationAsset.id,
-            currency: destinationAsset.currency,
-            description: destinationAsset.description,
+            id: null,
+            currency: sourceAsset.asset.currency,
+            description: null,
             accountDescription: result.destinationAccount.description,
             accountId: result.destinationAccount.id,
           },
-          type: TransactionType.Transfer,
+          type: txType,
           fee: result.fee,
         };
         const tx = new TransferTransaction(txData);
@@ -553,11 +562,16 @@ export class AssetManagementService {
           destinationAsset = await this.transfer(sourceAsset.asset, sourceAsset.account, sourceAsset.position,
             result.destinationAsset, result.destinationAccount, result.amount, result.fee);
           this.logger.info('Transfer done!');
+          tx.otherAsset.id = destinationAsset.id;
+          tx.otherAsset.currency = destinationAsset.currency;
+          tx.otherAsset.description = destinationAsset.description;
 
           await this.addTransaction(tx);
           if (result.recurringTransaction && tx) {
             await this.addRecurringTransaction(tx, result.recurringTransaction);
           }
+        } else if (sourceAsset.asset.isTradeable()) {
+          throw new UserAppError(`Transaction date for tradeable assets can't be set in the future`);
         } else {
           if (result.recurringTransaction) {
             await this.addRecurringTransaction(tx, result.recurringTransaction);
