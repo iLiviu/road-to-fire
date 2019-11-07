@@ -3,12 +3,12 @@
   <mat-card-content>
     <div class="mat-subheading-2" *ngFor="let balance of balances">
       <span fxFlex>{{balance.currency}}</span>
-      <span>{{balance.balance | currency:balance.currency}}</span>
+      <span [ngClass]="{'negative':balance.balance < 0}">{{balance.balance | currency:balance.currency}}</span>
     </div>
     <mat-divider></mat-divider>
     <div class="mat-subheading-2">
       <span fxFlex>Total Value</span>
-      <span>{{totalBalance | currency:baseCurrency}}</span>
+      <span [ngClass]="{'negative':totalBalance < 0}">{{totalBalance | currency:baseCurrency}}</span>
     </div>
 
   </mat-card-content>

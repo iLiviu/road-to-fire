@@ -3,11 +3,11 @@
   <mat-card-content>
     <div class="mat-subheading-2">
       <span fxFlex>Assets Value</span>
-      <span>{{overview.currentValue | currency:baseCurrency}}</span>
+      <span [ngClass]="{'negative':overview.currentValue < 0}">{{overview.currentValue | currency:baseCurrency}}</span>
     </div>
     <div class="mat-subheading-2">
-      <span fxFlex>Unrealised P/L</span>
-      <span [ngClass]="(overview.profitLoss<0)? 'negative':'positive'">{{overview.profitLoss |
+      <span fxFlex>Unrealized P/L</span>
+      <span [ngClass]="(overview.profitLoss < 0)? 'negative':'positive'">{{overview.profitLoss |
         currency:baseCurrency }} ({{overview.profitLossPercent | percent:'1.0-2' }})</span>
     </div>
 
