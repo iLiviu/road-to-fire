@@ -163,7 +163,7 @@ export class AssetManagementService {
    */
   async viewAsset(viewAsset: ViewAsset) {
     let action: string;
-    if (viewAsset.asset.isCashLike()) {
+    if (!viewAsset.asset.isTradeable()) {
       action = await this.dialogsService.showModal(CashAssetViewComponent, viewAsset, false);
     } else {
       const totalReturnStats = await this.getTotalReturnStats(<TradeableAsset>viewAsset.asset);
