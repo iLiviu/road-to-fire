@@ -55,6 +55,7 @@ export class PortfolioService {
   private accountsMapCache: NumKeyDictionary<PortfolioAccount>;
   private notificationsCache: AppNotification[];
   private txCache: Transaction[];
+  private txMapCache: NumKeyDictionary<Transaction>;
   private recTxCache: RecurringTransaction[];
   private recTxMapCache: NumKeyDictionary<RecurringTransaction>;
   private portfolioHistoryCache: PortfolioHistory;
@@ -92,9 +93,7 @@ export class PortfolioService {
    */
   async updateAccount(account: PortfolioAccount) {
     const acc = await this.storage.updateAccount(account);
-    if (this.accountsMapCache) {
-      this.accountsMapCache[account.id] = account;
-    }
+    this.invalidateAccountsCache();
     this.eventsService.accountUpdated(acc.id);
     return acc;
   }
@@ -225,6 +224,7 @@ export class PortfolioService {
     const newTx = await this.storage.addTransaction(tx);
     if (this.txCache) {
       this.txCache.push(tx);
+      this.txMapCache[tx.id] = tx;
     }
     this.eventsService.transactionAdded(newTx.id);
     return newTx;
@@ -237,6 +237,7 @@ export class PortfolioService {
    */
   async updateTransaction(tx: Transaction): Promise<Transaction> {
     tx = await this.storage.updateTransaction(tx);
+    this.invalidateTxCache();
     this.eventsService.transactionUpdated(tx.id);
     return tx;
   }
@@ -246,8 +247,13 @@ export class PortfolioService {
    * @param txId id of transaction to retrieve
    * @return Promise that resolves with the transaction object or `null` if transaction doesn't exist
    */
-  getTransaction(txId: number): Promise<Transaction> {
-    return this.storage.getTransaction(txId);
+  async getTransaction(txId: number): Promise<Transaction> {
+    if (this.txMapCache) {
+      return this.txMapCache[txId];
+    } else {
+      const tx = await this.storage.getTransaction(txId);
+      return tx;
+    }
   }
 
   /**
@@ -270,8 +276,20 @@ export class PortfolioService {
       return this.txCache;
     } else {
       const transactions = await this.storage.getAllTransactions();
-      this.txCache = transactions;
+      this.buildTxsCache(transactions);
       return transactions;
+    }
+  }
+
+  /**
+   * Build an in-memory cache of the transactions
+   * @param transactions transactions to cache
+   */
+  private buildTxsCache(transactions: Transaction[]) {
+    this.txCache = transactions;
+    this.txMapCache = {};
+    for (const tx of transactions) {
+      this.txMapCache[tx.id] = tx;
     }
   }
 
@@ -314,6 +332,7 @@ export class PortfolioService {
    */
   async updateRecurringTransaction(tx: RecurringTransaction): Promise<RecurringTransaction> {
     tx = await this.storage.updateRecurringTransaction(tx);
+    this.invalidateRecTxCache();
     this.eventsService.recurringTransactionUpdated(tx.id);
     return tx;
   }
@@ -325,7 +344,7 @@ export class PortfolioService {
    */
   async getRecurringTransaction(txId: number): Promise<RecurringTransaction> {
     if (txId) {
-      if (this.accountsMapCache) {
+      if (this.recTxMapCache) {
         return this.recTxMapCache[txId];
       } else {
         const tx = await this.storage.getRecurringTransaction(txId);
@@ -816,6 +835,7 @@ export class PortfolioService {
 
   private invalidateTxCache() {
     this.txCache = null;
+    this.txMapCache = null;
   }
 
   private invalidateRecTxCache() {
