@@ -23,6 +23,7 @@ export class RecurringTransactionsComponent extends PortfolioPageComponent imple
 
   transactions: RecurringTransaction[];
   transactionsLoaded = false;
+  private loadTimer: any;
 
   constructor(protected eventsService: EventsService, protected portfolioService: PortfolioService,
     protected logger: LoggerService, protected dialogService: DialogsService, protected router: Router,
@@ -63,6 +64,9 @@ export class RecurringTransactionsComponent extends PortfolioPageComponent imple
   }
 
   private onTransactionsUpdated() {
-    this.loadTransactions();
+    // delay load to avoid multiple refreshes when more transactions are updated at once
+    this.loadTimer = setTimeout(() => {
+      this.loadTransactions();
+    }, 100);
   }
 }
