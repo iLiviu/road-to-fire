@@ -9,13 +9,14 @@ import {
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { getDateAsISOString, FloatingMath, DateUtils } from 'src/app/shared/util';
 import { APP_CONSTS, ExchangeDetails } from 'src/app/config/app.constants';
-import { TradePosition, TradeableAsset, AssetRegion } from '../../models/tradeable-asset';
+import { TradePosition, TradeableAsset } from '../../models/tradeable-asset';
 import { BondAsset, BondInterestPaymentEvent, BondPrincipalPaymentEvent } from '../../models/bond-asset';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 import { RecurringTransactionType } from '../../models/recurring-transaction';
 import {
   PaymentDateAddComponent, PaymentDateAddData, PaymentDateAddResponse, PaymentAmountType
 } from '../payment-date-add/payment-date-add.component';
+import { AssetRegion, ASSET_REGION_LABELS } from '../../models/asset-region';
 
 
 export enum AssetTradeAction {
@@ -58,6 +59,8 @@ export interface AssetTradeResponse {
   updateCashAssetBalance: boolean;
   withholdInterestTax: boolean;
 }
+
+// TODO: add support for custom asset regions
 
 /**
  * Validates if transaction value is positive and does not exceed the cash asset balance
@@ -122,6 +125,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
   readonly AssetType = AssetType;
   readonly AssetRegion = AssetRegion;
   readonly RecurringTransactionType = RecurringTransactionType;
+  readonly ASSET_REGION_LABELS = ASSET_REGION_LABELS;
 
   private readonly componentDestroyed$ = new Subject();
 

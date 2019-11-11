@@ -1,6 +1,7 @@
 import { Asset, AssetType, AssetData } from '../models/asset';
-import { NumKeyDictionary } from 'src/app/shared/models/dictionary';
+import { NumKeyDictionary, Dictionary } from 'src/app/shared/models/dictionary';
 import { FloatingMath } from 'src/app/shared/util';
+import { AssetRegion, AssetRegionWeight, ASSET_REGION_LABELS, AssetRegionHelper, ASSET_INDEX_REGION_ALLOCATIONS } from './asset-region';
 
 
 export interface TradePosition {
@@ -16,30 +17,8 @@ export interface SymbolParts {
   shortSymbol: string;
 }
 
-export enum AssetRegion {
-  Unspecified = 0,
-  NorthAmerica = 1,
-  LatinAmerica = 2,
-  DevelopedEurope = 4,
-  EmergingEurope = 8,
-  Pacific = 16,
-  Asia = 32,
-  Africa = 64,
-  EmergingGlobal = Africa | Asia | EmergingEurope | LatinAmerica,
-  All = Africa | Asia | Pacific | EmergingEurope | DevelopedEurope | LatinAmerica | NorthAmerica,
-}
 
-export const ASSET_REGION_LABELS: NumKeyDictionary<string> = {};
-ASSET_REGION_LABELS[AssetRegion.Unspecified] = 'Unspecified';
-ASSET_REGION_LABELS[AssetRegion.NorthAmerica] = 'North America';
-ASSET_REGION_LABELS[AssetRegion.LatinAmerica] = 'Latin America';
-ASSET_REGION_LABELS[AssetRegion.DevelopedEurope] = 'Developed Europe';
-ASSET_REGION_LABELS[AssetRegion.EmergingEurope] = 'Emerging Europe';
-ASSET_REGION_LABELS[AssetRegion.Pacific] = 'Pacific';
-ASSET_REGION_LABELS[AssetRegion.Asia] = 'Asia';
-ASSET_REGION_LABELS[AssetRegion.Africa] = 'Africa';
-ASSET_REGION_LABELS[AssetRegion.EmergingGlobal] = 'Emerging Global';
-ASSET_REGION_LABELS[AssetRegion.All] = 'Global';
+
 
 export interface TradeableAssetData extends AssetData {
   buyPrice: number;
@@ -48,6 +27,7 @@ export interface TradeableAssetData extends AssetData {
   symbol: string;
   lastQuoteUpdate: string;
   region: AssetRegion;
+  customRegions: AssetRegionWeight[];
   positions: TradePosition[];
 }
 
@@ -58,6 +38,7 @@ export class TradeableAsset extends Asset implements TradeableAssetData {
   symbol: string;
   lastQuoteUpdate: string;
   region: AssetRegion;
+  customRegions: AssetRegionWeight[];
   positions: TradePosition[];
 
   constructor(source?: AssetData) {
@@ -93,6 +74,23 @@ export class TradeableAsset extends Asset implements TradeableAssetData {
    */
   getRegionString() {
     return ASSET_REGION_LABELS[this.region];
+  }
+
+  /**
+   * Get the weight of each geographic region in the asset's portfolio
+   */
+  getRegionWeights(): AssetRegionWeight[] {
+    if (this.region === AssetRegion.Custom) {
+      return this.customRegions;
+    } else if (AssetRegionHelper.isIndex(this.region)) {
+      return ASSET_INDEX_REGION_ALLOCATIONS[this.region];
+    } else {
+      const region: AssetRegionWeight = {
+        region: this.region,
+        weight: 1,
+      };
+      return [region];
+    }
   }
 
   /**

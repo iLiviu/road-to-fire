@@ -13,7 +13,7 @@ import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 import { Dictionary, NumKeyDictionary } from 'src/app/shared/models/dictionary';
 import { AssetManagementService } from '../../services/asset-management.service';
 import { StorageService } from 'src/app/core/services/storage.service';
-import { TradeableAsset, ASSET_REGION_LABELS, AssetRegion } from '../../models/tradeable-asset';
+import { TradeableAsset } from '../../models/tradeable-asset';
 import { DashboardGridTileEditorComponent } from '../../components/dashboard-grid-tile-editor/dashboard-grid-tile-editor.component';
 import { DashboardGridTiles } from '../../models/dashboard-grid-tiles';
 import { PortfolioHistoryEntry, PortfolioAssetValue, PortfolioHistory } from '../../models/portfolio-history';
@@ -22,6 +22,7 @@ import {
   PortfolioHistoryAddComponent, PortfolioHistoryAddComponentInput
 } from '../../components/portfolio-history-add/portfolio-history-add.component';
 import { FloatingMath, binarySearch, DateUtils } from 'src/app/shared/util';
+import { ASSET_REGION_LABELS, AssetRegionHelper } from '../../models/asset-region';
 
 interface ChartDataSets {
   label: string;
@@ -509,17 +510,20 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         assetTypeAllocation[assetIdKey].value += assetBaseCurrencyValue;
 
         if (Asset.isStockLike(broadAssetType) || Asset.isBondLike(broadAssetType)) {
-          const regionId = (<TradeableAsset>asset).region || 0;
+          const regionWeights = (<TradeableAsset>asset).getRegionWeights();
 
           let assetRegionValues: NumKeyDictionary<number> = this.assetRegions[broadAssetType];
           if (!assetRegionValues) {
             assetRegionValues = {};
             this.assetRegions[broadAssetType] = assetRegionValues;
           }
+          for (const regWeight of regionWeights) {
+            const regionId = AssetRegionHelper.getClassificationRegion(regWeight.region);
           if (!assetRegionValues[regionId]) {
             assetRegionValues[regionId] = 0;
           }
-          assetRegionValues[regionId] += assetBaseCurrencyValue;
+            assetRegionValues[regionId] += assetBaseCurrencyValue * regWeight.weight;
+          }
         }
       }
     }

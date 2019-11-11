@@ -42,16 +42,69 @@
 
             <mat-form-field *ngIf="data.action !== AssetTradeAction.SELL">
               <mat-select placeholder="Asset Region" formControlName="region">
-                <mat-option [value]="AssetRegion.Unspecified">Unspecified</mat-option>
-                <mat-option [value]="AssetRegion.NorthAmerica">North America</mat-option>
-                <mat-option [value]="AssetRegion.LatinAmerica">Latin America</mat-option>
-                <mat-option [value]="AssetRegion.DevelopedEurope">Developed Europe</mat-option>
-                <mat-option [value]="AssetRegion.EmergingEurope">Emerging Europe</mat-option>
-                <mat-option [value]="AssetRegion.Pacific">Pacific</mat-option>
-                <mat-option [value]="AssetRegion.Asia">Asia</mat-option>
-                <mat-option [value]="AssetRegion.Africa">Africa</mat-option>
-                <mat-option [value]="AssetRegion.EmergingGlobal">Emerging Global</mat-option>
-                <mat-option [value]="AssetRegion.All">Global</mat-option>
+                <mat-option [value]="AssetRegion.Unspecified">{{ASSET_REGION_LABELS[AssetRegion.Unspecified]}}
+                </mat-option>
+                <mat-optgroup label="Geographic Region">
+                  <mat-option [value]="AssetRegion.DevelopedAsia">
+                    {{ASSET_REGION_LABELS[AssetRegion.DevelopedAsia]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.DevelopedEurope">
+                    {{ASSET_REGION_LABELS[AssetRegion.DevelopedEurope]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.DevelopedNorthAmerica">
+                    {{ASSET_REGION_LABELS[AssetRegion.DevelopedNorthAmerica]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.DevelopedPacific">
+                    {{ASSET_REGION_LABELS[AssetRegion.DevelopedPacific]}}
+                  </mat-option>
+
+                  <mat-option [value]="AssetRegion.EmergingAfrica">
+                    {{ASSET_REGION_LABELS[AssetRegion.EmergingAfrica]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.EmergingAsia">
+                    {{ASSET_REGION_LABELS[AssetRegion.EmergingAsia]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.EmergingEurope">
+                    {{ASSET_REGION_LABELS[AssetRegion.EmergingEurope]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.EmergingSouthAmerica">
+                    {{ASSET_REGION_LABELS[AssetRegion.EmergingSouthAmerica]}}
+                  </mat-option>
+
+                  <mat-option [value]="AssetRegion.FrontierAfrica">
+                    {{ASSET_REGION_LABELS[AssetRegion.FrontierAfrica]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.FrontierAsia">
+                    {{ASSET_REGION_LABELS[AssetRegion.FrontierAsia]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.FrontierEurope">
+                    {{ASSET_REGION_LABELS[AssetRegion.FrontierEurope]}}
+                  </mat-option>
+                </mat-optgroup>
+
+                <mat-optgroup label="Index">
+                  <mat-option [value]="AssetRegion.MSCIWorld">
+                    {{ASSET_REGION_LABELS[AssetRegion.MSCIWorld]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.MSCIACWI">
+                    {{ASSET_REGION_LABELS[AssetRegion.MSCIACWI]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.MSCIEmergingMarkets">
+                    {{ASSET_REGION_LABELS[AssetRegion.MSCIEmergingMarkets]}}
+                  </mat-option>
+                </mat-optgroup>
+                
+                <mat-optgroup label="Generic">
+                  <mat-option [value]="AssetRegion.Developed">
+                    {{ASSET_REGION_LABELS[AssetRegion.Developed]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.Emerging">
+                    {{ASSET_REGION_LABELS[AssetRegion.Emerging]}}
+                  </mat-option>
+                  <mat-option [value]="AssetRegion.Frontier">
+                    {{ASSET_REGION_LABELS[AssetRegion.Frontier]}}
+                  </mat-option>
+                </mat-optgroup>
               </mat-select>
             </mat-form-field>
 

@@ -3,7 +3,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 
 import { ViewAsset } from '../../models/view-asset';
 import { AssetType } from '../../models/asset';
-import { TradeableAsset, ASSET_REGION_LABELS } from '../../models/tradeable-asset';
+import { TradeableAsset } from '../../models/tradeable-asset';
 import { BondAsset } from '../../models/bond-asset';
 import { TotalReturnStats } from '../../models/total-return-stats';
 
@@ -29,7 +29,6 @@ export class TradeableAssetViewComponent implements OnInit {
   totalPLPercent: number;
   viewAsset: ViewAsset;
 
-  readonly ASSET_REGION_LABELS = ASSET_REGION_LABELS;
   readonly AssetType = AssetType;
 
   constructor(public dialogRef: MatDialogRef<TradeableAssetViewComponent>,

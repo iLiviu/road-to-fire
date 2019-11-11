@@ -39,7 +39,7 @@ import {
   DividendTransactionEditComponent, DividendTxEditResponse, DividendTxEditData
 } from '../components/dividend-transaction-edit/dividend-transaction-edit.component';
 import { DepositAsset, DepositAssetData } from '../models/deposit-asset';
-import { TradeableAsset, TradePosition, AssetRegion, TradeableAssetData, ASSET_REGION_LABELS } from '../models/tradeable-asset';
+import { TradeableAsset, TradePosition, TradeableAssetData } from '../models/tradeable-asset';
 import { BondAsset } from '../models/bond-asset';
 import { TradeTransaction, TradeTransactionData } from '../models/trade-transaction';
 import { TransferTransaction, TransferTransactionData } from '../models/transfer-transaction';
@@ -60,6 +60,7 @@ import {
 } from '../components/cost-transaction-edit/cost-transaction-edit.component';
 import { CapitalCostTransaction, CapitalCostTransactionData } from '../models/capital-cost-transaction';
 import { UserAppError } from 'src/app/shared/models/user-app-error';
+import { AssetRegion } from '../models/asset-region';
 
 interface PortfolioCSVRow {
   instrument: string;
@@ -822,6 +823,7 @@ export class AssetManagementService {
             type: response.assetType,
             lastQuoteUpdate: null,
             region: null,
+            customRegions: [],
             description: null,
             cashAssetId: response.cashAsset.id,
           };
@@ -1322,7 +1324,7 @@ export class AssetManagementService {
         };
         if (asset.isTradeable()) {
           const trAsset = <TradeableAsset>asset;
-          row.region = ASSET_REGION_LABELS[trAsset.region];
+          row.region = trAsset.getRegionString();
           row.buyPrice = trAsset.buyPrice;
           row.fees = ((trAsset.grossBuyPrice - trAsset.buyPrice) * trAsset.amount) | 0;
           row.cost = trAsset.buyPrice * trAsset.amount + row.fees;

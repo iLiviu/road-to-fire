@@ -37,6 +37,7 @@ const REAsset1Data: TradeableAssetData = {
     id: 1,
   }],
   region: null,
+  customRegions: [],
   symbol: '',
 };
 const REAsset1: TradeableAsset = new TradeableAsset(REAsset1Data);
@@ -75,6 +76,7 @@ const stockAsset1Data: TradeableAssetData = {
     id: 1,
   }],
   region: null,
+  customRegions: [],
   symbol: '',
 };
 const stockAsset1: TradeableAsset = new TradeableAsset(stockAsset1Data);
@@ -97,6 +99,7 @@ const bondAsset1Data: TradeableAssetData = {
     id: 1,
   }],
   region: null,
+  customRegions: [],
   symbol: '',
 };
 const bondAsset1: TradeableAsset = new TradeableAsset(bondAsset1Data);
