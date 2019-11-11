@@ -319,8 +319,24 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     }
   }
 
-  private toPercentage(value, totalValue: number) {
+  /**
+   * Return the percentage of a value from a total value
+   */
+  private toPercentage(value: number, totalValue: number) {
     return FloatingMath.round2Decimals(value / totalValue * 100);
+  }
+
+  /**
+   * Takes a dictionary with numeric values and returns [key,value] tuple array sorted by value in descending order
+   * @param map a dictionary with numeric values
+   */
+  private sortNumDict(map: Dictionary<number> | NumKeyDictionary<number>): [string, number][] {
+    const result: [string, number][] = [];
+    for (const key of Object.keys(map)) {
+      result.push([key, map[key]]);
+    }
+    result.sort((a, b) => b[1] - a[1]);
+    return result;
   }
 
   /**
@@ -329,9 +345,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   private computeAssetAllocationData() {
     this.assetAllocationChart.data = [];
     this.assetAllocationChart.labels = [];
-    for (const assetType of Object.keys(this.assetsTotalValue)) {
-      this.assetAllocationChart.data.push(this.toPercentage(this.assetsTotalValue[assetType], this.portfolioValue));
+    const assetAllocations = this.sortNumDict(this.assetsTotalValue);
+    for (const [assetType, value] of assetAllocations) {
       this.assetAllocationChart.labels.push(this.assetTypeLabels[assetType]);
+      this.assetAllocationChart.data.push(this.toPercentage(value, this.portfolioValue));
     }
   }
 
@@ -341,9 +358,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   private computeCurrenciesAllocationData() {
     this.currencyAllocationChart.data = [];
     this.currencyAllocationChart.labels = [];
-    for (const currency of Object.keys(this.currenciesTotalValue)) {
-      this.currencyAllocationChart.data.push(this.toPercentage(this.currenciesTotalValue[currency], this.portfolioValue));
+    const currencyAllocations = this.sortNumDict(this.currenciesTotalValue);
+    for (const [currency, value] of currencyAllocations) {
       this.currencyAllocationChart.labels.push(currency);
+      this.currencyAllocationChart.data.push(this.toPercentage(value, this.portfolioValue));
     }
   }
 
@@ -359,10 +377,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     const assetCurrenciesValue = this.assetCurrenciesValue[assetType];
     if (assetCurrenciesValue) {
       const totalValue = this.assetsTotalValue[assetType];
-
-      for (const currency of Object.keys(assetCurrenciesValue)) {
-        chart.data.push(this.toPercentage(assetCurrenciesValue[currency], totalValue));
+      const currencyAllocations = this.sortNumDict(assetCurrenciesValue);
+      for (const [currency, value] of currencyAllocations) {
         chart.labels.push(currency);
+        chart.data.push(this.toPercentage(value, totalValue));
       }
     }
   }
@@ -377,12 +395,22 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     chart.labels = [];
     const allocation = this.assetTypeAllocationMap[assetType];
     const totalValue = this.assetsTotalValue[assetType];
+    // we use a tuple array to hold data so we can sort it
+    const typeAllocations: [string, number][] = [];
     if (allocation) {
       for (const assetId of Object.keys(allocation)) {
         const assetValue = allocation[assetId];
-        chart.data.push(this.toPercentage(assetValue.value, totalValue));
-        chart.labels.push(assetValue.assetTitle);
+        typeAllocations.push([
+          assetValue.assetTitle,
+          this.toPercentage(assetValue.value, totalValue)
+        ]);
       }
+      typeAllocations.sort((a, b) => b[1] - a[1]);
+      for (const [assetTitle, value] of typeAllocations) {
+        chart.data.push(value);
+        chart.labels.push(assetTitle);
+      }
+
     }
   }
 
@@ -396,9 +424,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     chart.labels = [];
     const regionsValues = this.assetRegions[assetType];
     if (regionsValues) {
-      for (const regionId of Object.keys(regionsValues)) {
-        chart.data.push(this.toPercentage(regionsValues[regionId], this.assetsTotalValue[assetType]));
-        chart.labels.push(ASSET_REGION_LABELS[regionId] || ASSET_REGION_LABELS[AssetRegion.All]);
+      const regionArr = this.sortNumDict(regionsValues);
+      for (const [regionId, value] of regionArr) {
+        chart.labels.push(ASSET_REGION_LABELS[regionId]);
+        chart.data.push(this.toPercentage(value, this.assetsTotalValue[assetType]));
       }
     }
   }
@@ -519,9 +548,9 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
           }
           for (const regWeight of regionWeights) {
             const regionId = AssetRegionHelper.getClassificationRegion(regWeight.region);
-          if (!assetRegionValues[regionId]) {
-            assetRegionValues[regionId] = 0;
-          }
+            if (!assetRegionValues[regionId]) {
+              assetRegionValues[regionId] = 0;
+            }
             assetRegionValues[regionId] += assetBaseCurrencyValue * regWeight.weight;
           }
         }
