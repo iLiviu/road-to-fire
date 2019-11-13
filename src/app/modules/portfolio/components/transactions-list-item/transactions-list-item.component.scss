@@ -16,3 +16,9 @@
 .item-checkbox {
   padding: 8px;
 }
+
+.truncate-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 6px;
+}

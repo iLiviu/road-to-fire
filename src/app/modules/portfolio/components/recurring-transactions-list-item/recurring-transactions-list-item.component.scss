@@ -12,3 +12,9 @@
 .negative {
   color: $app-negative;
 }
+
+.truncate-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 6px;
+}

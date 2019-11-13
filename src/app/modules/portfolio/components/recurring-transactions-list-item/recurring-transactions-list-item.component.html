@@ -1,5 +1,7 @@
-<mat-list-item class="list-item" [ngClass]="{'positive':isCredit && !recTx.inactive, 'negative':isDebit && !recTx.inactive}" (click)="view()">
-  <button type="button" aria-label="Actions" mat-icon-button [matMenuTriggerFor]="menu" (click)="onItemMenu($event)" matTooltip="Actions">
+<mat-list-item class="list-item"
+  [ngClass]="{'positive':isCredit && !recTx.inactive, 'negative':isDebit && !recTx.inactive}" (click)="view()">
+  <button type="button" aria-label="Actions" mat-icon-button [matMenuTriggerFor]="menu" (click)="onItemMenu($event)"
+    matTooltip="Actions">
     <mat-icon>more_vert</mat-icon>
   </button>
   <mat-menu #menu="matMenu">
@@ -14,21 +16,34 @@
   </h6>
 
   <p mat-line>
-    <span *ngIf="recTx.tx.type !== TransactionType.Transfer" fxFlex> {{recTx.tx.asset.accountDescription}} </span>
-    <span *ngIf="recTx.tx.type === TransactionType.Transfer" fxFlex>{{recTx.tx.asset.description}}
-      ({{recTx.tx.asset.accountDescription }}) &gt;
-      {{recTx.tx.otherAsset.description}} ({{recTx.tx.otherAsset.accountDescription }})
+    <span class="truncate-overflow" fxFlex>
+      <ng-container *ngIf="recTx.tx.type !== TransactionType.Transfer">
+        {{recTx.tx.asset.accountDescription}}
+      </ng-container>
+      <ng-container *ngIf="recTx.tx.type === TransactionType.Transfer">
+        {{recTx.tx.asset.description}}
+        ({{recTx.tx.asset.accountDescription }}) &gt;
+        {{recTx.tx.otherAsset.description}} ({{recTx.tx.otherAsset.accountDescription }})
+      </ng-container>
     </span>
-    <span *ngIf="recTx.tx.type !== TransactionType.Exchange">{{(isDebit? '-':'') + recTx.tx.value |
-      currency:recTx.tx.asset.currency}}</span>
-    <span *ngIf="recTx.tx.type === TransactionType.Exchange">
-      {{recTx.tx.value | currency:recTx.tx.asset.currency}} > {{recTx.tx.value*recTx.tx.rate |
-      currency:recTx.tx.otherAsset.currency }}
+    <span>
+      <ng-container *ngIf="recTx.tx.type !== TransactionType.Exchange">
+        {{(isDebit? '-':'') + recTx.tx.value | currency:recTx.tx.asset.currency}}
+      </ng-container>
+      <ng-container *ngIf="recTx.tx.type === TransactionType.Exchange">
+        {{recTx.tx.value | currency:recTx.tx.asset.currency}} > {{recTx.tx.value*recTx.tx.rate |
+        currency:recTx.tx.otherAsset.currency }}
+      </ng-container>
     </span>
   </p>
 
   <p mat-line>
-    <span fxFlex>{{recTx.tx.date | formatDate}}<ng-container *ngIf="recTx.type !== RecurringTransactionType.Never">, Repeats {{txOccurrence}}</ng-container></span>
+    <span class="truncate-overflow" fxFlex>
+      {{recTx.tx.date | formatDate}}
+      <ng-container *ngIf="recTx.type !== RecurringTransactionType.Never">,
+        Repeats {{txOccurrence}}
+      </ng-container>
+    </span>
     <span *ngIf="recTx.tx.fee">Fee: {{ recTx.tx.fee | currency:recTx.tx.asset.currency}}</span>
   </p>
 
