@@ -118,7 +118,7 @@ export const ASSET_REGION_LABELS: NumKeyDictionary<string> = {
   [AssetRegion.DevelopedPacific]: 'Pacific',
   [AssetRegion.DevelopedOceania]: 'Oceania',
 
-  [AssetRegion.EmergingSouthAmerica]: 'Emerging South America',
+  [AssetRegion.EmergingSouthAmerica]: 'EM South America',
   [AssetRegion.EmergingEurope]: 'Emerging Europe',
   [AssetRegion.EmergingAsia]: 'Emerging Asia',
   [AssetRegion.EmergingAfrica]: 'Emerging Africa',

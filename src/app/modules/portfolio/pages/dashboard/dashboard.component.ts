@@ -24,6 +24,9 @@ import {
 import { FloatingMath, binarySearch, DateUtils } from 'src/app/shared/util';
 import { ASSET_REGION_LABELS, AssetRegionHelper } from '../../models/asset-region';
 
+const MULTI_COL_GRID_ROW_HEIGHT = '2:1.6';
+const SINGLE_COL_GRID_ROW_HEIGHT = '1:1';
+
 interface ChartDataSets {
   label: string;
   data: number[];
@@ -84,6 +87,10 @@ interface DatasetEntries {
   data: number[];
 }
 
+enum PortfolioHistoryDataField {
+  Assets,
+  UnrealizedPL,
+}
 
 
 /**
@@ -128,13 +135,24 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   stockCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
   bondCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
   portfolioHistoryChart: MultiDatasetChartContext = { data: [{ label: '', data: [] }], labels: [] };
+  unrealizedPLHistoryChart: MultiDatasetChartContext = { data: [{ label: '', data: [] }], labels: [] };
   gridVisibility: Dictionary<boolean>;
   phTimeFrame = 'Max';
+  plhTimeFrame = 'Max';
+  portfolioUnrealizedPL: number;
+  assetsUnrealizedPL: Dictionary<number> = {};
+  mainGridRowHeight = MULTI_COL_GRID_ROW_HEIGHT;
 
   readonly assetTypeLabels = { ...ASSET_TYPE_LABELS };
   readonly goalChartColors: Array<any> = ['rgb(51, 160, 223)', 'rgba(214, 214, 214, 0.897)'];
   readonly goalChartLabels: string[] = ['Completed', 'Remaining'];
   readonly GridTiles = DashboardGridTiles;
+  readonly legendOptions = {
+    labels: {
+      boxWidth: 12,
+      padding: 6,
+    }
+  };
   readonly goalChartOptions = {
     legend: {
       display: false
@@ -160,9 +178,13 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   };
   pieChartOptions = {
     tooltips: PERCENT_TOOLTIPS,
+    legend: this.legendOptions,
+    maintainAspectRatio: false,
   };
   readonly portfolioHistoryChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
+    legend: this.legendOptions,
     tooltips: {
       mode: 'index',
       callbacks: {
@@ -219,15 +241,23 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     protected storageService: StorageService, private cdr: ChangeDetectorRef) {
     super(logger, portfolioService, dialogService, eventsService, router, storageService);
     this.assetTypeLabels[AssetType.Cash] = 'Cash & Equivalents';
-    this.assetTypeLabels[AssetType.Bond] = 'Bonds & Bond ETFs';
-    this.assetTypeLabels[AssetType.Commodity] = 'Commodities & Commodity ETFs';
   }
 
   ngOnInit() {
     super.ngOnInit();
   }
 
-  gridColsChanged() {
+  /**
+   * Fired when the number of columns per row for the main grid changes.
+   * The row height is adapted, depending on the number of columns.
+   * @param colsNum new number of columns per row
+   */
+  gridColsChanged(colsNum: number) {
+    if (colsNum === 1) {
+      this.mainGridRowHeight = SINGLE_COL_GRID_ROW_HEIGHT;
+    } else {
+      this.mainGridRowHeight = MULTI_COL_GRID_ROW_HEIGHT;
+    }
     this.cdr.markForCheck();
   }
 
@@ -271,9 +301,22 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.cdr.markForCheck();
   }
 
-  onPhTimeFrameChanged(newTimeFrame: string) {
+  /**
+   * Fired when user changes the portfolio history chart time frame
+   * @param newTimeFrame new chart display time frame
+   */
+  onPHTimeFrameChanged(newTimeFrame: string) {
     this.phTimeFrame = newTimeFrame;
     this.displayPortfolioHistory();
+  }
+
+  /**
+   * Fired when user changes the unrealized P/L history chart time frame
+   * @param newTimeFrame new chart display time frame
+   */
+  onPLHTimeFrameChanged(newTimeFrame: string) {
+    this.plhTimeFrame = newTimeFrame;
+    this.displayUnrealizedPLHistory();
   }
 
   protected handleEvents(event: AppEvent) {
@@ -467,12 +510,14 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    */
   private async computeStats() {
     this.portfolioValue = 0;
+    this.portfolioUnrealizedPL = 0;
     this.requiredFXPairs = {};
     this.assetsTotalValue = {};
     this.currenciesTotalValue = {};
     this.assetCurrenciesValue = {};
     this.assetRegions = {};
     this.assetTypeAllocationMap = {};
+    this.assetsUnrealizedPL = {};
 
     // check for any foreign currencies and queue them for quote update
     for (const account of this.accounts) {
@@ -488,15 +533,30 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         let assetDescription = asset.description;
         const rate: number = this.getCurrencyRate(asset.currency);
         const currentValue = asset.getCurrentValue();
+        const broadAssetType = asset.getBroadAssetType();
+        if (Asset.isCashLike(broadAssetType)) {
+          assetIdKey = asset.currency;
+          assetDescription = asset.currency;
+        }
+
         if (asset.isTradeable()) {
           const tradeableAsset = <TradeableAsset><Asset>asset;
+          const profitLoss = currentValue - tradeableAsset.getBuyCost();
           if (tradeableAsset.symbol) {
             const symbolParts = tradeableAsset.parseSymbol();
             assetIdKey = symbolParts.shortSymbol;
           }
+
+          const assetBaseCurrencyProfitLoss = profitLoss * rate;
+          this.portfolioUnrealizedPL += assetBaseCurrencyProfitLoss;
+          if (!this.assetsUnrealizedPL[broadAssetType]) {
+            this.assetsUnrealizedPL[broadAssetType] = 0;
+          }
+          this.assetsUnrealizedPL[broadAssetType] += assetBaseCurrencyProfitLoss;
         }
         const assetBaseCurrencyValue = currentValue * rate;
         this.portfolioValue += assetBaseCurrencyValue;
+
 
         if (!this.currenciesTotalValue[asset.currency]) {
           this.currenciesTotalValue[asset.currency] = 0;
@@ -504,11 +564,6 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         this.currenciesTotalValue[asset.currency] += assetBaseCurrencyValue;
 
 
-        const broadAssetType = asset.getBroadAssetType();
-        if (Asset.isCashLike(broadAssetType)) {
-          assetIdKey = asset.currency;
-          assetDescription = asset.currency;
-        }
 
         if (!this.assetsTotalValue[broadAssetType]) {
           this.assetsTotalValue[broadAssetType] = 0;
@@ -570,7 +625,9 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.computeAssetTypeAllocationData(this.commodityAllocationChart, AssetType.Commodity);
     this.computeAssetTypeAllocationData(this.cashAllocationChart, AssetType.Cash);
     this.computeRebalanceSteps();
-    this.computePortfolioHistory();
+    await this.computePortfolioHistory();
+    this.displayPortfolioHistory();
+    this.displayUnrealizedPLHistory();
   }
 
   onDataLoaded() {
@@ -579,9 +636,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   }
 
   /**
-   * Get the historic value of the portfolio, and if today's current portfolio value hasn't been stored
-   * already, compute and store it. If we already have today's portfolio value, only update if value has
-   * changed.
+   * Compute and store today's current portfolio value in portfolio history data.
+   * If we already have today's portfolio value, only update if value has changed.
    */
   private async computePortfolioHistory() {
     let history = await this.portfolioService.getPortfolioHistory();
@@ -597,7 +653,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         entryDate.setHours(0, 0, 0, 0);
         if (today.getTime() === entryDate.getTime()) {
 
-          if (latestEntry.value !== this.portfolioValue) {
+          if (latestEntry.value !== this.portfolioValue || latestEntry.unrealizedPL !== this.portfolioUnrealizedPL) {
             replaceToday = true;
           } else {
             // same portfolio data for today, no need for update
@@ -614,7 +670,9 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       const entry: PortfolioHistoryEntry = {
         date: today.toISOString(),
         value: this.portfolioValue,
+        unrealizedPL: this.portfolioUnrealizedPL,
         assets: [],
+        assetsUnrealizedPL: [],
       };
 
       for (const assetType of Object.keys(this.assetsTotalValue)) {
@@ -625,6 +683,15 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         };
         entry.assets.push(asset);
       }
+      for (const assetType of Object.keys(this.assetsUnrealizedPL)) {
+        const value = this.assetsUnrealizedPL[assetType];
+        const asset: PortfolioAssetValue = {
+          type: +assetType,
+          value: value,
+        };
+        entry.assetsUnrealizedPL.push(asset);
+      }
+
       if (replaceToday) {
         history.entries[history.entries.length - 1] = entry;
       } else {
@@ -635,17 +702,35 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       this.portfolioService.savePortfolioHistory(history);
     }
     this.allPortfolioHistory = history;
-    this.displayPortfolioHistory();
   }
 
   /**
-   * Prepare the data for the portfolio history chart
-   * @param history portfolio history data
+   * Update the portfolio history chart data
    */
   private displayPortfolioHistory() {
-    const history = this.allPortfolioHistory;
+    this.updateHistoryChart(this.allPortfolioHistory, this.phTimeFrame, this.portfolioHistoryChart, PortfolioHistoryDataField.Assets);
+  }
+
+  /**
+   * Update the unrealized P/L history chart data
+   */
+  private displayUnrealizedPLHistory() {
+    this.updateHistoryChart(this.allPortfolioHistory, this.plhTimeFrame, this.unrealizedPLHistoryChart,
+      PortfolioHistoryDataField.UnrealizedPL);
+  }
+
+  /**
+   * Update the data for a  history type chart
+   *
+   * @param history portfolio history data
+   * @param timeFrame time frame to display data for
+   * @param chart chart to update data for
+   */
+  private updateHistoryChart(history: PortfolioHistory, timeFrame: string, chart: MultiDatasetChartContext,
+    dataField: PortfolioHistoryDataField) {
+
     const chartLabels: string[] = [];
-    this.portfolioHistoryChart.data.splice(0);
+    chart.data.splice(0);
     const dataSets: NumKeyDictionary<DatasetEntries> = {};
     for (const assetType of Object.keys(this.assetTypeLabels)) {
       dataSets[assetType] = {
@@ -655,7 +740,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     }
 
     let minDate: Date;
-    switch (this.phTimeFrame) {
+    switch (timeFrame) {
       case 'YTD':
         minDate = new Date();
         minDate.setMonth(0, 1);
@@ -679,13 +764,18 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
 
     for (const entry of history.entries) {
       const entryDate = new Date(entry.date);
-      // skip dates not in our time frame
-      if (!minDate || minDate.getTime() <= entryDate.getTime()) {
+      let assets: PortfolioAssetValue[];
+      if (dataField === PortfolioHistoryDataField.Assets) {
+        assets = entry.assets;
+      } else {
+        assets = entry.assetsUnrealizedPL;
+      }
+      // skip dates not in our time frame or without any data
+      if (assets && (!minDate || minDate.getTime() <= entryDate.getTime())) {
         for (const assetType of Object.keys(this.assetTypeLabels)) {
           dataSets[assetType].data.push(0); // initialize all asset portfolio values with 0 for the current entry day
         }
-
-        for (const asset of entry.assets) {
+        for (const asset of assets) {
           dataSets[asset.type].empty = false; // we have data for this asset so we need to display it
           const data = dataSets[asset.type].data;
           data[data.length - 1] = asset.value;
@@ -697,7 +787,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     // push non-empty datasets (assets)
     for (const assetType of Object.keys(this.assetTypeLabels)) {
       if (!dataSets[assetType].empty) {
-        this.portfolioHistoryChart.data.push({
+        chart.data.push({
           data: dataSets[assetType].data,
           label: this.assetTypeLabels[assetType],
           lineTension: 0,
@@ -705,7 +795,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       }
     }
 
-    this.portfolioHistoryChart.labels = chartLabels;
+    chart.labels = chartLabels;
     this.cdr.markForCheck();
   }
 

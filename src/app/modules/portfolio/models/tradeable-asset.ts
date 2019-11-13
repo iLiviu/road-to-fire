@@ -142,6 +142,10 @@ export class TradeableAsset extends Asset implements TradeableAssetData {
     return this.amount * this.currentPrice;
   }
 
+  getBuyCost() {
+    return this.amount * this.buyPrice;
+  }
+
 
   /**
    * Computes the average buyPrice and total amount of assets held in all positions.

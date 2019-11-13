@@ -10,21 +10,38 @@
     </div>
   </app-top-toolbar>
   <div class="page-content">
-    <mat-grid-list [responsiveCols]="{xs: 1, sm: 1, md: 2, lg: 2, xl: 2}" (colsChanged)="gridColsChanged()"
-      rowHeight="2:1.6">
+    <mat-grid-list [responsiveCols]="{xs: 1, sm: 1, md: 2, lg: 2, xl: 2}" (colsChanged)="gridColsChanged($event)"
+      [rowHeight]="mainGridRowHeight">
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.Stats]">
         <mat-card class="grid-card">
           <mat-card-title>Stats</mat-card-title>
           <mat-card-content>
-            <div>Portfolio value: {{ portfolioValue | currency:baseCurrency}} </div>
+            <div>
+              Portfolio value:
+              <span [ngClass]="{'negative':portfolioValue < 0}">{{ portfolioValue | currency:baseCurrency}}</span>
+            </div>
+            <div>Unrealized P/L:
+              <span [ngClass]="(portfolioUnrealizedPL < 0)? 'negative':'positive'">
+                {{ portfolioUnrealizedPL | currency:baseCurrency}}
+                <ng-container *ngIf="portfolioValue > 0">
+                  ({{ portfolioUnrealizedPL / portfolioValue  | percent:'1.02'}})
+                </ng-container>
+              </span>
+            </div>
             <div>
               <span matTooltip="Based on Yearly Withdrawal Rate">Monthly spending limit:
-                {{ monthlySpendLimit | currency:baseCurrency}}</span>
+                <span [ngClass]="{'negative':monthlySpendLimit < 0}">
+                  {{ monthlySpendLimit | currency:baseCurrency}}
+                </span>
+              </span>
             </div>
             <div>Allocation: </div>
             <ul class="allocation-list">
               <li *ngFor="let assetValue of assetsTotalValue | keyvalue">
-                {{assetTypeLabels[assetValue.key]}}: {{assetValue.value | currency:this.baseCurrency}}
+                {{assetTypeLabels[assetValue.key]}}:
+                <span [ngClass]="{'negative':assetValue.value < 0}">
+                  {{assetValue.value | currency:this.baseCurrency}}
+                </span>
               </li>
             </ul>
           </mat-card-content>
@@ -51,11 +68,11 @@
               {{phTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
             </button>
             <mat-menu #timeFramePicker="matMenu">
-              <button mat-menu-item (click)="onPhTimeFrameChanged('Max')">Max</button>
-              <button mat-menu-item (click)="onPhTimeFrameChanged('YTD')">YTD</button>
-              <button mat-menu-item (click)="onPhTimeFrameChanged('1Y')">1Y</button>
-              <button mat-menu-item (click)="onPhTimeFrameChanged('5Y')">5Y</button>
-              <button mat-menu-item (click)="onPhTimeFrameChanged('10Y')">10Y</button>
+              <button mat-menu-item (click)="onPHTimeFrameChanged('Max')">Max</button>
+              <button mat-menu-item (click)="onPHTimeFrameChanged('YTD')">YTD</button>
+              <button mat-menu-item (click)="onPHTimeFrameChanged('1Y')">1Y</button>
+              <button mat-menu-item (click)="onPHTimeFrameChanged('5Y')">5Y</button>
+              <button mat-menu-item (click)="onPHTimeFrameChanged('10Y')">10Y</button>
             </mat-menu>
             <button type="button" mat-icon-button (click)="addPortfolioHistory()"
               matTooltip="Manually add history data">
@@ -68,7 +85,6 @@
               chartType="line"></canvas>
           </mat-card-content>
         </mat-card>
-
       </mat-grid-tile>
 
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.PortfolioAllocation] && assetAllocationChart.data.length > 0">
@@ -159,6 +175,29 @@
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas baseChart [data]="cashAllocationChart.data" [labels]="cashAllocationChart.labels"
               [options]="pieChartOptions" chartType="doughnut"></canvas>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile *ngIf="gridVisibility[GridTiles.UnrealizedPLHistory]">
+        <mat-card class="grid-card">
+          <mat-card-title fxLayout="row">
+            <span fxFlex>Unrealized P/L History</span>
+            <button mat-button [matMenuTriggerFor]="uphTimeFramePicker" matTooltip="Time Frame">
+              {{plhTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-menu #uphTimeFramePicker="matMenu">
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('Max')">Max</button>
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('YTD')">YTD</button>
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('1Y')">1Y</button>
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('5Y')">5Y</button>
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('10Y')">10Y</button>
+            </mat-menu>
+          </mat-card-title>
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <canvas *ngIf="unrealizedPLHistoryChart.data.length > 0" baseChart
+              [datasets]="unrealizedPLHistoryChart.data" [labels]="unrealizedPLHistoryChart.labels"
+              [options]="portfolioHistoryChartOptions" chartType="line"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>

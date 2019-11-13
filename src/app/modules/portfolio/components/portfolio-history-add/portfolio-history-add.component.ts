@@ -22,6 +22,7 @@ export class PortfolioHistoryAddComponent implements OnInit {
   portfolioDate: FormControl;
   historyForm: FormGroup;
   assets: FormArray;
+  selectedEntry: PortfolioHistoryEntry;
 
   readonly AssetType = AssetType;
 
@@ -59,7 +60,15 @@ export class PortfolioHistoryAddComponent implements OnInit {
         date: selectedDate.toISOString(),
         assets: [],
         value: 0,
+        assetsUnrealizedPL: [],
+        unrealizedPL: 0,
       };
+      // if we are updating an existing entry, copy the data we are not editing (unrealized P/L)
+      if (this.selectedEntry) {
+        newEntry.unrealizedPL = this.selectedEntry.unrealizedPL;
+        newEntry.assetsUnrealizedPL = this.selectedEntry.assetsUnrealizedPL;
+      }
+
       // tslint:disable-next-line: forin
       for (const assetType in AssetType) {
         const ctrl = this.historyForm.controls[assetType];
@@ -83,19 +92,22 @@ export class PortfolioHistoryAddComponent implements OnInit {
    * populate the user fields with values from that date.
    */
   onDateChanged() {
+    this.selectedEntry = null;
     const selectedDate = new Date(this.portfolioDate.value);
     selectedDate.setHours(0, 0, 0, 0);
     const entry: PortfolioHistoryEntry = {
       date: selectedDate.toISOString(),
       assets: [],
       value: 0,
+      unrealizedPL: 0,
+      assetsUnrealizedPL: [],
     };
     const idx = binarySearch<PortfolioHistoryEntry>(this.data.portfolioHistoryEntries, entry,
       (a: PortfolioHistoryEntry, b: PortfolioHistoryEntry) => {
         return DateUtils.compareDates(new Date(a.date), new Date(b.date));
       });
     if (idx >= 0) {
-      const selectedEntry = this.data.portfolioHistoryEntries[idx];
+      this.selectedEntry = this.data.portfolioHistoryEntries[idx];
       // clear all fields
       for (const assetType in AssetType) {
         // tslint:disable-next-line: forin
@@ -105,7 +117,7 @@ export class PortfolioHistoryAddComponent implements OnInit {
         }
       }
 
-      for (const value of selectedEntry.assets) {
+      for (const value of this.selectedEntry.assets) {
         const ctrl = this.historyForm.controls[value.type];
         if (ctrl) {
           ctrl.setValue(FloatingMath.round2Decimals(value.value));

@@ -8,7 +8,9 @@ export interface PortfolioAssetValue {
 export interface PortfolioHistoryEntry {
   date: string;
   value: number;
+  unrealizedPL: number;
   assets: PortfolioAssetValue[];
+  assetsUnrealizedPL: PortfolioAssetValue[];
 }
 
 export interface PortfolioHistory {
