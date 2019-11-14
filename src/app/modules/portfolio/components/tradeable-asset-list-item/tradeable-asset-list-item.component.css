@@ -5,3 +5,9 @@
 .level1 {
     padding-left: 24px !important;
 }
+
+.truncate-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 6px;
+}
