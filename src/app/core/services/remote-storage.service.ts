@@ -13,10 +13,12 @@ import { Dictionary } from 'src/app/shared/models/dictionary';
 import { HashObject, RSAppStorage } from './rs-app-storage.service';
 
 
-const JSON_EXPORT_FORMAT = 'rtfv1';
+const JSON_EXPORT_FORMAT = 'rtf_json';
+const JSON_EXPORT_VERSION = 1;
 
 interface RemoteStorageExport {
   format: string;
+  version: number;
   modules: Dictionary<RSModuleExportObject[]>;
 }
 
@@ -292,6 +294,7 @@ export class RemoteStorageService extends StorageService implements StorageSeria
     const objects: RSModuleExportData[] = await Promise.all(promises);
     const exportData: RemoteStorageExport = {
       format: JSON_EXPORT_FORMAT,
+      version: JSON_EXPORT_VERSION,
       modules: {}
     };
     for (const obj of objects) {
@@ -305,6 +308,8 @@ export class RemoteStorageService extends StorageService implements StorageSeria
     const exportData: RemoteStorageExport = JSON.parse(jsonStr);
     if (!exportData.format || exportData.format !== JSON_EXPORT_FORMAT) {
       throw new Error('Invalid export format');
+    } else if (exportData.version !== JSON_EXPORT_VERSION) {
+      throw new Error('The data was exported by a more recent version of the app. Please update the app first!');
     }
     for (const rsModule of this.loadedRSModules) {
       if (!exportData.modules[rsModule.getId()]) {

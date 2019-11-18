@@ -223,6 +223,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
         } catch (err) {
           this.logger.error('Could not import app data!', err);
           dialogRef.close();
+          this.dialogService.error(err, 'Import error');
         }
 
       };
