@@ -623,7 +623,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.computeAssetGeoAllocationData(this.bondGeoAllocationChart, AssetType.Bond);
     this.computeAssetTypeAllocationData(this.cryptoAllocationChart, AssetType.Cryptocurrency);
     this.computeAssetTypeAllocationData(this.commodityAllocationChart, AssetType.Commodity);
-    this.computeAssetTypeAllocationData(this.cashAllocationChart, AssetType.Cash);
+    this.computeAssetCurrencyAllocationData(this.cashAllocationChart, AssetType.Cash);
     this.computeRebalanceSteps();
     await this.computePortfolioHistory();
     this.displayPortfolioHistory();
