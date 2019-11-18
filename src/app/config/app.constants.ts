@@ -5,8 +5,15 @@ export interface ExchangeDetails {
 }
 
 export const APP_CONSTS = {
-  VERSION: '1.0.0-beta',
   TITLE: 'Road To FIRE',
+  VERSION: '1.0.0-beta',
+  // text to show when user first loads the current new version
+  WHATS_NEW_TITLE: 'Welcome!',
+  WHATS_NEW: `    This is the first public version of the app. It hasn't been thoroughly tested yet, ` +
+    `so you may encounter bugs, including corruption of data.
+    Please do not rely entirely on the correctness of the data presented by the app.
+
+    Suggestions and bug reports are welcome.`,
   REPOSITORY_URL: 'https://github.com/iLiviu/road-to-fire',
   STORAGE_API_KEYS: {
     DROPBOX: 'kbwh5504okeu3b9',

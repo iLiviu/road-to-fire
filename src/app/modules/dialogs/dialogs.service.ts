@@ -71,6 +71,17 @@ export class DialogsService {
   }
 
   /**
+   * Displays a dialog box with a custom message
+   * @param message message to display
+   * @param title optional dialog title
+   * @return promise that is fulfilled when the dialog closes with `true` if user has chosen to not display the message again,
+   *         or `false` otherwise
+   */
+  message(message: string, title?: string, displayDontShowAgain?: boolean): Promise<boolean> {
+    return this.messageBox(message, title, MessageDialogType.CUSTOM, displayDontShowAgain);
+  }
+
+  /**
    * Displays a dialog box with an informational message
    * @param message message to display
    * @param title optional dialog title
