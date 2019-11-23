@@ -24,6 +24,9 @@ Road To FIRE is a portfolio manager app for your stocks, ETFs, mutual funds, bon
 * Can optionally be installed as an app (supported by most mobile and some desktop modern browsers).
 * Backup / Restore application data.
 
+## Frequently Asked Questions (FAQ)
+See [FAQ.md](FAQ.md)
+
 ## Quick-start (recommended)
 Go to [roadtofire.iliviu.me](https://roadtofire.iliviu.me). The app will shortly load and you can start using it.
 

@@ -5,6 +5,7 @@
 - [Can i use my fingerprint to restrict access to the app?](#can-i-use-my-fingerprint-to-restrict-access-to-the-app)
 - [How do i manually access/delete the files stored on my cloud account?](#how-do-i-manually-access-the-files-stored-on-my-cloud-account)
 - [Can i retrieve my app data if i forget my password?](#can-i-retrieve-my-app-data-if-i-forget-my-password)
+- [For what commodities can the app automatically get quotes?](#for-what-commodities-can-the-app-automatically-get-quotes)
 
 ## Where is my app data stored?
 The application's data is stored in your browser's local storage by default. This means that if you uninstall your browser, switch to another browser or device, or clear your browsing data, the application's data will be lost. To avoid this, you can let the app store the data on your cloud storage account. This way, you will be able to switch between devices, and your data will be automatically synced between them. You can use your RemoteStorage, Dropbox or Google Drive account (we recommend RemoteStorage as it works the best with the app. You can either [host your own RemoteStorage server](https://wiki.remotestorage.io/Servers), or use a free service like [5apps](https://5apps.com/storage)).
@@ -22,3 +23,6 @@ Yes, as long as you are running the app from a device and browser that supports 
 
 ## Can i retrieve my app data if i forget my password?
 No, if you forget your password, the app data is lost. You will need to reset the app (click **Forgot Password** button) and manually delete the app files from your cloud storage account (see [How do i manually access/delete the files stored on my cloud account?](#how-do-i-manually-access-the-files-stored-on-my-cloud-account))
+
+## For what commodities can the app automatically get quotes?
+The app currently supports the following (use the symbol in brackets): Aluminium(`AL`), Gold(`AU`), Platinum(`PT`), Silver(`AG`), Copper(`CU`), Palladium(`PD`), Corn(`ZC`), Soybean(`ZS`), Live Cattle(`LE`), Wheat(`ZW`), Crude Oil(`CL`), Brent Oil(`BZ`), Gasoline(`RB`), Natural Gas(`NG`)
