@@ -89,14 +89,7 @@ export class CashComponent extends GlobalAssetsComponent implements OnInit {
     if (!this.currencyBalances[viewAsset.asset.currency]) {
       this.currencyBalances[viewAsset.asset.currency] = 0;
     }
-    let assetValue = 0;
-    if (viewAsset.asset.isTradeable()) {
-      const trAsset = <TradeableAsset>viewAsset.asset;
-      assetValue = trAsset.getCurrentValue();
-    } else {
-      assetValue = viewAsset.asset.amount;
-    }
-    this.currencyBalances[viewAsset.asset.currency] += assetValue;
+    this.currencyBalances[viewAsset.asset.currency] += viewAsset.currentValue;
   }
 
 }
