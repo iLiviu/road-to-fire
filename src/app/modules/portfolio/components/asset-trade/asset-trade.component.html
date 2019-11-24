@@ -138,7 +138,7 @@
 
             <ng-container *ngIf="data.assetType === AssetType.Bond && data.action !== AssetTradeAction.SELL">
               <mat-form-field>
-                <input matInput type="number" placeholder="Coupon interest rate" formControlName="couponRate" required>
+                <input matInput type="number" placeholder="Coupon interest rate" formControlName="couponRate" required matTooltip="Based on 365 days/year (actual/365)">
                 <span matSuffix>%</span>
               </mat-form-field>
 
