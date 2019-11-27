@@ -164,6 +164,7 @@ export class PortfolioService {
     asset = await this.storage.addAsset(asset);
     account.assets.push(asset);
     await this.storage.updateAccount(account);
+    this.invalidateAccountsCache();
     this.eventsService.assetAdded(asset.id);
     this.eventsService.accountUpdated(account.id);
     return asset;
@@ -182,12 +183,10 @@ export class PortfolioService {
       asset.updateStats();
       await this.storage.updateAsset(asset);
       if (accAsset !== asset) {
-        for (const key of Object.keys(accAsset)) {
-          accAsset[key] = asset[key];
-        }
+        Object.assign(accAsset, asset);
       }
+      this.invalidateAccountsCache();
       this.eventsService.assetUpdated(asset.id);
-
       return asset;
     } else {
       throw new Error('Account Asset not found: ' + asset.id);
@@ -207,9 +206,9 @@ export class PortfolioService {
       account.assets.splice(idx, 1);
       await this.storage.removeAsset(asset);
       await this.storage.updateAccount(account);
+      this.invalidateAccountsCache();
       this.eventsService.assetRemoved(asset.id);
       this.eventsService.accountUpdated(account.id);
-
     } else {
       throw new Error('Asset not found');
     }
