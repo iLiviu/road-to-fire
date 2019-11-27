@@ -62,7 +62,7 @@ interface AssetValue {
 }
 
 interface AssetTypeAllocationMap {
-  [id: number]: Dictionary<AssetValue>;
+  [id: number]: Dictionary<number>;
 }
 
 interface AssetCurrencyValueMap {
@@ -117,6 +117,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   currenciesTotalValue: Dictionary<number> = {};
   assetCurrenciesValue: AssetCurrencyValueMap = {};
   assetTypeAllocationMap: AssetTypeAllocationMap = {};
+  assetDescriptions: NumKeyDictionary<string>;
   accounts: PortfolioAccount[];
   dataLoaded = false;
   goals: ChartDataSets[] = [];
@@ -370,7 +371,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   }
 
   /**
-   * Takes a dictionary with numeric values and returns [key,value] tuple array sorted by value in descending order
+   * Takes a dictionary with numeric values and returns [key,value] tuple array sorted by absolute value in descending order
    * @param map a dictionary with numeric values
    */
   private sortNumDict(map: Dictionary<number> | NumKeyDictionary<number>): [string, number][] {
@@ -378,8 +379,20 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     for (const key of Object.keys(map)) {
       result.push([key, map[key]]);
     }
-    result.sort((a, b) => b[1] - a[1]);
+    result.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
     return result;
+  }
+
+  /**
+   * Returns the absolute sum of the values of a [key, value] tuple array
+   * @param allocations a [string, number] tuple array
+   */
+  private getAbsTotalAllocationValue(allocations: [string, number][]) {
+    let absPortfolioValue = 0;
+    for (const [type, value] of allocations) {
+      absPortfolioValue += Math.abs(value);
+    }
+    return absPortfolioValue;
   }
 
   /**
@@ -389,9 +402,12 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.assetAllocationChart.data = [];
     this.assetAllocationChart.labels = [];
     const assetAllocations = this.sortNumDict(this.assetsTotalValue);
+    // we need the absolute portfolio value to better represent negative constituents
+    const absPortfolioValue = this.getAbsTotalAllocationValue(assetAllocations);
+
     for (const [assetType, value] of assetAllocations) {
       this.assetAllocationChart.labels.push(this.assetTypeLabels[assetType]);
-      this.assetAllocationChart.data.push(this.toPercentage(value, this.portfolioValue));
+      this.assetAllocationChart.data.push(this.toPercentage(Math.abs(value), absPortfolioValue));
     }
   }
 
@@ -402,9 +418,11 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.currencyAllocationChart.data = [];
     this.currencyAllocationChart.labels = [];
     const currencyAllocations = this.sortNumDict(this.currenciesTotalValue);
+    // we need the absolute portfolio value to better represent negative constituents
+    const absPortfolioValue = this.getAbsTotalAllocationValue(currencyAllocations);
     for (const [currency, value] of currencyAllocations) {
       this.currencyAllocationChart.labels.push(currency);
-      this.currencyAllocationChart.data.push(this.toPercentage(value, this.portfolioValue));
+      this.currencyAllocationChart.data.push(this.toPercentage(Math.abs(value), absPortfolioValue));
     }
   }
 
@@ -419,11 +437,13 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
 
     const assetCurrenciesValue = this.assetCurrenciesValue[assetType];
     if (assetCurrenciesValue) {
-      const totalValue = this.assetsTotalValue[assetType];
       const currencyAllocations = this.sortNumDict(assetCurrenciesValue);
+      // we need the absolute portfolio value to better represent negative constituents
+      const totalValue = this.getAbsTotalAllocationValue(currencyAllocations);
+
       for (const [currency, value] of currencyAllocations) {
         chart.labels.push(currency);
-        chart.data.push(this.toPercentage(value, totalValue));
+        chart.data.push(this.toPercentage(Math.abs(value), totalValue));
       }
     }
   }
@@ -436,24 +456,15 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   private computeAssetTypeAllocationData(chart: ChartContext, assetType: AssetType) {
     chart.data = [];
     chart.labels = [];
-    const allocation = this.assetTypeAllocationMap[assetType];
-    const totalValue = this.assetsTotalValue[assetType];
-    // we use a tuple array to hold data so we can sort it
-    const typeAllocations: [string, number][] = [];
-    if (allocation) {
-      for (const assetId of Object.keys(allocation)) {
-        const assetValue = allocation[assetId];
-        typeAllocations.push([
-          assetValue.assetTitle,
-          this.toPercentage(assetValue.value, totalValue)
-        ]);
-      }
-      typeAllocations.sort((a, b) => b[1] - a[1]);
-      for (const [assetTitle, value] of typeAllocations) {
-        chart.data.push(value);
-        chart.labels.push(assetTitle);
-      }
+    if (this.assetTypeAllocationMap[assetType]) {
+      const allocation = this.sortNumDict(this.assetTypeAllocationMap[assetType]);
+      // we need the absolute portfolio value to better represent negative constituents
+      const totalValue = this.getAbsTotalAllocationValue(allocation);
 
+      for (const [assetId, value] of allocation) {
+        chart.labels.push(this.assetDescriptions[assetId]);
+        chart.data.push(this.toPercentage(Math.abs(value), totalValue));
+      }
     }
   }
 
@@ -517,6 +528,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.assetCurrenciesValue = {};
     this.assetRegions = {};
     this.assetTypeAllocationMap = {};
+    this.assetDescriptions = {};
     this.assetsUnrealizedPL = {};
 
     // check for any foreign currencies and queue them for quote update
@@ -586,12 +598,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
           this.assetTypeAllocationMap[broadAssetType] = assetTypeAllocation;
         }
         if (!assetTypeAllocation[assetIdKey]) {
-          assetTypeAllocation[assetIdKey] = {
-            assetTitle: assetDescription,
-            value: 0,
-          };
+          assetTypeAllocation[assetIdKey] = 0;
+          this.assetDescriptions[assetIdKey] = assetDescription;
         }
-        assetTypeAllocation[assetIdKey].value += assetBaseCurrencyValue;
+        assetTypeAllocation[assetIdKey] += assetBaseCurrencyValue;
 
         if (Asset.isStockLike(broadAssetType) || Asset.isBondLike(broadAssetType)) {
           const regionWeights = (<TradeableAsset>asset).getRegionWeights();

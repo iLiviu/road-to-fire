@@ -9,13 +9,15 @@
   <div class="page-content">
     <mat-tab-group [swipeTabs]="{hasSideNav: true}" *ngIf="viewAssets.length > 0" class="mat-tab-group-fill-height">
       <mat-tab label="Overview">
-        <mat-card class="card" *ngIf="assetsOverview.initialValue > 0">
+        <mat-card class="card">
 
           <div class="mat-subheading-2">
             <span fxFlex>Total Value</span>
-            <span>{{assetsOverview.currentValue | currency:baseCurrency}}</span>
+            <span [ngClass]="{'negative':assetsOverview.currentValue < 0}">
+              {{assetsOverview.currentValue | currency:baseCurrency}}
+            </span>
           </div>
-          <div class="mat-subheading-2">
+          <div class="mat-subheading-2" *ngIf="assetsOverview.currentValue > 0">
             <span fxFlex>Portfolio Allocation Percentage</span>
             <span>{{assetsOverview.currentValue/totalPortfolioValue | percent:'1.0-2'}}</span>
           </div>
@@ -25,7 +27,7 @@
           <mat-card-content>
             <div class="mat-subheading-2" *ngFor="let cash of cashBalances">
               <span fxFlex>{{cash.currency}}</span>
-              <span>{{cash.balance | currency:cash.currency}}</span>
+              <span [ngClass]="{'negative':cash.balance < 0}">{{cash.balance | currency:cash.currency}}</span>
             </div>
 
           </mat-card-content>
