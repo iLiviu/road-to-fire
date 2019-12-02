@@ -30,7 +30,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { ChartsModule } from 'ng2-charts/ng2-charts';
+import { ChartsModule } from 'ng2-charts';
 
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PortfolioRootComponent } from './components/portfolio-root/portfolio-root.component';
