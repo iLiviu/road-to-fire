@@ -64,6 +64,7 @@ export class RecurringTransactionsComponent extends PortfolioPageComponent imple
   }
 
   private onTransactionsUpdated() {
+    clearTimeout(this.loadTimer);
     // delay load to avoid multiple refreshes when more transactions are updated at once
     this.loadTimer = setTimeout(() => {
       this.loadTransactions();

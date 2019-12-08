@@ -29,7 +29,6 @@ export class RecurringTransactionsListItemComponent implements OnInit, OnChanges
   constructor(private assetManagementService: AssetManagementService) { }
 
   ngOnInit() {
-    this.txOccurrence = this.recTx.getOccurrenceString();
     if (this.recTx.inactive) {
       this.txIcon = 'error';
     } else {
@@ -41,6 +40,7 @@ export class RecurringTransactionsListItemComponent implements OnInit, OnChanges
     if (changes.recTx) {
       this.isCredit = this.recTx.tx.isCredit();
       this.isDebit = this.recTx.tx.isDebit();
+      this.txOccurrence = this.recTx.getOccurrenceString();
     }
   }
 
