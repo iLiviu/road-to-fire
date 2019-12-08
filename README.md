@@ -2,7 +2,7 @@
 Road To FIRE is a portfolio manager app for your stocks, ETFs, mutual funds, bonds, cryptocurrencies, commodities and real estate. It runs in your browser, so you don't need to install anything. Privacy is important, so all data is stored in your local browser (or your cloud storage account, if you provide one in order to sync data across your devices). The only data sent to the app server are the symbols for your assets, in order to get their current quotes.
 
 > ### :warning: WARNING
-> Please do not consider `Road To FIRE` production ready. You MUST expect that it will eat your data and take precautions against this (keep your portfolio data in another format like an Excel sheet).
+> Please do not consider `Road To FIRE` production ready. You MUST expect that it will eat your data and take precautions against this (keep your portfolio data in another format like a spreadsheet).
 
 ## Key Features:
 * Manage your stock, ETF, mutual funds, bonds, cryptocurrencies, commodities and real estate portfolio in one app. 
