@@ -113,7 +113,6 @@ export const APP_CONSTS = {
     CRYPTO: <ExchangeDetails[]>[
       { code: 'BINANCE', name: 'Binance Exchange' },
       { code: 'COINBASE', name: 'Coinbase Exchange' },
-      { code: 'IEXG', name: 'IEX Market' },
     ],
     COMMODITY: <ExchangeDetails[]>[
       { code: 'CBOE', name: 'CBOE Futures Exchange' },
