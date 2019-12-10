@@ -83,7 +83,7 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
 
     this.amount = new FormControl(this.recTx.tx.value);
     this.fee = new FormControl(this.recTx.tx.fee, [Validators.min(0)]);
-    this.amount.setValidators([Validators.min(0)]);
+    this.amount.setValidators([Validators.min(Number.EPSILON)]);
     this.description = new FormControl(this.recTx.tx.description);
     this.transactionDate = new FormControl(new Date(this.recTx.tx.date));
 

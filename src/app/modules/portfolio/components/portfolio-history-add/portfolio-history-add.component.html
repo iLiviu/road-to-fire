@@ -10,12 +10,12 @@
       </mat-form-field>
 
       <mat-form-field>
-        <input matInput type="number" placeholder="Cash" [formControlName]="AssetType.Cash" required>
+        <input matInput type="number" placeholder="Bonds" [formControlName]="AssetType.Bond" required>
         <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
       </mat-form-field>
 
       <mat-form-field>
-        <input matInput type="number" placeholder="Bonds" [formControlName]="AssetType.Bond" required>
+        <input matInput type="number" placeholder="Cash" [formControlName]="AssetType.Cash" required>
         <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
       </mat-form-field>
 
@@ -27,6 +27,11 @@
       <mat-form-field>
         <input matInput type="number" placeholder="Cryptocurrencies" [formControlName]="AssetType.Cryptocurrency"
           required>
+        <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Debt" [formControlName]="AssetType.Debt" required>
         <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
       </mat-form-field>
 

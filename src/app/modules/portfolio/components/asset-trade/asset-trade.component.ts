@@ -345,15 +345,15 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
    */
   private updateAmountValidators() {
     if (this.data.action === AssetTradeAction.BUY) {
-      const validators = [Validators.min(0)];
+      const validators = [Validators.min(Number.EPSILON)];
       if (this.updateCashAssetBalance.value) {
         validators.push(transactionValueValidator(this.price, this.fee, this.cashAsset));
       }
       this.amount.setValidators(validators);
     } else if (this.data.action === AssetTradeAction.SELL) {
-      this.amount.setValidators([Validators.min(0), Validators.max(this.data.position.amount)]);
+      this.amount.setValidators([Validators.min(Number.EPSILON), Validators.max(this.data.position.amount)]);
     } else {
-      this.amount.setValidators([Validators.min(0)]);
+      this.amount.setValidators([Validators.min(Number.EPSILON)]);
     }
 
   }

@@ -159,6 +159,39 @@ export class AssetManagementService {
   }
 
   /**
+   * Prompts user to add details about a new debt and executes the transaction
+   * @param account account to add the new debt into.
+   * @param defaultCurrency currency to be selected as default
+   * @return Promise that resolves with the new debt asset object
+   */
+  async addDept(account: PortfolioAccount, defaultCurrency: string = null) {
+    try {
+      const newAssetData: AssetData = {
+        currency: defaultCurrency,
+        amount: 0,
+        description: null,
+        type: AssetType.Debt,
+      };
+      let newAsset = new Asset(newAssetData);
+      const result: CashEditResponse = await this.dialogsService.showAdaptableScreenModal(CashEditComponent, newAsset);
+      if (result) {
+        newAsset = await this.portfolioService.addAsset(result.asset, account);
+        this.logger.info('Debt added!');
+
+        // if initial balance is non 0 we add a transaction for funding
+        if (result.asset.amount) {
+          this.addCashTransaction(newAsset, account, newAsset.amount,
+            `New Debt: ${newAsset.description}`, result.transactionDate);
+        }
+        return newAsset;
+      }
+    } catch (error) {
+      this.logger.error(`Could not add debt: ${error}`, error);
+    }
+    return null;
+  }
+
+  /**
    * Display a dialog with details about an asset.
    * @param viewAsset asset to view details for
    */
@@ -306,7 +339,8 @@ export class AssetManagementService {
           const multiplier = tx.isCredit() ? 1 : -1;
           const amount = tx.value * multiplier;
           const newBalance = FloatingMath.fixRoundingError(sourceAsset.amount + amount);
-          if (FloatingMath.isPositive(newBalance)) {
+          // do not allow negative balances when debiting non-debt assets
+          if (sourceAsset.isDebt() || amount > 0 || FloatingMath.isPositive(newBalance)) {
             sourceAsset.amount = newBalance;
             await this.portfolioService.updateAsset(sourceAsset, account);
           } else {
@@ -591,12 +625,14 @@ export class AssetManagementService {
    * @param viewAsset asset to edit
    */
   async editAsset(viewAsset: ViewAsset) {
-    if (viewAsset.asset.type === AssetType.Cash) {
+    if (viewAsset.asset.type === AssetType.Cash || viewAsset.asset.type === AssetType.Debt) {
       await this.editCashAsset(viewAsset.asset, viewAsset.account);
     } else if (viewAsset.asset.type === AssetType.Deposit) {
       await this.editDeposit(<DepositAsset>viewAsset.asset, viewAsset.account);
-    } else {
+    } else if (viewAsset.asset.isTradeable()) {
       await this.editTradeableAsset(viewAsset.position, <TradeableAsset>viewAsset.asset, viewAsset.account);
+    } else {
+      this.logger.error('Invalid asset type for: ' + viewAsset.asset.description);
     }
   }
 
@@ -1488,14 +1524,27 @@ export class AssetManagementService {
    */
   private async exchange(sourceAsset: Asset, sourceAccount: PortfolioAccount, destinationAsset: Asset,
     destinationAccount: PortfolioAccount, amount: number, rate: number, fee: number) {
+    let totalDebit: number;
+    let totalCredit: number;
+    let notEnoughBalance: boolean;
+    if (amount < 0) {
+      // exchanging debt, fee passed to destination
+      totalDebit = amount;
+      totalCredit = FloatingMath.fixRoundingError((amount - fee) * rate);
+      notEnoughBalance = totalDebit < sourceAsset.amount;
+    } else {
+      // exchanging cash, fee substracted from source
+      totalDebit = FloatingMath.fixRoundingError(amount + fee);
+      totalCredit = FloatingMath.fixRoundingError(amount * rate);
+      notEnoughBalance = sourceAsset.amount < totalDebit;
+    }
 
-    const totalDebit = FloatingMath.fixRoundingError(amount + fee);
-    if (sourceAsset.amount < totalDebit) {
+    if (notEnoughBalance) {
       throw new Error('Not enough balance on source asset');
     }
     sourceAsset.amount = FloatingMath.fixRoundingError(sourceAsset.amount - totalDebit);
     const sourcePromise = this.portfolioService.updateAsset(sourceAsset, sourceAccount);
-    destinationAsset.amount = FloatingMath.fixRoundingError(destinationAsset.amount + amount * rate);
+    destinationAsset.amount = FloatingMath.fixRoundingError(destinationAsset.amount + totalCredit);
     const destPromise = this.portfolioService.updateAsset(destinationAsset, destinationAccount);
     await Promise.all([sourcePromise, destPromise]);
   }
@@ -1718,17 +1767,25 @@ export class AssetManagementService {
    */
   private async transfer(sourceAsset: Asset, sourceAccount: PortfolioAccount, position: TradePosition, destinationAsset: Asset,
     destinationAccount: PortfolioAccount, amount: number, fee: number): Promise<Asset> {
-
-    let totalAmount = amount;
-    if (sourceAsset.type === AssetType.Cash) {
-      totalAmount = FloatingMath.fixRoundingError(totalAmount + fee);
+    let creditAmount = amount;
+    let debitAmount = amount;
+    if (debitAmount < 0 && !sourceAsset.isDebt()) {
+      throw new Error(`Transfer amount can't be negative`);
+    }
+    if (sourceAsset.isCashOrDebt()) {
+      if (debitAmount > 0) {
+        debitAmount = FloatingMath.fixRoundingError(debitAmount + fee);
+      } else {
+        // transferring debt, pass fee to destination
+        creditAmount = FloatingMath.fixRoundingError(amount - fee);
+      }
     }
     if (position) {
       // we are transferring a position of a tradeable asset
-      if (position.amount < totalAmount) {
+      if (position.amount < debitAmount) {
         throw new Error('Transfer amount exceeds position balance');
       }
-      position.amount = FloatingMath.fixRoundingError(position.amount - totalAmount);
+      position.amount = FloatingMath.fixRoundingError(position.amount - debitAmount);
       if (FloatingMath.equal(position.amount, 0)) {
         const trAsset = <TradeableAsset>sourceAsset;
         const posIdx = trAsset.positions.indexOf(position);
@@ -1736,25 +1793,26 @@ export class AssetManagementService {
       }
       sourceAsset.updateStats();
     } else {
-      if (sourceAsset.isTradeable() && sourceAsset.amount !== totalAmount) {
+      if (sourceAsset.isTradeable() && sourceAsset.amount !== debitAmount) {
         throw new Error('Transfer can only be made on part of a position or the entire asset');
       }
-      if (sourceAsset.amount < totalAmount) {
+      if ((debitAmount < 0 && sourceAsset.amount > debitAmount) ||
+        (debitAmount > 0 && sourceAsset.amount < debitAmount)) {
         throw new Error('Transfer amount exceeds balance');
       }
-      sourceAsset.amount = FloatingMath.fixRoundingError(sourceAsset.amount - totalAmount);
+      sourceAsset.amount = FloatingMath.fixRoundingError(sourceAsset.amount - debitAmount);
     }
     let asset1$: Promise<any>;
-    if (sourceAsset.amount === 0 && (sourceAsset.type !== AssetType.Cash)) {
-      // if asset is empty and is not a cash asset, remove it
+    if (sourceAsset.amount === 0 && !sourceAsset.isCashOrDebt()) {
+      // if asset is empty and is not a cash/debt asset, remove it
       asset1$ = this.portfolioService.removeAsset(sourceAsset, sourceAccount);
     } else {
       asset1$ = this.portfolioService.updateAsset(sourceAsset, sourceAccount);
     }
 
     let asset2$: Promise<Asset>;
-    if (destinationAsset && destinationAsset.type === AssetType.Cash) {
-      destinationAsset.amount = FloatingMath.fixRoundingError(destinationAsset.amount + amount);
+    if (destinationAsset && destinationAsset.isCashOrDebt()) {
+      destinationAsset.amount = FloatingMath.fixRoundingError(destinationAsset.amount + creditAmount);
       asset2$ = this.portfolioService.updateAsset(destinationAsset, destinationAccount);
     } else {
       let newPosition: TradePosition;
@@ -1802,7 +1860,7 @@ export class AssetManagementService {
           }
           trDestAsset.updateStats();
         } else {
-          destinationAsset.amount = amount;
+          destinationAsset.amount = creditAmount;
         }
         destinationAsset.id = null;
         asset2$ = this.portfolioService.addAsset(destinationAsset, destinationAccount);

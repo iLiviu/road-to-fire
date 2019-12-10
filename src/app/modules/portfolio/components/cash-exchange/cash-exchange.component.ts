@@ -29,21 +29,27 @@ export interface CashExchangeResponse {
 }
 
 /**
- * Validates that the user provided amount + fees do not exceed the cash asset's balance
+ * Validates that the user provided amount + fees do not exceed the cash/debt balance.
+ * If we are validating debt, ignore fee in maximum balance as it's passed to destination.
  *
- * @param cashAsset cash asset to validate
+ * @param cashAsset cash/debt asset to validate
  * @param feeControl fee form control object
  */
 const cashAmountValidator = (cashAsset: Asset, feeControl: FormControl) => {
   return (control: FormControl): ValidationErrors | null => {
     const amount = control.value;
-
-    return amount < 0 || amount >  FloatingMath.fixRoundingError(cashAsset.amount - feeControl.value) ? { 'invalidRange': true } : null;
+    let invalidRange: boolean;
+    if (cashAsset.amount < 0) {
+      invalidRange = amount > 0 || amount < cashAsset.amount;
+    } else {
+      invalidRange = amount < 0 || amount > FloatingMath.fixRoundingError(cashAsset.amount - feeControl.value);
+    }
+    return invalidRange ? { 'invalidRange': true } : null;
   };
 };
 
 /**
- * Component to display a UI for exchanging cash from a currency to another
+ * Component to display a UI for exchanging cash/debt from a currency to another
  */
 @Component({
   selector: 'app-cash-exchange',
@@ -56,11 +62,12 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
   amount: FormControl;
   assetForm: FormGroup;
   cashAssets: Asset[];
+  debtFlag: number;
+  description: FormControl;
   destinationAsset: FormControl;
   fee: FormControl;
   rate: FormControl;
   transactionDate: FormControl;
-  description: FormControl;
   todayDate: Date;
 
   private componentDestroyed$ = new Subject();
@@ -69,10 +76,12 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data: CashExchangeData) { }
 
   ngOnInit() {
+    // can only exchange to assets of same type as source (either cash or debt)
     this.cashAssets = this.data.account.assets
-      .filter(asset => asset.type === AssetType.Cash && asset.currency !== this.data.sourceAsset.currency);
+      .filter(asset => asset.type === this.data.sourceAsset.type && asset.currency !== this.data.sourceAsset.currency);
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
+    this.debtFlag = (this.data.sourceAsset.amount < 0) ? 1 : 0;
 
     this.fee = new FormControl(0, [Validators.min(0)]);
     this.fee.valueChanges

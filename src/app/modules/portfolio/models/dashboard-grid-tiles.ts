@@ -15,6 +15,7 @@ export enum DashboardGridTiles {
   PortfolioHistory,
   Stats,
   UnrealizedPLHistory,
+  DebtAllocation,
 }
 
 export const DashboardGridTilesLabels: NumKeyDictionary<string> = {};
@@ -32,3 +33,4 @@ DashboardGridTilesLabels[DashboardGridTiles.Rebalancing] = 'Rebalancing';
 DashboardGridTilesLabels[DashboardGridTiles.PortfolioHistory] = 'Portfolio History';
 DashboardGridTilesLabels[DashboardGridTiles.Stats] = 'Stats';
 DashboardGridTilesLabels[DashboardGridTiles.UnrealizedPLHistory] = 'Unrealized P/L History';
+DashboardGridTilesLabels[DashboardGridTiles.DebtAllocation] = 'Debt Allocation';

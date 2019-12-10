@@ -58,7 +58,7 @@ export class InterestTransactionEditComponent implements OnInit {
     this.cashAsset = new FormControl();
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
-    this.amount = new FormControl(this.tx.value, [Validators.min(0)]);
+    this.amount = new FormControl(this.tx.value, [Validators.min(Number.EPSILON)]);
     this.fee = new FormControl(this.tx.fee || 0, [Validators.min(0)]);
     let txDate: Date;
     if (this.tx.date) {

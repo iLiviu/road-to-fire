@@ -4,7 +4,7 @@ import { AssetManagementService } from '../../services/asset-management.service'
 import { ViewAsset } from '../../models/view-asset';
 
 /**
- * Component to display a list item containing details about a cash asset
+ * Component to display a list item containing details about a cash/debt asset
  * @see CashAssetListComponent
  */
 @Component({

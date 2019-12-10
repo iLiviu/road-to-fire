@@ -42,6 +42,8 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
   cashBalances: CurrencyBalance[];
   deposits: AssetGroup;
   depositBalances: CurrencyBalance[];
+  debt: AssetGroup;
+  debtBalances: CurrencyBalance[];
   bonds: AssetGroup;
   commodities: AssetGroup;
   cryptocurrencies: AssetGroup;
@@ -75,6 +77,7 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
     // called every time account id parameter changes in route
     this.paramMapSubscription = this.route.paramMap
       .subscribe(params => {
+        this.assetsLoaded = false;
         this.clearAssetData();
         const idParam = params.get('accountId');
         if (idParam === 'new') {
@@ -161,11 +164,15 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
   }
 
   addCashAsset() {
-    this.assetManagementService.addCashAsset(this.account);
+    this.assetManagementService.addCashAsset(this.account, this.baseCurrency);
   }
 
   addDeposit() {
     this.assetManagementService.addDeposit(this.account);
+  }
+
+  addDept() {
+    this.assetManagementService.addDept(this.account, this.baseCurrency);
   }
 
   buyAsset(assetType: AssetType) {
@@ -230,7 +237,6 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
    * @param loadTransactions if `true` then transactions will be loaded too
    */
   private async getAccountData(id: number, loadTransactions: boolean = true) {
-    this.assetsLoaded = false;
     this.currentAccountId = id;
     this.account = new PortfolioAccount();
     try {
@@ -346,6 +352,10 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
       assets: this.groupedAssets[AssetType.Deposit] || [],
       overview: this.assetsGroupOverview[AssetType.Deposit]
     };
+    this.debt = {
+      assets: this.groupedAssets[AssetType.Debt] || [],
+      overview: this.assetsGroupOverview[AssetType.Debt]
+    };
     this.bonds = {
       assets: this.groupedAssets[AssetType.Bond] || [],
       overview: this.assetsGroupOverview[AssetType.Bond]
@@ -373,6 +383,7 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
 
     this.cashBalances = this.getCurrencyBalances(this.cash);
     this.depositBalances = this.getCurrencyBalances(this.deposits);
+    this.debtBalances = this.getCurrencyBalances(this.debt);
   }
 
   /**
@@ -384,6 +395,7 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
     const defaultOverView = new AssetOverview();
     this.cash = { assets: [], overview: defaultOverView };
     this.deposits = { assets: [], overview: defaultOverView };
+    this.debt = { assets: [], overview: defaultOverView };
     this.bonds = { assets: [], overview: defaultOverView };
     this.commodities = { assets: [], overview: defaultOverView };
     this.cryptocurrencies = { assets: [], overview: defaultOverView };

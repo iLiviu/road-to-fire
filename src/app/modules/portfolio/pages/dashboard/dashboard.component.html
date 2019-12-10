@@ -15,11 +15,18 @@
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.Stats]">
         <mat-card class="grid-card">
           <mat-card-title>Stats</mat-card-title>
+
           <mat-card-content>
             <div>
               Portfolio value:
               <span [ngClass]="{'negative':portfolioValue < 0}">{{ portfolioValue | currency:baseCurrency}}</span>
             </div>
+
+            <div *ngIf="liabilitiesValue">
+              Assets value:
+              <span [ngClass]="{'negative':assetsValue < 0}">{{ assetsValue | currency:baseCurrency}}</span>
+            </div>
+
             <div>Unrealized P/L:
               <span [ngClass]="(portfolioUnrealizedPL < 0)? 'negative':'positive'">
                 {{ portfolioUnrealizedPL | currency:baseCurrency}}
@@ -28,6 +35,7 @@
                 </ng-container>
               </span>
             </div>
+
             <div>
               <span matTooltip="Based on Yearly Withdrawal Rate">Monthly spending limit:
                 <span [ngClass]="{'negative':monthlySpendLimit < 0}">
@@ -35,6 +43,7 @@
                 </span>
               </span>
             </div>
+
             <div>Allocation: </div>
             <ul class="allocation-list">
               <li *ngFor="let assetValue of assetsTotalValue | keyvalue">
@@ -44,29 +53,34 @@
                 </span>
               </li>
             </ul>
+
+            <div *ngIf="liabilitiesValue">
+              Loan to assets value: {{currentDebtRatio | percent:'1.0-2'}}
+            </div>
           </mat-card-content>
         </mat-card>
-
       </mat-grid-tile>
 
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.Goals]">
         <mat-card class="grid-card">
           <mat-card-title>Goals</mat-card-title>
+
           <mat-card-content>
             <canvas baseChart width="150" [datasets]="goals" [labels]="goalChartLabels" [options]="goalChartOptions"
               chartType="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
-
       </mat-grid-tile>
 
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.PortfolioHistory]">
         <mat-card class="grid-card">
           <mat-card-title fxLayout="row">
             <span fxFlex>Portfolio History</span>
+
             <button mat-button [matMenuTriggerFor]="timeFramePicker" matTooltip="Time Frame">
               {{phTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
             </button>
+
             <mat-menu #timeFramePicker="matMenu">
               <button mat-menu-item (click)="onPHTimeFrameChanged('Max')">Max</button>
               <button mat-menu-item (click)="onPHTimeFrameChanged('YTD')">YTD</button>
@@ -74,11 +88,13 @@
               <button mat-menu-item (click)="onPHTimeFrameChanged('5Y')">5Y</button>
               <button mat-menu-item (click)="onPHTimeFrameChanged('10Y')">10Y</button>
             </mat-menu>
+
             <button type="button" mat-icon-button (click)="addPortfolioHistory()"
               matTooltip="Manually add history data">
               <mat-icon aria-label="Manually add history data">add_circle_outline</mat-icon>
             </button>
           </mat-card-title>
+
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas *ngIf="portfolioHistoryChart.data.length > 0" baseChart [datasets]="portfolioHistoryChart.data"
               [labels]="portfolioHistoryChart.labels" [options]="portfolioHistoryChartOptions"
@@ -87,9 +103,36 @@
         </mat-card>
       </mat-grid-tile>
 
+      <mat-grid-tile *ngIf="gridVisibility[GridTiles.UnrealizedPLHistory]">
+        <mat-card class="grid-card">
+          <mat-card-title fxLayout="row">
+            <span fxFlex>Unrealized P/L History</span>
+
+            <button mat-button [matMenuTriggerFor]="uphTimeFramePicker" matTooltip="Time Frame">
+              {{plhTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
+            </button>
+
+            <mat-menu #uphTimeFramePicker="matMenu">
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('Max')">Max</button>
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('YTD')">YTD</button>
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('1Y')">1Y</button>
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('5Y')">5Y</button>
+              <button mat-menu-item (click)="onPLHTimeFrameChanged('10Y')">10Y</button>
+            </mat-menu>
+          </mat-card-title>
+
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <canvas *ngIf="unrealizedPLHistoryChart.data.length > 0" baseChart
+              [datasets]="unrealizedPLHistoryChart.data" [labels]="unrealizedPLHistoryChart.labels"
+              [options]="portfolioHistoryChartOptions" chartType="line"></canvas>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.PortfolioAllocation] && assetAllocationChart.data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Portfolio Allocation</mat-card-title>
+
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas baseChart [data]="assetAllocationChart.data" [labels]="assetAllocationChart.labels"
               [options]="pieChartOptions" chartType="doughnut"></canvas>
@@ -99,7 +142,8 @@
 
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.CurrencyAllocation] && currencyAllocationChart.data.length > 0">
         <mat-card class="grid-card">
-          <mat-card-title>Currency Allocation</mat-card-title>
+          <mat-card-title>Portfolio Currency Allocation</mat-card-title>
+
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas baseChart [data]="currencyAllocationChart.data" [labels]="currencyAllocationChart.labels"
               [options]="pieChartOptions" chartType="doughnut"></canvas>
@@ -110,8 +154,21 @@
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.StocksGeoAllocation] && stockGeoAllocationChart.data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Stocks Geo Allocation</mat-card-title>
+
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas baseChart [data]="stockGeoAllocationChart.data" [labels]="stockGeoAllocationChart.labels"
+              [options]="pieChartOptions" chartType="doughnut"></canvas>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.StockCurrencyAllocation] && stockCurrencyAllocationChart.data.length > 0">
+        <mat-card class="grid-card">
+          <mat-card-title>Stock Currency Allocation</mat-card-title>
+
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <canvas baseChart [data]="stockCurrencyAllocationChart.data" [labels]="stockCurrencyAllocationChart.labels"
               [options]="pieChartOptions" chartType="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
@@ -120,8 +177,21 @@
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.BondsGeoAllocation] && bondGeoAllocationChart.data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Bonds Geo Allocation</mat-card-title>
+
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas baseChart [data]="bondGeoAllocationChart.data" [labels]="bondGeoAllocationChart.labels"
+              [options]="pieChartOptions" chartType="doughnut"></canvas>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.BondCurrencyAllocation] && bondCurrencyAllocationChart.data.length > 0">
+        <mat-card class="grid-card">
+          <mat-card-title>Bond Currency Allocation</mat-card-title>
+
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <canvas baseChart [data]="bondCurrencyAllocationChart.data" [labels]="bondCurrencyAllocationChart.labels"
               [options]="pieChartOptions" chartType="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
@@ -130,6 +200,7 @@
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.CommodityAllocation] && commodityAllocationChart.data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Commodity Allocation</mat-card-title>
+
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas baseChart [data]="commodityAllocationChart.data" [labels]="commodityAllocationChart.labels"
               [options]="pieChartOptions" chartType="doughnut"></canvas>
@@ -140,30 +211,9 @@
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.CryptoAllocation] && cryptoAllocationChart.data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Cryptocurrency Allocation</mat-card-title>
+
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas baseChart [data]="cryptoAllocationChart.data" [labels]="cryptoAllocationChart.labels"
-              [options]="pieChartOptions" chartType="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.StockCurrencyAllocation] && stockCurrencyAllocationChart.data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Stock Currency Allocation</mat-card-title>
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="stockCurrencyAllocationChart.data" [labels]="stockCurrencyAllocationChart.labels"
-              [options]="pieChartOptions" chartType="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.BondCurrencyAllocation] && bondCurrencyAllocationChart.data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Bond Currency Allocation</mat-card-title>
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="bondCurrencyAllocationChart.data" [labels]="bondCurrencyAllocationChart.labels"
               [options]="pieChartOptions" chartType="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
@@ -172,6 +222,7 @@
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.CashAllocation] && cashAllocationChart.data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Cash Allocation</mat-card-title>
+
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas baseChart [data]="cashAllocationChart.data" [labels]="cashAllocationChart.labels"
               [options]="pieChartOptions" chartType="doughnut"></canvas>
@@ -179,25 +230,13 @@
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.UnrealizedPLHistory]">
+      <mat-grid-tile *ngIf="gridVisibility[GridTiles.DebtAllocation] && debtAllocationChart.data.length > 0">
         <mat-card class="grid-card">
-          <mat-card-title fxLayout="row">
-            <span fxFlex>Unrealized P/L History</span>
-            <button mat-button [matMenuTriggerFor]="uphTimeFramePicker" matTooltip="Time Frame">
-              {{plhTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
-            </button>
-            <mat-menu #uphTimeFramePicker="matMenu">
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('Max')">Max</button>
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('YTD')">YTD</button>
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('1Y')">1Y</button>
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('5Y')">5Y</button>
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('10Y')">10Y</button>
-            </mat-menu>
-          </mat-card-title>
+          <mat-card-title>Debt Allocation</mat-card-title>
+
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas *ngIf="unrealizedPLHistoryChart.data.length > 0" baseChart
-              [datasets]="unrealizedPLHistoryChart.data" [labels]="unrealizedPLHistoryChart.labels"
-              [options]="portfolioHistoryChartOptions" chartType="line"></canvas>
+            <canvas baseChart [data]="debtAllocationChart.data" [labels]="debtAllocationChart.labels"
+              [options]="pieChartOptions" chartType="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -206,9 +245,12 @@
         <mat-card class="grid-card">
           <mat-card-title>Rebalancing</mat-card-title>
           <mat-card-content>
-            <p *ngIf="!rebalancingSetup" class="negative">You need to configure your desired portfolio allocation
-              first! (see Settings page)</p>
+            <p *ngIf="!rebalancingSetup" class="negative">
+              You need to configure your desired portfolio allocation first! (see Settings page)
+            </p>
+
             <p class="positive" *ngIf="rebalancingSetup && (rebalancingSteps.length === 0)">No rebalancing needed!</p>
+
             <ol *ngIf="rebalancingSetup">
               <li *ngFor="let step of rebalancingSteps">
                 <span *ngIf="step.percentage < 0" class="negative">Sell {{step.value * -1 |
@@ -216,9 +258,22 @@
                 <span *ngIf="step.percentage > 0" class="positive">Buy {{step.value | currency:this.baseCurrency}} of
                   {{step.assetName}} </span>
               </li>
-
             </ol>
 
+            <ng-container *ngIf="currentDebtRatio > 0 || portfolioConfig.loanToValueRatio > 0">
+              <h3>Debt adjustment</h3>
+              <span class="positive" *ngIf="debtToAcquire > 0">
+                You are underleveraged. You can get into {{ debtToAcquire | currency:this.baseCurrency}} additional debt
+              </span>
+
+              <span class="negative" *ngIf="debtToAcquire < 0">
+                You are overleveraged. Pay {{ debtToAcquire * - 1 | currency:this.baseCurrency}} of your debt.
+              </span>
+
+              <span *ngIf="debtToAcquire === 0">
+                Your debt to value ratio is spot on!
+              </span>
+            </ng-container>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>

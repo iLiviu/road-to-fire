@@ -34,10 +34,24 @@ export interface AssetTransferResponse {
   recurringTransaction: RecurringTransaction;
 }
 
+/**
+ * Validates the value of the amount control. If we are transferring debt,
+ * fee will be passed to destination so do not substract from max amount.
+ * @param maxAmount maximum allowed amount
+ * @param feeCtrl form control that holds the fee value
+ */
 const amountValidator = (maxAmount: number, feeCtrl: FormControl) => {
   return (control: FormControl): ValidationErrors | null => {
     const amount = control.value;
-    return amount <= 0 || amount > (maxAmount - feeCtrl.value) ? { 'invalidRange': true } : null;
+    let invalidRange: boolean;
+    if (maxAmount < 0) {
+      // validate debt and ignore fee
+      invalidRange = amount >= 0 || amount < maxAmount;
+    } else {
+      invalidRange = amount <= 0 || amount > (maxAmount - feeCtrl.value);
+
+    }
+    return invalidRange ? { 'invalidRange': true } : null;
   };
 };
 
@@ -57,6 +71,8 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
   todayDate: Date;
   assetForm: FormGroup;
   amount: FormControl;
+  cashOrDebtTransfer: boolean;
+  debtFlag: number;
   description: FormControl;
   destinationAccount: FormControl;
   destinationAsset: FormControl;
@@ -78,8 +94,10 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
+    this.debtFlag = (this.data.sourceAsset.amount < 0) ? 1 : 0;
+    this.cashOrDebtTransfer = this.data.sourceAsset.isCashOrDebt();
 
-    // for tradeable assets, if we are not transfering a position, then all positions must be transferred
+    // for tradeable assets, if we are not transferring a position, then all positions must be transferred
     this.fullAssetTransfer = this.data.sourceAsset.isTradeable() && !this.data.sourcePosition;
 
     // check if we are transferring a position
@@ -111,7 +129,7 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
       enableRecurringTransaction: this.enableRecurringTransaction,
       transactionDate: this.transactionDate,
     });
-    if (this.data.sourceAsset.type === AssetType.Cash) {
+    if (this.cashOrDebtTransfer) {
       this.assetForm.addControl('destinationAsset', this.destinationAsset);
       this.assetForm.addControl('fee', this.fee);
     } else {
@@ -147,11 +165,13 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Triggered when destination account changes and updates the destination cash assets.
+   * Triggered when destination account changes and updates the destination cash & debt assets.
+   * Debt can only be transferred to another debt, while cash can be transferred to either debt or cash.
    */
   private onDestinationAccountChanged() {
     this.destinationCashAssets = (<PortfolioAccount>this.destinationAccount.value).assets.filter(
-      asset => asset.type === AssetType.Cash &&
+      asset => asset.isCashOrDebt() &&
+        ((this.data.sourceAsset.amount > 0) || asset.isDebt()) &&
         asset.id !== this.data.sourceAsset.id &&
         asset.currency === this.data.sourceAsset.currency);
     this.destinationCashAssets.sort((a, b) => a.description < b.description ? -1 : 1);

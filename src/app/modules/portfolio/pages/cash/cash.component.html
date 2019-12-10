@@ -19,7 +19,7 @@
           </div>
           <div class="mat-subheading-2" *ngIf="assetsOverview.currentValue > 0">
             <span fxFlex>Portfolio Allocation Percentage</span>
-            <span>{{assetsOverview.currentValue/totalPortfolioValue | percent:'1.0-2'}}</span>
+            <span>{{assetsOverview.currentValue/totalAssetsValue | percent:'1.0-2'}}</span>
           </div>
         </mat-card>
         <mat-card class="card" *ngIf="cashBalances.length > 0">

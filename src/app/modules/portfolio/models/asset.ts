@@ -17,6 +17,7 @@ export enum AssetType {
   Commodity = 16,
   Cryptocurrency = 32,
   RealEstate = 64,
+  Debt = 512,
   TradeableAsset = RealEstate | Cryptocurrency | Commodity | Stock | Bond,
   ETF = 128,
   StockETF = Stock | ETF,
@@ -30,26 +31,28 @@ export enum AssetType {
   MoneyMarketMutualFund = MoneyMarket | MutualFund,
   CommodityMutualFund = Stock | MutualFund | Commodity,
 
-  All = MutualFund | ETF | TradeableAsset | Deposit | Cash,
+  All = MutualFund | ETF | TradeableAsset | Deposit | Cash | Debt,
 }
 
-export const ASSET_TYPE_LABELS: NumKeyDictionary<string> = {};
-ASSET_TYPE_LABELS[AssetType.Cash] = 'Cash';
-ASSET_TYPE_LABELS[AssetType.Deposit] = 'Deposits';
-ASSET_TYPE_LABELS[AssetType.CashLike] = 'Cash/Deposits';
-ASSET_TYPE_LABELS[AssetType.Bond] = 'Bonds';
-ASSET_TYPE_LABELS[AssetType.Stock] = 'Stocks';
-ASSET_TYPE_LABELS[AssetType.Commodity] = 'Commodities';
-ASSET_TYPE_LABELS[AssetType.Cryptocurrency] = 'Cryptocurrencies';
-ASSET_TYPE_LABELS[AssetType.RealEstate] = 'Real Estate';
-ASSET_TYPE_LABELS[AssetType.StockETF] = 'Stock ETF';
-ASSET_TYPE_LABELS[AssetType.BondETF] = 'Bond ETF';
-ASSET_TYPE_LABELS[AssetType.MoneyMarketETF] = 'Money Market ETF';
-ASSET_TYPE_LABELS[AssetType.CommodityETF] = 'Commodity ETF';
-ASSET_TYPE_LABELS[AssetType.StockMutualFund] = 'Stock Mutual Fund';
-ASSET_TYPE_LABELS[AssetType.BondMutualFund] = 'Bond Mutual Fund';
-ASSET_TYPE_LABELS[AssetType.CommodityMutualFund] = 'Commodity Mutual Fund';
-ASSET_TYPE_LABELS[AssetType.MoneyMarketMutualFund] = 'Money Market Mutual Fund';
+export const ASSET_TYPE_LABELS: NumKeyDictionary<string> = {
+  [AssetType.Cash]: 'Cash',
+  [AssetType.Deposit]: 'Deposits',
+  [AssetType.CashLike]: 'Cash/Deposits',
+  [AssetType.Bond]: 'Bonds',
+  [AssetType.Stock]: 'Stocks',
+  [AssetType.Commodity]: 'Commodities',
+  [AssetType.Cryptocurrency]: 'Cryptocurrencies',
+  [AssetType.RealEstate]: 'Real Estate',
+  [AssetType.StockETF]: 'Stock ETF',
+  [AssetType.BondETF]: 'Bond ETF',
+  [AssetType.MoneyMarketETF]: 'Money Market ETF',
+  [AssetType.CommodityETF]: 'Commodity ETF',
+  [AssetType.StockMutualFund]: 'Stock Mutual Fund',
+  [AssetType.BondMutualFund]: 'Bond Mutual Fund',
+  [AssetType.CommodityMutualFund]: 'Commodity Mutual Fund',
+  [AssetType.MoneyMarketMutualFund]: 'Money Market Mutual Fund',
+  [AssetType.Debt]: 'Debt',
+};
 
 export interface AssetData {
   id?: number;
@@ -78,10 +81,24 @@ export class Asset implements AssetData {
   }
 
   /**
+   * Checks wherever an asset type is a cash asset
+   */
+  static isCash(type: AssetType) {
+    return type === AssetType.Cash;
+  }
+
+  /**
    * Checks wherever an asset type is a cash or deposit asset
    */
   static isCashLike(type: AssetType) {
     return (type & AssetType.CashLike) !== 0;
+  }
+
+  /**
+   * Checks wherever an asset type is a debt asset
+   */
+  static isDebt(type: AssetType) {
+    return (type & AssetType.Debt) !== 0;
   }
 
   /**
@@ -155,6 +172,13 @@ export class Asset implements AssetData {
   }
 
   /**
+   * Checks wherever asset is a cash asset
+   */
+  isCash() {
+    return Asset.isCash(this.type);
+  }
+
+  /**
    * Checks wherever asset is a bond or a fund holding bonds
    */
   isBondLike() {
@@ -166,6 +190,20 @@ export class Asset implements AssetData {
    */
   isCashLike() {
     return Asset.isCashLike(this.type);
+  }
+
+  /**
+   * Checks wherever asset is a debt asset
+   */
+  isDebt() {
+    return Asset.isDebt(this.type);
+  }
+
+  /**
+   * Checks wherever asset is a cash or debt asset
+   */
+  isCashOrDebt() {
+    return this.isCash() || this.isDebt();
   }
 
   /**

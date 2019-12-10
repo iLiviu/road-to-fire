@@ -41,6 +41,7 @@ export class PortfolioHistoryAddComponent implements OnInit {
       [AssetType.Bond]: new FormControl(),
       [AssetType.Commodity]: new FormControl(),
       [AssetType.Cryptocurrency]: new FormControl(),
+      [AssetType.Debt]: new FormControl(),
       [AssetType.RealEstate]: new FormControl(),
       [AssetType.Stock]: new FormControl(),
       portfolioDate: this.portfolioDate,

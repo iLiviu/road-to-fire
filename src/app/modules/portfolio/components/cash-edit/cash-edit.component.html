@@ -1,5 +1,7 @@
 <form [formGroup]="assetForm">
-  <app-edit-dialog [form]="assetForm" title="{{asset.id? 'Edit':'New'}} Cash Account" (close)="dialogClosed($event)">
+  <app-edit-dialog [form]="assetForm"
+    title="{{asset.id? 'Edit':'New'}} {{asset.type === AssetType.Debt? 'Debt':'Cash'}} Account"
+    (close)="dialogClosed($event)">
     <div class="text-content" fxLayout="column">
       <mat-form-field>
         <input matInput type="text" placeholder="Account identifier" required formControlName="description">
@@ -14,6 +16,7 @@
       <mat-form-field>
         <input matInput type="number" placeholder="Account balance" required formControlName="amount">
         <span matPrefix>{{currency.value | currencySymbol}}</span>
+        <mat-error *ngIf="amount.errors?.max">Debt must be negative</mat-error>
       </mat-form-field>
       <mat-form-field *ngIf="!asset.id">
         <input matInput [max]="todayDate" [matDatepicker]="datepicker" placeholder="Transaction Date"

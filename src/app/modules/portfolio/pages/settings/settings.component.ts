@@ -45,6 +45,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
   baseCurrencyCtl: FormControl;
   configPassword: FormControl;
   dataLoaded = false;
+  debtToValueRatio: FormControl;
   enable2FA: FormControl;
   encryptionEnabled: boolean;
   formSubmitted = false;
@@ -93,6 +94,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
     this.formSubmitted = true;
     try {
       this.portfolioConfig.baseCurrency = this.baseCurrencyCtl.value;
+      this.portfolioConfig.loanToValueRatio = this.debtToValueRatio.value / 100;
       this.portfolioConfig.withdrawalRate = +this.withdrawalRate.value / 100;
       for (let i = 0; i < this.portfolioConfig.goals.length; i++) {
         this.portfolioConfig.goals[i].value = +this.goals.controls[i].value;
@@ -322,8 +324,12 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
       this.portfolioAllocation.addControl(assetType.toString(), new FormControl('0', [Validators.min(0), Validators.max(100)]));
     }
     for (const asset of this.portfolioConfig.portfolioAllocation) {
-      this.portfolioAllocation.controls[asset.assetType].setValue(FloatingMath.fixRoundingError(asset.allocation * 100));
+      if (this.portfolioAllocation.controls[asset.assetType]) {
+        this.portfolioAllocation.controls[asset.assetType].setValue(FloatingMath.fixRoundingError(asset.allocation * 100));
+      }
     }
+    this.debtToValueRatio = new FormControl(FloatingMath.fixRoundingError(this.portfolioConfig.loanToValueRatio * 100),
+      [Validators.min(0), Validators.max(100)]);
     this.enable2FA = new FormControl(this.authService.is2FAEnabled());
     this.baseCurrencyCtl = new FormControl(this.portfolioConfig.baseCurrency);
     this.withdrawalRate = new FormControl(FloatingMath.fixRoundingError(this.portfolioConfig.withdrawalRate * 100),
@@ -334,6 +340,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
 
     this.settingsForm = new FormGroup({
       baseCurrencyCtl: this.baseCurrencyCtl,
+      debtToValueRatio: this.debtToValueRatio,
       enable2FA: this.enable2FA,
       withdrawalRate: this.withdrawalRate,
       goals: this.goals,

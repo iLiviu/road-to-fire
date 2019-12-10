@@ -12,6 +12,7 @@ export class MockPortfolioService {
     goals: [{ title: 'RE', value: 1000000 }],
     hideCapitalGainsWarning: false,
     lastQuotesUpdate: new Date().toISOString(),
+    loanToValueRatio: 0,
     portfolioAllocation: [{ assetType: AssetType.Cash, allocation: 1 }],
     withdrawalRate: 0.04,
     dashboardGridVisibility: {},

@@ -14,6 +14,7 @@ import { MockDialogsService } from 'src/app/modules/dialogs/mocks/dialogs.servic
 import { SAMPLE_ASSETS } from '../../mocks/sample-accounts.mock';
 import { TransactionType } from '../../models/transaction';
 import { RecurringTransactionInputComponent } from '../recurring-transaction-input/recurring-transaction-input.component';
+import { AbsoluteValuePipe } from 'src/app/shared/pipes/absolute-value.pipe';
 
 const dialogData: CashFundData = {
   asset: SAMPLE_ASSETS.EURCashAsset,
@@ -48,6 +49,7 @@ describe('CashFundComponent', () => {
         RecurringTransactionInputComponent,
         EditDialogComponent,
         CurrencySymbolPipe,
+        AbsoluteValuePipe,
       ],
       providers: [
         { provide: DialogsService, useClass: MockDialogsService },

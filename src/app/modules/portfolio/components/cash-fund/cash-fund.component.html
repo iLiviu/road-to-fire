@@ -1,12 +1,12 @@
 <form [formGroup]="assetForm">
-  <app-edit-dialog [form]="assetForm"
-    title="{{data.transactionType == TransactionType.CreditCash? 'Credit':'Debit'}} {{data.asset.description}}"
+  <app-edit-dialog [form]="assetForm" title="{{isCreditTx? 'Credit':'Debit'}} {{data.asset.description}}"
     (close)="dialogClosed($event)">
     <div class="text-content" fxLayout="column">
       <mat-form-field>
         <input matInput type="number" placeholder="Amount" required formControlName="amount">
         <span matPrefix>{{data.asset.currency | currencySymbol}}</span>
-        <mat-error *ngIf="amount.errors?.invalidRange">Amount must be between 0 and {{data.asset.amount - fee.value | number}}
+        <mat-error *ngIf="amount.errors?.invalidRange">Amount must be between 0 and
+          {{data.asset.amount - fee.value | absoluteValue | number}}
         </mat-error>
         <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
       </mat-form-field>
@@ -23,8 +23,8 @@
       </mat-form-field>
 
       <mat-form-field>
-        <input matInput [matDatepicker]="datepicker" placeholder="Transaction Date"
-          formControlName="transactionDate" required (dateInput)="onTxDateChanged()">
+        <input matInput [matDatepicker]="datepicker" placeholder="Transaction Date" formControlName="transactionDate"
+          required (dateInput)="onTxDateChanged()">
         <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
         <mat-datepicker #datepicker></mat-datepicker>
         <mat-error>Transaction date can't be in the future</mat-error>

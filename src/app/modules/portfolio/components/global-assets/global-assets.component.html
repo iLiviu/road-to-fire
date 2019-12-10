@@ -20,15 +20,15 @@
             </div>
             <div class="mat-subheading-2">
               <span fxFlex>Portfolio Allocation Percentage</span>
-              <span>{{assetsOverview.currentValue/totalPortfolioValue | percent:'1.0-2'}}</span>
+              <span>{{assetsOverview.currentValue / totalAssetsValue | percent:'1.0-2'}}</span>
             </div>
             <div class="mat-subheading-2">
               <span fxFlex>Cost</span>
               <span>{{assetsOverview.initialValue | currency:baseCurrency}}</span>
             </div>
             <div class="mat-subheading-2">
-              <span fxFlex>Total P/L</span>
-              <span [ngClass]="(assetsOverview.profitLoss<0)? 'negative':'positive'">{{assetsOverview.profitLoss
+              <span fxFlex>Unrealized P/L</span>
+              <span [ngClass]="(assetsOverview.profitLoss < 0)? 'negative':'positive'">{{assetsOverview.profitLoss
                 | currency:baseCurrency }}
                 ({{assetsOverview.profitLossPercent | percent:'1.0-2' }})</span>
             </div>

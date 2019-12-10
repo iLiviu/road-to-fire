@@ -245,8 +245,10 @@ export class PeriodicChecksService {
         if (asset) {
           if (recTx.autoApprove) {
             const multiplier = txTemplate.isCredit() ? 1 : -1;
-            const newBalance = FloatingMath.fixRoundingError(asset.amount + txTemplate.value * multiplier);
-            if (FloatingMath.isPositive(newBalance)) {
+            const txValue = txTemplate.value * multiplier;
+            const newBalance = FloatingMath.fixRoundingError(asset.amount + txValue);
+            // do not allow negative balances when debiting non-debt assets
+            if (asset.isDebt() || txValue > 0 || FloatingMath.isPositive(newBalance)) {
               if (txTemplate.isTransfer()) {
                 const transferTxTpl = <TransferTransaction>txTemplate;
                 const destinationAccount = await this.portfolioService.getAccount(transferTxTpl.destinationAsset.accountId);

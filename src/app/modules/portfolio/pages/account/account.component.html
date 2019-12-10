@@ -2,15 +2,17 @@
   <app-top-toolbar pageTitle="{{account.description}}">
     <div>
       <app-refresh-quotes-button></app-refresh-quotes-button>
+
       <app-notifications-button></app-notifications-button>
+
       <button type="button" aria-label="Actions" mat-icon-button matTooltip="Actions" [matMenuTriggerFor]="actionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
+      
       <mat-menu #actionsMenu="matMenu">
         <button mat-menu-item (click)="editAccount()">Edit Account Name</button>
         <button mat-menu-item (click)="deleteAccount()">Delete Account</button>
       </mat-menu>
-
     </div>
   </app-top-toolbar>
 
@@ -18,7 +20,6 @@
     <mat-tab-group [swipeTabs]="{hasSideNav: true}" class="mat-tab-group-fill-height">
       <mat-tab label="Overview">
         <div>
-
           <app-tradeable-asset-sum-card [title]="'Total'" [baseCurrency]="baseCurrency" [overview]="assetsOverview">
           </app-tradeable-asset-sum-card>
 
@@ -27,20 +28,28 @@
 
           <app-cash-balances-card *ngIf="deposits.assets.length > 0" title="Deposits" [balances]="depositBalances"
             [baseCurrency]="baseCurrency" [totalBalance]="deposits.overview.currentValue"></app-cash-balances-card>
+
           <app-tradeable-asset-sum-card [title]="'Money Market'" [baseCurrency]="baseCurrency"
             [overview]="mmAssets.overview" *ngIf="mmAssets.assets.length > 0"></app-tradeable-asset-sum-card>
+
+          <app-cash-balances-card *ngIf="debt.assets.length > 0" title="Debt" [balances]="debtBalances"
+            [baseCurrency]="baseCurrency" [totalBalance]="debt.overview.currentValue"></app-cash-balances-card>
+
           <app-tradeable-asset-sum-card [title]="'Bonds'" [baseCurrency]="baseCurrency" [overview]="bonds.overview"
             *ngIf="bonds.assets.length > 0"></app-tradeable-asset-sum-card>
+
           <app-tradeable-asset-sum-card [title]="'Commodities'" [baseCurrency]="baseCurrency"
             [overview]="commodities.overview" *ngIf="commodities.assets.length > 0"></app-tradeable-asset-sum-card>
+
           <app-tradeable-asset-sum-card [title]="'Cryptocurrencies'" [baseCurrency]="baseCurrency"
             [overview]="cryptocurrencies.overview" *ngIf="cryptocurrencies.assets.length > 0">
           </app-tradeable-asset-sum-card>
+
           <app-tradeable-asset-sum-card [title]="'Real Estate'" [baseCurrency]="baseCurrency"
             [overview]="realEstate.overview" *ngIf="realEstate.assets.length > 0"></app-tradeable-asset-sum-card>
+
           <app-tradeable-asset-sum-card [title]="'Stocks'" [baseCurrency]="baseCurrency" [overview]="stocks.overview"
             *ngIf="stocks.assets.length > 0"></app-tradeable-asset-sum-card>
-
 
           <eco-fab-speed-dial class="fab-bottom-right">
             <eco-fab-speed-dial-trigger spin="true">
@@ -53,21 +62,31 @@
               <button mat-mini-fab color="primary" (click)="addCashAsset()">
                 <mat-icon matTooltip="Add Cash Account" aria-label="Add Cash Account">local_atm</mat-icon>
               </button>
+
               <button mat-mini-fab color="primary" (click)="addDeposit()">
                 <mat-icon matTooltip="Create Deposit" aria-label="Create Deposit">access_time</mat-icon>
               </button>
+
+              <button mat-mini-fab color="primary" (click)="addDept()">
+                <mat-icon matTooltip="Create Debt" aria-label="Create Debt">credit_card</mat-icon>
+              </button>
+
               <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.Bond)">
                 <mat-icon matTooltip="Buy Bond" aria-label="Buy Bond" svgIcon="certificate"></mat-icon>
               </button>
+
               <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.Commodity)">
                 <mat-icon matTooltip="Buy Commodity" aria-label="Buy Commodity" svgIcon="commodity"></mat-icon>
               </button>
+
               <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.Cryptocurrency)">
                 <mat-icon matTooltip="Buy Cryptocurrency" aria-label="Buy Cryptocurrency" svgIcon="bitcoin"></mat-icon>
               </button>
+
               <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.RealEstate)">
                 <mat-icon matTooltip="Buy Real Estate" aria-label="Buy Real Estate">home</mat-icon>
               </button>
+
               <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.Stock)">
                 <mat-icon matTooltip="Buy Stock/ETF" aria-label="Buy Stock/ETF">trending_up</mat-icon>
               </button>
@@ -86,32 +105,42 @@
       <mat-tab label="Cash" *ngIf="cash.assets.length > 0">
         <app-cash-asset-list [assets]="cash.assets" [multiAccount]="false"></app-cash-asset-list>
       </mat-tab>
+
       <mat-tab label="Deposits" *ngIf="deposits.assets.length > 0">
         <app-cash-asset-list [assets]="deposits.assets" [multiAccount]="false"></app-cash-asset-list>
       </mat-tab>
+
       <mat-tab label="Money Market" *ngIf="mmAssets.assets.length > 0">
         <app-tradeable-asset-list [assets]="mmAssets.assets"></app-tradeable-asset-list>
+      </mat-tab>
+
+      <mat-tab label="Debt" *ngIf="debt.assets.length > 0">
+        <app-cash-asset-list [assets]="debt.assets" [multiAccount]="false"></app-cash-asset-list>
       </mat-tab>
 
       <mat-tab label="Bonds & Bond ETFs" *ngIf="bonds.assets.length > 0">
         <app-tradeable-asset-list [assets]="bonds.assets"></app-tradeable-asset-list>
       </mat-tab>
+
       <mat-tab label="Commodities" *ngIf="commodities.assets.length > 0">
         <app-tradeable-asset-list [assets]="commodities.assets"></app-tradeable-asset-list>
       </mat-tab>
+
       <mat-tab label="Cryptocurrencies" *ngIf="cryptocurrencies.assets.length > 0">
         <app-tradeable-asset-list [assets]="cryptocurrencies.assets"></app-tradeable-asset-list>
       </mat-tab>
+
       <mat-tab label="Real Estate" *ngIf="realEstate.assets.length > 0">
         <app-tradeable-asset-list [assets]="realEstate.assets"></app-tradeable-asset-list>
       </mat-tab>
+
       <mat-tab label="Stocks" *ngIf="stocks.assets.length > 0">
         <app-tradeable-asset-list [assets]="stocks.assets"></app-tradeable-asset-list>
       </mat-tab>
-
     </mat-tab-group>
   </div>
 </ng-container>
+
 <div *ngIf="!assetsLoaded" class="page-content" fxLayoutAlign="center center" fxLayout="column">
   <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
 </div>

@@ -1,0 +1,51 @@
+<ng-container *ngIf="assetsLoaded">
+  <app-top-toolbar pageTitle="Debt">
+    <div>
+      <app-refresh-quotes-button></app-refresh-quotes-button>
+      <app-notifications-button></app-notifications-button>
+    </div>
+  </app-top-toolbar>
+
+  <div class="page-content">
+    <mat-tab-group [swipeTabs]="{hasSideNav: true}" *ngIf="viewAssets.length > 0" class="mat-tab-group-fill-height">
+      <mat-tab label="Overview">
+        <mat-card class="card">
+          <div class="mat-subheading-2">
+            <span fxFlex>Total Value</span>
+            <span [ngClass]="{'negative':assetsOverview.currentValue < 0}">
+              {{assetsOverview.currentValue | currency:baseCurrency}}
+            </span>
+          </div>
+
+          <div class="mat-subheading-2">
+            <span fxFlex>Loan-to-value ratio (LTV):</span>
+            <span>{{currentDebtRatio | percent:'1.0-2'}}</span>
+          </div>
+        </mat-card>
+
+        <mat-card class="card" *ngIf="balances.length > 0">
+          <mat-card-title>Balances</mat-card-title>
+
+          <mat-card-content>
+            <div class="mat-subheading-2" *ngFor="let item of balances">
+              <span fxFlex>{{item.currency}}</span>
+              <span [ngClass]="{'negative':item.balance < 0}">{{item.balance | currency:item.currency}}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-tab>
+
+      <mat-tab label="Liabilities">
+        <app-cash-asset-list [assets]="viewAssets" *ngIf="viewAssets.length > 0"></app-cash-asset-list>
+      </mat-tab>
+    </mat-tab-group>
+
+    <div *ngIf="assetsLoaded && viewAssets.length === 0" fxLayoutAlign="center center">
+      <div class="text-content">You have no liabilities.</div>
+    </div>
+  </div>
+</ng-container>
+
+<div *ngIf="!assetsLoaded" class="page-content" fxLayoutAlign="center center" fxLayout="column">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</div>

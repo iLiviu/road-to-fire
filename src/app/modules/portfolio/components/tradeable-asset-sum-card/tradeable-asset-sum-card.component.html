@@ -2,7 +2,7 @@
   <mat-card-title>{{title}}</mat-card-title>
   <mat-card-content>
     <div class="mat-subheading-2">
-      <span fxFlex>Assets Value</span>
+      <span fxFlex>Current Value</span>
       <span [ngClass]="{'negative':overview.currentValue < 0}">{{overview.currentValue | currency:baseCurrency}}</span>
     </div>
     <div class="mat-subheading-2">

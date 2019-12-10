@@ -5,8 +5,8 @@
       <mat-form-field *ngIf="!this.fullAssetTransfer">
         <input matInput type="number" placeholder="Amount to transfer" required formControlName="amount">
         <span matPrefix
-          *ngIf="data.sourceAsset.type === AssetType.Cash">{{data.sourceAsset.currency | currencySymbol}}</span>
-        <mat-error>Amount must be between 0 and {{maxAmount - fee.value | number}}</mat-error>
+          *ngIf="cashOrDebtTransfer">{{data.sourceAsset.currency | currencySymbol}}</span>
+        <mat-error>Amount must be between 0 and {{maxAmount - (fee.value * (1 - debtFlag)) | number}}</mat-error>
       </mat-form-field>
 
       <mat-form-field>
@@ -17,7 +17,7 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field *ngIf="data.sourceAsset.type === AssetType.Cash">
+      <mat-form-field *ngIf="cashOrDebtTransfer">
         <mat-select placeholder="Destination cash sub-account" formControlName="destinationAsset" required>
           <mat-option *ngFor="let asset of destinationCashAssets" [value]="asset">
             {{asset.description}}
@@ -27,7 +27,7 @@
           accounts</mat-error>
       </mat-form-field>
 
-      <mat-form-field *ngIf="data.sourceAsset.type === AssetType.Cash">
+      <mat-form-field *ngIf="cashOrDebtTransfer">
         <input matInput type="number" placeholder="Fee" formControlName="fee">
         <span matPrefix>{{ data.sourceAsset.currency | currencySymbol }}</span>
         <mat-error>Fee must be positive</mat-error>

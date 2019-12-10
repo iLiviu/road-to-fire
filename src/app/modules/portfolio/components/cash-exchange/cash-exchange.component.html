@@ -11,7 +11,9 @@
       <mat-form-field>
         <input matInput type="number" placeholder="Exchange Amount" required formControlName="amount">
         <span matPrefix>{{data.sourceAsset.currency | currencySymbol}}</span>
-        <mat-error>Amount must be between 0 and {{data.sourceAsset.amount - fee.value | number}}</mat-error>
+        <mat-error>
+          Amount must be between 0 and {{data.sourceAsset.amount - fee.value * (1 - debtFlag) | number}}
+        </mat-error>
 
       </mat-form-field>
       <mat-form-field>
@@ -36,8 +38,8 @@
         <mat-error>Transaction date can't be in the future</mat-error>
       </mat-form-field>
       <div *ngIf="destinationAsset.value">
-        {{destinationAsset.value.description}} will be credited with {{amount.value*rate.value |
-      currency:destinationAsset.value.currency}}
+        {{destinationAsset.value.description}} will be credited with {{(amount.value - fee.value * debtFlag) * rate.value |
+            currency:destinationAsset.value.currency}}
       </div>
     </div>
   </app-edit-dialog>

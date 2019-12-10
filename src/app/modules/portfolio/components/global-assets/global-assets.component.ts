@@ -63,7 +63,6 @@ export class GlobalAssetsComponent extends AssetsComponent implements OnInit {
   }
 
   private async updateAccountsList() {
-    this.assetsLoaded = false;
     try {
       this.accounts = await this.portfolioService.getAccounts();
       await this.buildAssetsList();

@@ -50,6 +50,20 @@ export class Transaction implements TransactionData {
   withholdingTax?: number;
 
   /**
+   * Checks if a transaction is a credit transaction
+   */
+  static isCredit(type: TransactionType) {
+    return (type & TransactionType.Credit) !== 0;
+  }
+
+  /**
+   * Checks if a transaction is a debit transaction
+   */
+  static isDebit(type: TransactionType) {
+    return (type & TransactionType.Debit) !== 0;
+  }
+
+  /**
    * Checks if a transaction type is a transfer transaction
    */
   static isTransfer(type: TransactionType) {
@@ -134,14 +148,14 @@ export class Transaction implements TransactionData {
    * Checks if the transaction is a credit transaction
    */
   isCredit() {
-    return (this.type & TransactionType.Credit) !== 0;
+    return Transaction.isCredit(this.type);
   }
 
   /**
    * Checks if the transaction is a debit transaction
    */
   isDebit() {
-    return (this.type & TransactionType.Debit) !== 0;
+    return Transaction.isDebit(this.type);
   }
 
   /**

@@ -10,7 +10,9 @@
   <div fxLayout="column" fxLayoutGap="8px">
     <div>
       <span fxFlex>Balance:</span>
-      <span>{{viewAsset.asset.amount | currency: viewAsset.asset.currency}}</span>
+      <span [ngClass]="{'negative':viewAsset.asset.amount < 0}">
+        {{viewAsset.asset.amount | currency: viewAsset.asset.currency}}
+      </span>
     </div>
 
     <mat-divider></mat-divider>

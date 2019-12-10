@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 
 import { APP_CONSTS } from 'src/app/config/app.constants';
@@ -33,6 +33,7 @@ export class CashEditComponent implements OnInit {
   todayDate: Date;
 
   readonly currencyCodes = APP_CONSTS.CURRENCY_CODES;
+  readonly AssetType = AssetType;
 
   constructor(public dialogRef: MatDialogRef<CashEditComponent>,
     @Inject(MAT_DIALOG_DATA) public asset: Asset) {
@@ -43,6 +44,9 @@ export class CashEditComponent implements OnInit {
     this.todayDate.setHours(0, 0, 0, 0);
     this.description = new FormControl(this.asset.description);
     this.amount = new FormControl(this.asset.amount || 0);
+    if (this.asset.isDebt()) {
+      this.amount.setValidators(Validators.max(0));
+    }
     this.currency = new FormControl(this.asset.currency || 'USD');
     this.transactionDate = new FormControl(new Date());
     this.assetForm = new FormGroup({
@@ -59,7 +63,6 @@ export class CashEditComponent implements OnInit {
    */
   dialogClosed(saveData: boolean) {
     if (saveData) {
-      this.asset.type = AssetType.Cash;
       this.asset.amount = this.amount.value;
       this.asset.description = this.description.value;
       this.asset.currency = this.currency.value;

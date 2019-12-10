@@ -806,10 +806,10 @@ export class PortfolioService {
         hideCapitalGainsWarning: false,
         withdrawalRate: 0.04,
         dashboardGridVisibility: null,
+        loanToValueRatio: 0,
         portfolioAllocation: [
-          { assetType: AssetType.Stock, allocation: 0.7 },
-          { assetType: AssetType.Bond, allocation: 0.25 },
-          { assetType: AssetType.Cash, allocation: 0.05 },
+          { assetType: AssetType.Stock, allocation: 0.6 },
+          { assetType: AssetType.Bond, allocation: 0.4 },
         ],
         goals: [
           { title: 'Financial Independence', value: 1000000 },

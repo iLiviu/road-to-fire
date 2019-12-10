@@ -19,4 +19,5 @@ export interface PortfolioConfig {
   portfolioAllocation: AssetAllocation[];
   withdrawalRate: number;
   dashboardGridVisibility: Dictionary<boolean>;
+  loanToValueRatio: number;
 }

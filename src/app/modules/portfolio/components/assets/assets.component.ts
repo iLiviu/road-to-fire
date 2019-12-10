@@ -22,6 +22,8 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
 
   assetsLoaded = false;
   assetsOverview: AssetOverview;
+  totalAssetsValue: number;
+  totalLiabilitiesValue: number;
   totalPortfolioValue: number;
   viewAssets: ViewAsset[];
 
@@ -65,6 +67,8 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
    * clear any data specific to the current loaded assets
    */
   protected clearAssetData() {
+    this.totalAssetsValue = 0;
+    this.totalLiabilitiesValue = 0;
     this.totalPortfolioValue = 0;
     this.viewAssets = [];
     this.viewAssetsMap = {};
@@ -120,7 +124,25 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
   private computeAssetValue(viewAsset: ViewAsset) {
     const rate: number = this.getCurrencyRate(viewAsset.asset.currency);
     viewAsset.currentValue = viewAsset.asset.getCurrentValue();
-    this.totalPortfolioValue += viewAsset.currentValue * rate;
+    const baseCurrencyValue = viewAsset.currentValue * rate;
+    this.totalPortfolioValue += baseCurrencyValue;
+    if (baseCurrencyValue > 0) {
+      this.totalAssetsValue += baseCurrencyValue;
+    } else {
+      this.totalLiabilitiesValue += baseCurrencyValue;
+    }
+  }
+
+  /**
+   * Check if an asset meets the criteria to be included in the list
+   * @param asset asset to check
+   */
+  protected canIncludeAsset(asset: Asset) {
+    if (this.strictAssetTypesCheck) {
+      return asset.isOfStrictType(this.assetTypes);
+    } else {
+      return asset.isOfRelatedType(this.assetTypes);
+    }
   }
 
   /**
@@ -140,13 +162,7 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
     for (const viewAsset of viewAssets) {
       this.computeAssetValue(viewAsset);
 
-      let canIncludeAsset: boolean;
-      if (this.strictAssetTypesCheck) {
-        canIncludeAsset = viewAsset.asset.isOfStrictType(this.assetTypes);
-      } else {
-        canIncludeAsset = viewAsset.asset.isOfRelatedType(this.assetTypes);
-      }
-      if (canIncludeAsset) {
+      if (this.canIncludeAsset(viewAsset.asset)) {
         if (viewAsset.children) {
           // the viewAsset will actually contain aggregate stats from all it's children
           // we only calculate the stats that are currently displayed in views

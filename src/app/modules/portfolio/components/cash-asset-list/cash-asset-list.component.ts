@@ -10,7 +10,7 @@ export enum AssetGroupBy {
 }
 
 /**
- * Component to display a list of cash or deposit assets.
+ * Component to display a list of cash/debt or deposit assets.
  * The list can be grouped by asset's currency or parent account
  */
 @Component({
