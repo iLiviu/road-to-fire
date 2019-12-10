@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
 import { PortfolioService } from '../../services/portfolio.service';
@@ -259,7 +259,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   constructor(protected eventsService: EventsService, protected portfolioService: PortfolioService,
     protected logger: LoggerService, protected dialogService: DialogsService, protected router: Router,
     protected assetManagementService: AssetManagementService,
-    protected storageService: StorageService, private cdr: ChangeDetectorRef) {
+    protected storageService: StorageService, private cdr: ChangeDetectorRef, private route: ActivatedRoute) {
     super(logger, portfolioService, dialogService, eventsService, router, storageService);
     this.assetTypeLabels[AssetType.Cash] = 'Cash & Equivalents';
   }
@@ -521,7 +521,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   private computeRebalanceSteps() {
     this.rebalancingSteps = [];
     if (!this.assetsValue) {
-      return ;
+      return;
     }
 
     const desiredAllocations = {};
@@ -881,18 +881,23 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   /**
    * Loads the portfolio data and computes the stats
    */
-  private loadData() {
-    this.portfolioService.getAccounts()
-      .then(
-        accounts => {
-          this.accounts = accounts;
-          this.computeStats()
-            .then(() => this.onDataLoaded());
-        })
-      .catch(err => {
-        this.onDataLoaded();
-        this.logger.error('Could not retrieve accounts!', err);
-      });
+  private async loadData() {
+    try {
+      const accounts = await this.portfolioService.getAccounts();
+      this.accounts = accounts;
+      await this.computeStats();
+      this.onDataLoaded();
+
+      if (accounts.length === 0) {
+        const canAdd = await this.dialogService.confirm(`Looks like you don't have any accounts. Would you like to add one now?`);
+        if (canAdd) {
+          this.router.navigate(['../accounts/new'], { relativeTo: this.route });
+        }
+      }
+    } catch (err) {
+      this.onDataLoaded();
+      this.logger.error('Could not retrieve accounts!', err);
+    }
   }
 
   protected onConfigLoaded() {
