@@ -241,7 +241,6 @@ export class AuthService {
         userVerification: 'required',
       };
       const newCredentialInfo = await navigator.credentials.get({ 'publicKey': publicKey });
-      console.log(newCredentialInfo);
       const authenticated = newCredentialInfo.id ? true : false;
       return authenticated;
     } catch (err) {
