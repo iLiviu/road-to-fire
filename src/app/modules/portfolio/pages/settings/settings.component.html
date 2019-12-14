@@ -30,23 +30,29 @@
             <mat-divider></mat-divider>
 
             <h2>Security & Backup</h2>
-            <div>
-              <mat-checkbox formControlName="passwordProtect" #passProtect>Password protect application data
-              </mat-checkbox>
-              <div *ngIf="passProtect.checked && !encryptionEnabled">
-                <div>
-                  <mat-form-field>
-                    <input matInput type="password" placeholder="Password" formControlName="configPassword"
-                      autocomplete="app-password">
-                  </mat-form-field>
-                </div>
-                <div class="mat-error">
-                  Warning: The application data is encrypted using the password you set! If you forget your password,
-                  you
-                  won't be able to recover your data!
-                </div>
+            
+            <mat-checkbox formControlName="passwordProtect" #passProtect (change)="onPasswordProtectionToggled($event)">
+              Password protect application data
+            </mat-checkbox>
+
+            <ng-container *ngIf="passProtect.checked && !encryptionEnabled">
+              <mat-form-field>
+                <input matInput type="password" placeholder="Password" formControlName="configPassword"
+                  autocomplete="app-password" required>
+              </mat-form-field>
+
+              <mat-form-field>
+                <input matInput type="password" placeholder="Confirm Password" formControlName="configPasswordConfirm"
+                  autocomplete="app-password" required>
+                <mat-error *ngIf="configPasswordConfirm.errors?.different">Passwords do not match</mat-error>
+              </mat-form-field>
+
+              <div class="mat-error">
+                Warning: The application data is encrypted using the password you set! If you forget your password,
+                you
+                won't be able to recover your data!
               </div>
-            </div>
+            </ng-container>
 
             <div *ngIf="passProtect.checked && twoFactorAvailable">
               <mat-checkbox formControlName="enable2FA" (change)="twoFAChanged()"

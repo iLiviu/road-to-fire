@@ -17,6 +17,7 @@ import { AppConfig } from 'src/app/core/models/app-storage';
 import { FloatingMath } from 'src/app/shared/util';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { AssetManagementService } from '../../services/asset-management.service';
+import { InputDialogType } from 'src/app/modules/dialogs/components/input-dialog/input-dialog.component';
 
 
 /**
@@ -31,7 +32,11 @@ const portfolioAllocationValidator: ValidatorFn = (control: FormGroup): Validati
   return totalAllocation !== 100 ? { 'invalidAllocation': true } : null;
 };
 
-
+const valueMatchesControlValidator = (secondCtrl: FormControl) => {
+  return (control: FormControl): ValidationErrors | null => {
+    return control.value !== secondCtrl.value ? { 'different': true } : null;
+  };
+};
 
 @Component({
   selector: 'app-settings',
@@ -44,6 +49,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
   appConfig: AppConfig;
   baseCurrencyCtl: FormControl;
   configPassword: FormControl;
+  configPasswordConfirm: FormControl;
   dataLoaded = false;
   debtToValueRatio: FormControl;
   enable2FA: FormControl;
@@ -284,6 +290,40 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
 
   }
 
+  /**
+   * Fired when password protect checkbox state changes
+   * @param $event associated event
+   */
+  async onPasswordProtectionToggled($event) {
+    if (this.passwordProtect.value) {
+      this.configPassword.setValidators([Validators.required]);
+      this.configPasswordConfirm.setValidators([Validators.required, valueMatchesControlValidator(this.configPassword)]);
+    } else {
+      if (this.storageService.isEncryptionEnabled()) {
+        // reset the checkbox state back to checked state until we verify user password so we get no UI updates in the meantime
+        $event.source.toggle();
+        // only allow user to disable encryption if he knows his password
+        const userPassword = await this.dialogService.input('Please confirm your current password ', '', '', InputDialogType.PASSWORD);
+        const correctPass = await this.storageService.verifyPassword(userPassword);
+        if (!correctPass) {
+          if (userPassword) {
+            this.dialogService.error('Incorrect password!');
+          }
+          // leave the checkbox checked and abort
+          return;
+        } else {
+          // password is correct, set the checkbox state back to unchecked
+          $event.source.toggle();
+        }
+      }
+      this.configPassword.setValidators([]);
+      this.configPasswordConfirm.setValidators([]);
+    }
+    this.configPassword.updateValueAndValidity();
+    this.configPasswordConfirm.updateValueAndValidity();
+    this.cdr.markForCheck();
+  }
+
   protected async doReadConfig() {
     this.twoFactorAvailable = await this.authService.isWebAuthnAvailable();
     const configs = await Promise.all([this.configService.readConfig(), this.portfolioService.readConfig()]);
@@ -337,6 +377,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
     this.saveOnCloud = new FormControl(this.appConfig.saveOnCloud);
     this.passwordProtect = new FormControl(this.encryptionEnabled);
     this.configPassword = new FormControl('');
+    this.configPasswordConfirm = new FormControl('');
 
     this.settingsForm = new FormGroup({
       baseCurrencyCtl: this.baseCurrencyCtl,
@@ -348,6 +389,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
       saveOnCloud: this.saveOnCloud,
       passwordProtect: this.passwordProtect,
       configPassword: this.configPassword,
+      configPasswordConfirm: this.configPasswordConfirm,
     });
 
     this.onDataLoaded();
