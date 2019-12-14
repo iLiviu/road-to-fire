@@ -3,7 +3,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 
 export enum InputDialogType {
   TEXT,
-  NUMBER
+  NUMBER,
+  PASSWORD
 }
 
 export interface InputDialogData {
@@ -32,6 +33,7 @@ export class InputDialogComponent implements OnInit {
     switch (data.inputType) {
       case InputDialogType.NUMBER: this.inputType = 'number'; break;
       case InputDialogType.TEXT: this.inputType = 'text'; break;
+      case InputDialogType.PASSWORD: this.inputType = 'password'; break;
       default: this.inputType = 'text';
     }
 
