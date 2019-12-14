@@ -125,9 +125,16 @@
             </mat-form-field>
 
             <mat-form-field>
-              <span matPrefix>@</span>
+              <span matPrefix>@&nbsp;</span>
               <input matInput type="number" placeholder="Price per unit" formControlName="price" required>
               <span matPrefix>{{assetCurrency | currencySymbol}}</span>
+              <mat-error *ngIf="price.errors?.min">Price must be positive</mat-error>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="data.action === AssetTradeAction.EDIT">
+              <input matInput type="number" placeholder="Current price per unit" formControlName="currentPrice" required>
+              <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
+              <mat-error *ngIf="currentPrice.errors?.min">Price must be positive</mat-error>
             </mat-form-field>
 
             <mat-form-field *ngIf="data.action !== AssetTradeAction.EDIT">

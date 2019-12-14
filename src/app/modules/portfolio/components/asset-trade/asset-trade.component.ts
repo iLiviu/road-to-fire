@@ -44,6 +44,7 @@ export interface AssetTradeResponse {
   amount: number;
   cashAsset: Asset;
   couponRate: number;
+  currentPrice: number;
   description: string;
   interestPaymentSchedule: BondInterestPaymentEvent[];
   interestTaxRate: number;
@@ -95,6 +96,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
   assetForm: FormGroup;
   assetLabel: string;
   cashAsset: FormControl;
+  currentPrice: FormControl;
   description: FormControl;
   couponRate: FormControl;
   cashAssets: Asset[];
@@ -160,8 +162,9 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
     this.symbol = new FormControl();
     this.description = new FormControl();
     this.region = new FormControl();
-    this.price = new FormControl(1);
-    this.principalAmount = new FormControl();
+    this.price = new FormControl(1, [Validators.min(0)]);
+    this.currentPrice = new FormControl(null, [Validators.min(0)]);
+    this.principalAmount = new FormControl(null, [Validators.min(0)]);
     this.maturityDate = new FormControl();
     this.couponRate = new FormControl(0);
     this.previousInterestPaymentDate = new FormControl();
@@ -205,6 +208,9 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
       } else {
         this.symbol.setValue(this.data.asset.symbol);
       }
+      if (this.data.action === AssetTradeAction.EDIT) {
+        this.currentPrice.setValue(this.data.asset.currentPrice);
+      }
       this.description.setValue(this.data.asset.description);
       this.region.setValue(this.data.asset.region);
       if (this.data.position) {
@@ -236,6 +242,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
       region: this.region,
       amount: this.amount,
       price: this.price,
+      currentPrice: this.currentPrice,
       fee: this.fee,
       transactionDate: this.transactionDate,
       updateCashAssetBalance: this.updateCashAssetBalance,
@@ -306,6 +313,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
       const data: AssetTradeResponse = {
         amount: this.amount.value,
         price: this.price.value,
+        currentPrice: this.currentPrice.value,
         cashAsset: this.cashAsset.value,
         couponRate: this.couponRate.value / 100,
         description: this.description.value,

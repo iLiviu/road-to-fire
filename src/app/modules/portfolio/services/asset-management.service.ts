@@ -938,14 +938,11 @@ export class AssetManagementService {
           position.buyDate = response.transactionDate;
           position.buyPrice = response.price;
         }
-        if (asset.currentPrice === asset.buyPrice) {
-          // if current price quote was not given, then set current price to edited buy price
-          asset.currentPrice = response.price;
-        }
         if (asset.symbol !== newSymbol) {
           // allow quote to be refreshed if symbol is changed
           asset.lastQuoteUpdate = null;
         }
+        asset.currentPrice = response.currentPrice;
         asset.symbol = newSymbol;
         asset.type = response.assetType;
         this.updateCommonTradeableAssetProperties(asset, response);
