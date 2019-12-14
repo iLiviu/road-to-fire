@@ -7,7 +7,7 @@ import { HammerGestureConfig, HAMMER_GESTURE_CONFIG } from '@angular/platform-br
 import { LayoutModule } from '@angular/cdk/layout';
 import {
   MatSnackBarModule, MatInputModule, MatButtonModule, MatCheckboxModule, MatCardModule, MatToolbarModule,
-  MatTooltipModule
+  MatTooltipModule, MatIconModule
 } from '@angular/material';
 import { FormsModule } from '@angular/forms';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -29,12 +29,14 @@ import { AppStorageService } from './core/services/app-storage.service';
 import { RSAppStorageService } from './core/services/rs-app-storage.service';
 import { environment } from '../environments/environment';
 import { UpdateService } from './core/services/update.service';
+import { RStorageWidgetCloseButtonComponent } from './core/components/rstoragewidget-close-button/rstoragewidget-close-button.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     PageNotFoundComponent,
     LoginComponent,
+    RStorageWidgetCloseButtonComponent,
   ],
   imports: [
     HttpClientModule,
@@ -48,6 +50,7 @@ import { UpdateService } from './core/services/update.service';
     MatCheckboxModule,
     MatButtonModule,
     MatCardModule,
+    MatIconModule,
     MatToolbarModule,
     MatTooltipModule,
     FormsModule,
@@ -68,7 +71,7 @@ import { UpdateService } from './core/services/update.service';
     { provide: LoggerService, useClass: EventDrivenLoggerService },
     { provide: HAMMER_GESTURE_CONFIG, useClass: HammerGestureConfig },
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent, RStorageWidgetCloseButtonComponent]
 })
 export class AppModule {
   constructor() {

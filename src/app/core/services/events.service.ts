@@ -29,6 +29,8 @@ export enum AppEventType {
   PORTFOLIO_MODULE_LOADED,
   MENU_UPDATED,
   OFFLINE_MODE_TOGGLED,
+  CLOUD_STORAGE_CONNECTED,
+  CLOUD_STORAGE_NOT_CONNECTED,
 }
 
 export interface ConfigLoadedData {
@@ -354,5 +356,24 @@ export class EventsService {
     });
   }
 
+  /**
+   * Fired if cloud storage is active
+   */
+  cloudStorageConnected() {
+    this.triggerEvent({
+      type: AppEventType.CLOUD_STORAGE_CONNECTED,
+      data: null,
+    });
+  }
+
+  /**
+   * Fired if cloud storage is inactive
+   */
+  cloudStorageNotConnected() {
+    this.triggerEvent({
+      type: AppEventType.CLOUD_STORAGE_NOT_CONNECTED,
+      data: null,
+    });
+  }
 
 }

@@ -90,6 +90,7 @@ export class RemoteStorageService extends StorageService implements StorageSeria
     });
 
     this.remoteStorage.on('connected', (err: Error) => {
+      self.eventsService.cloudStorageConnected();
     });
 
     this.remoteStorage.on('disconnected', (err: Error) => {
@@ -97,6 +98,7 @@ export class RemoteStorageService extends StorageService implements StorageSeria
       self.toggleCloudSync(false);
       this.setPassword(null);
       self.eventsService.storageWiped();
+      self.eventsService.cloudStorageNotConnected();
     });
 
     this.remoteStorage.on('ready', () => {
@@ -106,6 +108,7 @@ export class RemoteStorageService extends StorageService implements StorageSeria
     this.remoteStorage.on('not-connected', () => {
       self.syncInProgress = false;
       self.offline = true;
+      self.eventsService.cloudStorageNotConnected();
     });
 
 
