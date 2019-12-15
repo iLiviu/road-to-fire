@@ -18,8 +18,12 @@
             </mat-form-field>
 
             <mat-form-field *ngIf="data.assetType !== AssetType.RealEstate && data.action !== AssetTradeAction.SELL">
-              <input matInput type="text" placeholder="Symbol" formControlName="symbol">
-              <mat-error>Please enter either short stock symbol or ISIN</mat-error>
+              <input matInput type="text" placeholder="Symbol" formControlName="symbol" [matAutocomplete]="assetSymbol">
+              <mat-autocomplete #assetSymbol="matAutocomplete">
+                <mat-option *ngFor="let symbol of filteredSuggestedSymbols | async" [value]="symbol.code">
+                  {{symbol.code}} - {{symbol.name}}
+                </mat-option>
+              </mat-autocomplete>
             </mat-form-field>
 
             <mat-form-field *ngIf="data.action !== AssetTradeAction.SELL">
@@ -93,7 +97,7 @@
                     {{ASSET_REGION_LABELS[AssetRegion.MSCIEmergingMarkets]}}
                   </mat-option>
                 </mat-optgroup>
-                
+
                 <mat-optgroup label="Generic">
                   <mat-option [value]="AssetRegion.Developed">
                     {{ASSET_REGION_LABELS[AssetRegion.Developed]}}
@@ -132,7 +136,8 @@
             </mat-form-field>
 
             <mat-form-field *ngIf="data.action === AssetTradeAction.EDIT">
-              <input matInput type="number" placeholder="Current price per unit" formControlName="currentPrice" required>
+              <input matInput type="number" placeholder="Current price per unit" formControlName="currentPrice"
+                required>
               <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
               <mat-error *ngIf="currentPrice.errors?.min">Price must be positive</mat-error>
             </mat-form-field>
@@ -145,7 +150,8 @@
 
             <ng-container *ngIf="data.assetType === AssetType.Bond && data.action !== AssetTradeAction.SELL">
               <mat-form-field>
-                <input matInput type="number" placeholder="Coupon interest rate" formControlName="couponRate" required matTooltip="Based on 365 days/year (actual/365)">
+                <input matInput type="number" placeholder="Coupon interest rate" formControlName="couponRate" required
+                  matTooltip="Based on 365 days/year (actual/365)">
                 <span matSuffix>%</span>
               </mat-form-field>
 

@@ -4,6 +4,11 @@ export interface ExchangeDetails {
   name: string;
 }
 
+export interface SymbolDetails {
+  code: string;
+  name: string;
+}
+
 export const APP_CONSTS = {
   TITLE: 'Road To FIRE',
   VERSION: '1.0.0-beta',
@@ -117,6 +122,26 @@ export const APP_CONSTS = {
     COMMODITY: <ExchangeDetails[]>[
       { code: 'CBOE', name: 'CBOE Futures Exchange' },
     ]
+  },
+  SUGGESTED_SYMBOLS: {
+    EQUITY: <SymbolDetails[]>[],
+    CRYPTO: <SymbolDetails[]>[],
+    COMMODITY: <SymbolDetails[]>[
+      { code: 'AL', name: 'Aluminium' },
+      { code: 'AU', name: 'Gold' },
+      { code: 'PT', name: 'Platinum' },
+      { code: 'AG', name: 'Silver' },
+      { code: 'CU', name: 'Copper' },
+      { code: 'PD', name: 'Palladium' },
+      { code: 'ZC', name: 'Corn' },
+      { code: 'ZS', name: 'Soybean' },
+      { code: 'LE', name: 'Live Cattle' },
+      { code: 'ZW', name: 'Wheat' },
+      { code: 'CL', name: 'Crude Oil' },
+      { code: 'BZ', name: 'Brent Oil' },
+      { code: 'RB', name: 'Gasoline' },
+      { code: 'NG', name: 'Natural Gas' },
+    ],
   },
   CURRENCY_CODES: [{ code: 'USD', name: 'US Dollar' }, { code: 'CAD', name: 'Canadian Dollar' }, { code: 'EUR', name: 'Euro' },
   { code: 'AED', name: 'United Arab Emirates Dirham' }, { code: 'AFN', name: 'Afghan Afghani' }, { code: 'ALL', name: 'Albanian Lek' },

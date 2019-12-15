@@ -8,7 +8,7 @@ import {
 } from '../../models/asset';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { getDateAsISOString, FloatingMath, DateUtils } from 'src/app/shared/util';
-import { APP_CONSTS, ExchangeDetails } from 'src/app/config/app.constants';
+import { APP_CONSTS, ExchangeDetails, SymbolDetails } from 'src/app/config/app.constants';
 import { TradePosition, TradeableAsset } from '../../models/tradeable-asset';
 import { BondAsset, BondInterestPaymentEvent, BondPrincipalPaymentEvent } from '../../models/bond-asset';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
@@ -103,6 +103,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
   exchange: FormControl;
   fee: FormControl;
   filteredSupportedExchanges: Observable<ExchangeDetails[]>;
+  filteredSuggestedSymbols: Observable<SymbolDetails[]>;
   isMutualFund: boolean;
   interestPaymentSchedule: BondInterestPaymentEvent[] = [];
   interestTaxRate: FormControl;
@@ -117,6 +118,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
   stockType: FormControl;
   symbol: FormControl;
   supportedExchanges: ExchangeDetails[];
+  suggestedSymbols: SymbolDetails[];
   todayDate: Date;
   transactionDate: FormControl;
   updateCashAssetBalance: FormControl;
@@ -143,12 +145,16 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
 
     if (this.stockLikeAsset || this.data.assetType === AssetType.Bond) {
       this.supportedExchanges = APP_CONSTS.SUPPORTED_EXCHANGES.EQUITY;
+      this.suggestedSymbols = APP_CONSTS.SUGGESTED_SYMBOLS.EQUITY;
     } else if (this.data.assetType === AssetType.Commodity) {
       this.supportedExchanges = APP_CONSTS.SUPPORTED_EXCHANGES.COMMODITY;
+      this.suggestedSymbols = APP_CONSTS.SUGGESTED_SYMBOLS.COMMODITY;
     } else if (this.data.assetType === AssetType.Cryptocurrency) {
       this.supportedExchanges = APP_CONSTS.SUPPORTED_EXCHANGES.CRYPTO;
+      this.suggestedSymbols = APP_CONSTS.SUGGESTED_SYMBOLS.CRYPTO;
     } else {
       this.supportedExchanges = [];
+      this.suggestedSymbols = [];
     }
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
@@ -183,6 +189,11 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
       .pipe(
         startWith(''),
         map(value => this.filterSupportedExchanges(value))
+      );
+    this.filteredSuggestedSymbols = this.symbol.valueChanges
+      .pipe(
+        startWith(''),
+        map(value => this.filterSuggestedSymbols(value))
       );
 
     this.updateAmountValidators();
@@ -346,6 +357,17 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
 
     return this.supportedExchanges
       .filter(exchange => exchange.name.toLowerCase().includes(filterValue) || exchange.code.toLowerCase().includes(filterValue));
+  }
+
+  /**
+   * Filter only symbols that match the user's input text
+   * @param value user input text
+   */
+  private filterSuggestedSymbols(value: string): ExchangeDetails[] {
+    const filterValue = value.toLowerCase();
+
+    return this.suggestedSymbols
+      .filter(symbol => symbol.name.toLowerCase().includes(filterValue) || symbol.code.toLowerCase().includes(filterValue));
   }
 
   /**
