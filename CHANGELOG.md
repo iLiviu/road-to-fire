@@ -1,4 +1,4 @@
-## Master
+## 1.0.0-beta.2 (2019-12-16)
 
 ### Features
 * require user to confirm password before disabling encryption

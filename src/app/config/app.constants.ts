@@ -11,14 +11,16 @@ export interface SymbolDetails {
 
 export const APP_CONSTS = {
   TITLE: 'Road To FIRE',
-  VERSION: '1.0.0-beta',
+  VERSION: '1.0.0-beta.2',
   // text to show when user first loads the current new version
-  WHATS_NEW_TITLE: 'Welcome!',
-  WHATS_NEW: `    This is the first public version of the app. It hasn't been thoroughly tested yet, ` +
-    `so you may encounter bugs, including corruption of data.
-    Please do not rely entirely on the correctness of the data presented by the app.
-
-    Suggestions and bug reports are welcome.`,
+  WHATS_NEW_TITLE: `What's new in version 1.0.0-beta.2!`,
+  WHATS_NEW:
+    `Features:
+    * require user to confirm password before disabling encryption
+    * when enabling encryption from settings page, display a second password confirmation field to avoid mistyping password.
+    * allow user to change the current unit price when editing a tradeable asset.
+    * add a close button to the "Connect your storage" popup when not connected to a backend, so user can quickly disable cloud sync.
+    * add autocomplete for symbol when adding/editing a commodity to suggest supported commodities.`,
   REPOSITORY_URL: 'https://github.com/iLiviu/road-to-fire',
   STORAGE_API_KEYS: {
     DROPBOX: 'kbwh5504okeu3b9',
