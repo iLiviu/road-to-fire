@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { EventsService, AppEventType, AppEvent } from '../../services/events.service';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -13,7 +13,8 @@ import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 @Component({
   selector: 'app-rstoragewidget-close-button',
   templateUrl: './rstoragewidget-close-button.component.html',
-  styleUrls: ['./rstoragewidget-close-button.component.css']
+  styleUrls: ['./rstoragewidget-close-button.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RStorageWidgetCloseButtonComponent implements OnInit, OnDestroy {
 
@@ -22,7 +23,7 @@ export class RStorageWidgetCloseButtonComponent implements OnInit, OnDestroy {
   private componentDestroyed$ = new Subject();
 
   constructor(private eventsService: EventsService, private storageService: StorageService, private configService: ConfigService,
-    private dialogsService: DialogsService) {
+    private dialogsService: DialogsService, private cdr: ChangeDetectorRef) {
 
     this.eventsService.events$
       .pipe(takeUntil(this.componentDestroyed$))
@@ -58,9 +59,11 @@ export class RStorageWidgetCloseButtonComponent implements OnInit, OnDestroy {
     switch (event.type) {
       case AppEventType.CLOUD_STORAGE_CONNECTED:
         this.visible = false;
+        this.cdr.markForCheck();
         break;
       case AppEventType.CLOUD_STORAGE_NOT_CONNECTED:
         this.visible = true;
+        this.cdr.markForCheck();
         break;
     }
   }
