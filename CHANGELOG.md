@@ -1,3 +1,8 @@
+## Master
+
+### Features
+* Disable browser's default pull-to-refresh gesture to avoid entire app refresh when user swipes down
+
 ## 1.0.0-beta.2 (2019-12-16)
 
 ### Features
