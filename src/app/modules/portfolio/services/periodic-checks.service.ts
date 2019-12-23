@@ -214,7 +214,7 @@ export class PeriodicChecksService {
    */
   private async payPrincipal(principalPayment: number, bond: BondAsset, account: PortfolioAccount, txDate: Date) {
     const cashAsset = this.getCashAsset(bond, account);
-    await this.assetManagementService.payBondPrincipal(principalPayment, bond, cashAsset, account, txDate, true);
+    await this.assetManagementService.payBondPrincipal(principalPayment, bond, cashAsset, true, account, txDate, true, 0);
   }
 
   /**
@@ -234,69 +234,20 @@ export class PeriodicChecksService {
    * @param txDate the date when transaction occurred
    */
   private async executeTransaction(recTx: RecurringTransaction, txDate: Date) {
-    let txTemplate = recTx.tx.clone();
-    txTemplate.date = txDate.toISOString();
-    if (txTemplate.type === TransactionType.DebitCash || txTemplate.type === TransactionType.CreditCash ||
-      txTemplate.isTransfer() || txTemplate.isInterestPayment() || txTemplate.isDividend()) {
-
-      const account = await this.portfolioService.getAccount(txTemplate.asset.accountId);
-      if (account) {
-        const asset = account.getAssetById(txTemplate.asset.id);
-        if (asset) {
-          if (recTx.autoApprove) {
-            const multiplier = txTemplate.isCredit() ? 1 : -1;
-            const txValue = txTemplate.value * multiplier;
-            const newBalance = FloatingMath.fixRoundingError(asset.amount + txValue);
-            // do not allow negative balances when debiting non-debt assets
-            if (asset.isDebt() || txValue > 0 || FloatingMath.isPositive(newBalance)) {
-              if (txTemplate.isTransfer()) {
-                const transferTxTpl = <TransferTransaction>txTemplate;
-                const destinationAccount = await this.portfolioService.getAccount(transferTxTpl.destinationAsset.accountId);
-                if (destinationAccount) {
-                  const destinationAsset = destinationAccount.getAssetById(transferTxTpl.destinationAsset.id);
-                  if (destinationAsset) {
-                    destinationAsset.amount = FloatingMath.fixRoundingError(destinationAsset.amount + txTemplate.value - txTemplate.fee);
-                    await this.portfolioService.updateAsset(destinationAsset, destinationAccount);
-                  } else {
-                    // !destinationAssetId
-                    this.markRecurringTxAsInvalid(recTx);
-                    return false;
-                  }
-
-                } else {
-                  // !destinationAccountId
-                  this.markRecurringTxAsInvalid(recTx);
-                  return false;
-                }
-              }
-              asset.amount = newBalance;
-              await this.portfolioService.updateAsset(asset, account);
-              txTemplate = await this.addAutomaticTransaction(txTemplate);
-            } else {
-              // debit below 0
-              this.portfolioService.addPendingTransactionNotification('Failed transaction: not enough balance', txTemplate);
-
-            }
-          } else {
-            this.portfolioService.addPendingTransactionNotification('Pending recurring transaction', txTemplate);
-          }
-        } else {
-          // !assetId
-          this.markRecurringTxAsInvalid(recTx);
-          return false;
-        }
-      } else {
-        // !accountId
+    if (recTx.autoApprove) {
+      try {
+        const approved = await this.assetManagementService.executeTransaction(recTx.tx, true, true);
+        return approved;
+      } catch (err) {
         this.markRecurringTxAsInvalid(recTx);
-        return false;
+        this.logger.error(`Failed transaction: ${err}`, err);
       }
     } else {
-      throw new Error('Unsupported recurring transaction type: ' + recTx.tx.type);
+      this.portfolioService.addPendingTransactionNotification('Pending recurring transaction', recTx.tx);
+      return true;
     }
-
-    return true;
+    return false;
   }
-
 
   /**
    * Get the associated cash asset for a given asset. If a specific cash asset is

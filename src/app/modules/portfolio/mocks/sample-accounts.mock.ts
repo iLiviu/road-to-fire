@@ -2,6 +2,7 @@ import { PortfolioAccount } from '../models/portfolio-account';
 import { Asset, AssetType } from '../models/asset';
 import { TradeableAsset, TradeableAssetData } from '../models/tradeable-asset';
 import { DepositAsset, DepositAssetData } from '../models/deposit-asset';
+import { BondAssetData, BondAsset } from '../models/bond-asset';
 
 const EURCashAsset: Asset = new Asset({
   amount: 10,
@@ -81,7 +82,7 @@ const stockAsset1Data: TradeableAssetData = {
 };
 const stockAsset1: TradeableAsset = new TradeableAsset(stockAsset1Data);
 
-const bondAsset1Data: TradeableAssetData = {
+const bondAsset1Data: BondAssetData = {
   amount: 1,
   id: 6,
   currency: 'EUR',
@@ -101,8 +102,16 @@ const bondAsset1Data: TradeableAssetData = {
   region: null,
   customRegions: [],
   symbol: '',
+  couponRate: 0.09,
+  interestPaymentSchedule: [],
+  interestTaxRate: 0,
+  maturityDate: new Date().toISOString(),
+  previousInterestPaymentDate: null,
+  principalAmount: 1,
+  principalPaymentSchedule: [],
+  withholdInterestTax: false,
 };
-const bondAsset1: TradeableAsset = new TradeableAsset(bondAsset1Data);
+const bondAsset1: BondAsset = new BondAsset(bondAsset1Data);
 
 const account1: PortfolioAccount = new PortfolioAccount({
   assets: [EURCashAsset, REAsset1, depositAsset1, stockAsset1, bondAsset1],

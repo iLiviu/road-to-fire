@@ -38,15 +38,16 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
   destinationAsset: FormControl;
   destinationCashAssets: Asset[] = [];
   fee: FormControl;
+  isCashDestination: boolean;
   isCredit: boolean;
   isDebit: boolean;
+  isEditableSource: boolean;
   recTx: RecurringTransaction;
   sourceAccount: FormControl;
   sourceCashAssets: Asset[] = [];
   sourceAsset: FormControl;
   tx: Transaction;
   transactionDate: FormControl;
-  transferTx: TransferTransaction;
   twoWayTx: TwoWayTransaction;
   txOccurrence: string;
   withholdingTax: FormControl;
@@ -71,13 +72,13 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
       // nothing special
     } else if (this.tx.isDividend() || this.tx.isInterestPayment()) {
       this.withholdingTax = new FormControl(this.recTx.tx.withholdingTax, [Validators.min(0)]);
-
-    } else if (this.recTx.tx.isTransfer()) {
-      this.transferTx = <TransferTransaction>this.tx;
+    } else if (this.recTx.tx.isTransfer() || this.recTx.tx.isPrincipalPayment()) {
       this.twoWayTx = <TwoWayTransaction>this.tx;
+      this.isCashDestination = this.tx.isTrade();
     } else {
       throw new Error('Unsupported transaction type');
     }
+    this.isEditableSource = !this.recTx.tx.isTrade();
     this.isCredit = this.tx.isCredit();
     this.isDebit = this.tx.isDebit();
 
@@ -141,13 +142,15 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
       }
       this.tx.value = this.amount.value;
       this.tx.date = getDateAsISOString(this.transactionDate.value);
-      const account: PortfolioAccount = this.sourceAccount.value;
-      const asset: Asset = this.sourceAsset.value;
-      this.tx.asset.accountId = account.id;
-      this.tx.asset.accountDescription = account.description;
-      this.tx.asset.currency = asset.currency;
-      this.tx.asset.description = asset.description;
-      this.tx.asset.id = asset.id;
+      if (this.isEditableSource) {
+        const account: PortfolioAccount = this.sourceAccount.value;
+        const asset: Asset = this.sourceAsset.value;
+        this.tx.asset.accountId = account.id;
+        this.tx.asset.accountDescription = account.description;
+        this.tx.asset.currency = asset.currency;
+        this.tx.asset.description = asset.description;
+        this.tx.asset.id = asset.id;
+      }
       if (this.twoWayTx) {
         const destAcc: PortfolioAccount = this.destinationAccount.value;
         const destAsset: Asset = this.destinationAsset.value;
@@ -178,6 +181,9 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
     let srcAsset: Asset;
     if (account) {
       srcAsset = account.getAssetById(this.tx.asset.id);
+      if (srcAsset && srcAsset.type === AssetType.Cash) {
+        this.isCashDestination = true;
+      }
     }
     this.sourceAsset = new FormControl(srcAsset);
     this.sourceAsset.markAsTouched();
@@ -208,6 +214,9 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
       let destAsset: Asset;
       if (destAccount) {
         destAsset = destAccount.getAssetById(this.twoWayTx.otherAsset.id);
+        if (destAsset && destAsset.type === AssetType.Cash) {
+          this.isCashDestination = true;
+        }
       }
       this.destinationAsset = new FormControl(destAsset);
       this.destinationAsset.markAsTouched();

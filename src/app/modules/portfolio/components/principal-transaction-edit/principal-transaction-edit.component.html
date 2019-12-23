@@ -1,0 +1,41 @@
+<form [formGroup]="assetForm">
+  <app-edit-dialog [form]="assetForm" title="Principal payment from {{data.asset.description}}"
+    (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <mat-form-field>
+        <mat-select placeholder="Cash account" formControlName="cashAsset" required>
+          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+            {{asset.description}} ({{asset.amount | currency:asset.currency}})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Principal payment per unit" formControlName="principalPayment" required>
+        <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
+        <mat-error>
+          Amount must be between than 0 and {{data.asset.principalAmount}}
+        </mat-error>
+        <mat-error *ngIf="principalPayment.errors?.min">Amount must be greater than 0</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="number" placeholder="Fee" formControlName="fee">
+        <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
+        <mat-error>Fee must be positive</mat-error>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="updateCashAssetBalance">
+        Automatically credit cash account
+      </mat-checkbox>
+
+      <mat-form-field>
+        <input matInput [matDatepicker]="datepicker" required placeholder="Transaction Date"
+          formControlName="transactionDate" (dateInput)="onTxDateChanged()">
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-hint *ngIf="isScheduledTx">Transaction will be scheduled</mat-hint>
+      </mat-form-field>
+    </div>
+  </app-edit-dialog>
+</form>

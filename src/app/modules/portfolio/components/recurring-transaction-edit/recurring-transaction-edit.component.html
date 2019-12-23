@@ -19,7 +19,7 @@
       </mat-form-field>
 
 
-      <ng-container *ngIf="sourceAccount">
+      <ng-container *ngIf="isEditableSource && sourceAccount">
         <mat-form-field>
           <mat-select placeholder="{{isCredit? 'Destination':'Source'}} Account" formControlName="sourceAccount"
             required>
@@ -49,7 +49,7 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field *ngIf="sourceAsset.value?.type === AssetType.Cash">
+        <mat-form-field *ngIf="isCashDestination">
           <mat-select placeholder="Destination cash sub-account" formControlName="destinationAsset" required>
             <mat-option *ngFor="let asset of destinationCashAssets" [value]="asset">
               {{asset.description}}

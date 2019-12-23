@@ -61,6 +61,9 @@ import {
 import { CapitalCostTransaction, CapitalCostTransactionData } from '../models/capital-cost-transaction';
 import { UserAppError } from 'src/app/shared/models/user-app-error';
 import { AssetRegion } from '../models/asset-region';
+import {
+  PrincipalTxEditResponse, PrincipalTransactionEditComponent, PrincipalTxEditData
+} from '../components/principal-transaction-edit/principal-transaction-edit.component';
 
 interface PortfolioCSVRow {
   instrument: string;
@@ -228,138 +231,162 @@ export class AssetManagementService {
    * @param txData transaction details
    */
   async approveTransaction(txData: TransactionData): Promise<boolean> {
-    let approved = false;
     try {
-      let isMetaTransaction = false;
-      let cashAssetNeeded: boolean;
-      let tradeTx: TradeTransaction;
-      let transferTx: TransferTransaction;
-      let exchangeTx: ExchangeTransaction;
-      let dividendTx: DividendTransaction;
-      const tx = TransactionFactory.newInstance(txData.type, txData);
+      const approved = await this.executeTransaction(txData, false, false);
+      return approved;
+    } catch (err) {
+      this.logger.error('Transaction approve error: ' + err, err);
+    }
+    return false;
+  }
 
-      if (tx.isExchange()) {
-        exchangeTx = <ExchangeTransaction>tx;
-      } else if (tx.isTrade()) {
-        tradeTx = <TradeTransaction>tx;
-        if (!tradeTx.exchangedAsset.id) {
-          cashAssetNeeded = true;
-        }
-      } else if (tx.isTransfer()) {
-        transferTx = <TransferTransaction>tx;
-        if (!transferTx.destinationAsset.id) {
-          cashAssetNeeded = true;
-        }
-      } else if (tx.isDividend()) {
-        dividendTx = <DividendTransaction>tx;
-        if (!dividendTx.asset.id) {
-          cashAssetNeeded = true;
-        }
+  /**
+   * Executes a transaction and updates affected assets. Optionally prompts the user to fill missing details and approve a transaction.
+   * @param txData transaction details
+   * @param autoApprove if `true`, automatically approve transaction and fail if extra details are needed. If `false`, request
+   *                    user to approve transaction and fill any missing details.
+   * @param addNotification if `true` notifies user that transaction was executed
+   * @return `true` if transaction was approved and executed, `false` otherwise
+   */
+  async executeTransaction(txData: TransactionData, autoApprove: boolean, addNotification: boolean): Promise<boolean> {
+    let approved = false;
+    let isMetaTransaction = false;
+    let cashAssetNeeded: boolean;
+    let tradeTx: TradeTransaction;
+    let transferTx: TransferTransaction;
+    let exchangeTx: ExchangeTransaction;
+    let dividendTx: DividendTransaction;
+    let tx = TransactionFactory.newInstance(txData.type, txData);
 
+    if (tx.isExchange()) {
+      exchangeTx = <ExchangeTransaction>tx;
+    } else if (tx.isTrade()) {
+      tradeTx = <TradeTransaction>tx;
+      if (!tradeTx.exchangedAsset.id) {
+        cashAssetNeeded = true;
       }
-      const account = await this.portfolioService.getAccount(tx.asset.accountId);
-      if (!account) {
-        throw new AccountNotFoundError(tx.asset.accountId);
+    } else if (tx.isTransfer()) {
+      transferTx = <TransferTransaction>tx;
+      if (!transferTx.destinationAsset.id) {
+        cashAssetNeeded = true;
+      }
+    } else if (tx.isDividend()) {
+      dividendTx = <DividendTransaction>tx;
+      if (!dividendTx.asset.id) {
+        cashAssetNeeded = true;
       }
 
-      if (cashAssetNeeded) {
+    }
+    const account = await this.portfolioService.getAccount(tx.asset.accountId);
+    if (!account) {
+      throw new AccountNotFoundError(tx.asset.accountId);
+    }
+
+    if (cashAssetNeeded) {
+      if (!autoApprove) {
         // we need to create a cash asset in same currency first
         const accountPresent = await this.requireCurrencyCashAsset(tx.asset.currency, account);
         if (!accountPresent) {
           return false;
         }
+      } else {
+        throw new Error('Cash asset not provided!');
       }
+    }
 
+    if (autoApprove) {
+      approved = true;
+    } else {
       const data: TransactionApproveData = {
         tx,
         account,
       };
       approved = await this.dialogsService.showModal(TransactionApproveComponent, data);
+    }
 
-      if (approved) {
-        const sourceAsset = account.getAssetById(tx.asset.id);
-        if (!sourceAsset) {
-          throw new AssetNotFoundError(tx.asset.id);
+    if (approved) {
+      const sourceAsset = account.getAssetById(tx.asset.id);
+      if (!sourceAsset) {
+        throw new AssetNotFoundError(tx.asset.id);
+      }
+
+      if (exchangeTx) {
+        const destinationAcc = await this.portfolioService.getAccount(exchangeTx.exchangedAsset.accountId);
+        if (!destinationAcc) {
+          throw new AccountNotFoundError(exchangeTx.exchangedAsset.accountId);
         }
 
-        if (exchangeTx) {
-          const destinationAcc = await this.portfolioService.getAccount(exchangeTx.exchangedAsset.accountId);
-          if (!destinationAcc) {
-            throw new AccountNotFoundError(exchangeTx.exchangedAsset.accountId);
+        const destinationAsset = destinationAcc.getAssetById(exchangeTx.exchangedAsset.id);
+        if (!destinationAsset) {
+          throw new AssetNotFoundError(exchangeTx.exchangedAsset.id);
+        }
+        await this.exchange(sourceAsset, account, destinationAsset, destinationAcc, exchangeTx.value, exchangeTx.rate, exchangeTx.fee);
+
+      } else if (tradeTx) {
+        if (tradeTx.isSellTrade()) {
+          const sourceTrAsset = <TradeableAsset>sourceAsset;
+          const sellTx = <SellTransaction>tradeTx;
+          const cashAsset = account.getAssetById(sellTx.exchangedAsset.id);
+          if (!cashAsset) {
+            throw new AssetNotFoundError(sellTx.exchangedAsset.id);
           }
 
-          const destinationAsset = destinationAcc.getAssetById(exchangeTx.exchangedAsset.id);
-          if (!destinationAsset) {
-            throw new AssetNotFoundError(exchangeTx.exchangedAsset.id);
-          }
-          await this.exchange(sourceAsset, account, destinationAsset, destinationAcc, exchangeTx.value, exchangeTx.rate, exchangeTx.fee);
-
-        } else if (tradeTx) {
-          if (tradeTx.isSellTrade()) {
-            const sourceTrAsset = <TradeableAsset>sourceAsset;
-            const sellTx = <SellTransaction>tradeTx;
-            const cashAsset = account.getAssetById(sellTx.exchangedAsset.id);
-            if (!cashAsset) {
-              throw new AssetNotFoundError(sellTx.exchangedAsset.id);
-            }
-
-            if (tradeTx.isPrincipalPayment()) {
-              const bond = <BondAsset>sourceTrAsset;
-              await this.payBondPrincipal(tradeTx.rate, bond, cashAsset, account, new Date(tradeTx.date), false);
-              // our transaction is just a meta transaction, and the real transactions were already added by payBondPrincipal
-              isMetaTransaction = true;
+          if (tradeTx.isPrincipalPayment()) {
+            const bond = <BondAsset>sourceTrAsset;
+            await this.payBondPrincipal(tradeTx.rate, bond, cashAsset, true, account, new Date(tradeTx.date), addNotification, tradeTx.fee);
+            // our transaction is just a meta transaction, and the real transactions were already added by payBondPrincipal
+            isMetaTransaction = true;
+          } else {
+            const position = sourceTrAsset.findPosition(sellTx.positionId);
+            if (position) {
+              await this.sell(position, sourceTrAsset, account, sellTx.amount, sellTx.rate, sellTx.fee, true, cashAsset);
             } else {
-              const position = sourceTrAsset.findPosition(sellTx.positionId);
-              if (position) {
-                await this.sell(position, sourceTrAsset, account, sellTx.amount, sellTx.rate, sellTx.fee, true, cashAsset);
-              } else {
-                throw new Error(`Could not find matching position for transaction!`);
-              }
+              throw new Error(`Could not find matching position for transaction!`);
             }
-          } else {
-            throw new Error('Action not supported: Scheduled buy');
-          }
-        } else if (transferTx) {
-          const destinationAcc = await this.portfolioService.getAccount(transferTx.destinationAsset.accountId);
-          if (!destinationAcc) {
-            throw new AccountNotFoundError(transferTx.destinationAsset.accountId);
-          }
-
-          const destinationAsset = destinationAcc.getAssetById(transferTx.destinationAsset.id);
-          if (!destinationAsset) {
-            throw new AssetNotFoundError(transferTx.destinationAsset.id);
-          }
-          const netAmount = FloatingMath.fixRoundingError(transferTx.value - transferTx.fee);
-          await this.transfer(sourceAsset, account, null, destinationAsset, destinationAcc, netAmount, transferTx.fee);
-        } else if (dividendTx) {
-          await this.payDividend(account, dividendTx, true);
-          // transaction already added
-          isMetaTransaction = true;
-        } else if (tx.includesCash()) {
-          const multiplier = tx.isCredit() ? 1 : -1;
-          const amount = tx.value * multiplier;
-          const newBalance = FloatingMath.fixRoundingError(sourceAsset.amount + amount);
-          // do not allow negative balances when debiting non-debt assets
-          if (sourceAsset.isDebt() || amount > 0 || FloatingMath.isPositive(newBalance)) {
-            sourceAsset.amount = newBalance;
-            await this.portfolioService.updateAsset(sourceAsset, account);
-          } else {
-            throw new Error('Not enough balance in ' + sourceAsset.description);
           }
         } else {
-          throw new Error('Unsupported transaction type: ' + tx.type);
+          throw new Error('Action not supported: Scheduled buy');
         }
-        this.logger.info('Transaction approved!');
-        if (!isMetaTransaction) {
-          await this.addTransaction(tx);
+      } else if (transferTx) {
+        const destinationAcc = await this.portfolioService.getAccount(transferTx.destinationAsset.accountId);
+        if (!destinationAcc) {
+          throw new AccountNotFoundError(transferTx.destinationAsset.accountId);
+        }
+
+        const destinationAsset = destinationAcc.getAssetById(transferTx.destinationAsset.id);
+        if (!destinationAsset) {
+          throw new AssetNotFoundError(transferTx.destinationAsset.id);
+        }
+        const netAmount = FloatingMath.fixRoundingError(transferTx.value - transferTx.fee);
+        await this.transfer(sourceAsset, account, null, destinationAsset, destinationAcc, netAmount, transferTx.fee);
+      } else if (dividendTx) {
+        await this.payDividend(account, dividendTx, true, addNotification);
+        // transaction already added
+        isMetaTransaction = true;
+      } else if (tx.includesCash()) {
+        const multiplier = tx.isCredit() ? 1 : -1;
+        const amount = tx.value * multiplier;
+        const newBalance = FloatingMath.fixRoundingError(sourceAsset.amount + amount);
+        // do not allow negative balances when debiting non-debt assets
+        if (sourceAsset.isDebt() || amount > 0 || FloatingMath.isPositive(newBalance)) {
+          sourceAsset.amount = newBalance;
+          await this.portfolioService.updateAsset(sourceAsset, account);
+        } else {
+          throw new Error('Not enough balance in ' + sourceAsset.description);
+        }
+      } else {
+        throw new Error('Unsupported transaction type: ' + tx.type);
+      }
+      if (!isMetaTransaction) {
+        tx = await this.addTransaction(tx);
+        if (addNotification) {
+          this.portfolioService.addTransactionDoneNotification(tx.description, tx.id);
+        } else {
+          this.logger.info('Transaction approved!');
         }
       }
-      return approved;
-    } catch (err) {
-      this.logger.error('Transaction approve error: ' + err, err);
-
     }
-    return false;
+    return approved;
   }
 
   /**
@@ -1037,8 +1064,11 @@ export class AssetManagementService {
      * @param account bond's account
      * @param txDate the payment date
      */
-  async payBondPrincipal(principalPayment: number, bond: BondAsset, cashAsset: Asset, account: PortfolioAccount, txDate: Date,
-    addNotification: boolean) {
+  async payBondPrincipal(principalPayment: number, bond: BondAsset, cashAsset: Asset, creditCash: boolean, account: PortfolioAccount,
+    txDate: Date, addNotification: boolean, fee: number) {
+
+    // we only update bond values if the transaction will be executed now
+    const updateBondValues = (!this.isFutureDate(txDate.toISOString()) && cashAsset) ? true : false;
 
     const txDescription = 'Principal payment for ' + bond.description;
     const newPrincipal = FloatingMath.fixRoundingError(bond.principalAmount - principalPayment);
@@ -1071,15 +1101,20 @@ export class AssetManagementService {
         totalCost = totalCost + position.amount * buyPrice;
         totalGrossCost = totalGrossCost + position.amount * grossBuyPrice;
 
-        // update buy price for new principal
-        position.buyPrice = newPrincipal * discount;
+        if (updateBondValues) {
+          // update buy price for new principal
+          position.buyPrice = newPrincipal * discount;
+          position.grossBuyPrice = newPrincipal * (position.grossBuyPrice / initialBondPrincipal);
+        }
       }
     }
+    let txExecuted = false;
     if (paymentMade) {
       bond.updateStats(); // buy prices updated
       if (totalAmount > 0) {
         avgBuyPrice = totalCost / totalAmount;
         avgGrossBuyPrice = totalGrossCost / totalAmount;
+        totalValue -= fee;
       }
       const txData: SellTransactionData = {
         asset: {
@@ -1099,7 +1134,7 @@ export class AssetManagementService {
         date: txDate.toISOString(),
         description: txDescription,
         type: TransactionType.PrincipalPayment,
-        fee: 0,
+        fee: fee || 0,
         value: totalValue,
         rate: principalPayment,
         amount: totalAmount,
@@ -1110,39 +1145,47 @@ export class AssetManagementService {
       };
       let tx = new SellTransaction(txData);
 
-      // we adjust principal (we do it here because we only pay principal if at least 1 matching position
-      // exists)
-      bond.principalAmount = newPrincipal;
 
-      if (cashAsset) {
-        cashAsset.amount = FloatingMath.fixRoundingError(cashAsset.amount + totalValue);
-        await this.portfolioService.updateAsset(cashAsset, account);
-        tx = <SellTransaction>await this.addTransaction(tx);
-        if (addNotification) {
-          this.portfolioService.addTransactionDoneNotification(tx.description, tx.id);
+      if (!this.isFutureDate(txDate.toISOString())) {
+        if (cashAsset) {
+          // we adjust principal (we do it here because we only pay principal if at least 1 matching position
+          // exists)
+          bond.principalAmount = newPrincipal;
+          if (creditCash) {
+            cashAsset.amount = FloatingMath.fixRoundingError(cashAsset.amount + totalValue);
+            await this.portfolioService.updateAsset(cashAsset, account);
+          }
+          tx = <SellTransaction>await this.addTransaction(tx);
+          txExecuted = true;
+          if (addNotification) {
+            this.portfolioService.addTransactionDoneNotification(tx.description, tx.id);
+          } else {
+            this.logger.info('Principal paid!');
+          }
+        } else {
+          await this.portfolioService.addPendingTransactionNotification('Pending bond principal payment', tx);
         }
       } else {
-        await this.portfolioService.addPendingTransactionNotification('Pending bond principal payment', tx);
+        await this.scheduleTransaction(tx);
       }
     }
 
     // we update/remove bond regardless if any payment was made
     let bondRemoved = false;
-    if (bond.principalAmount <= 0) {
-      if (cashAsset) {
+    if (newPrincipal <= 0) {
+      if (txExecuted) {
         // only remove bond from storage if the transaction is not pending
         await this.portfolioService.removeAsset(bond, account);
         bondRemoved = true;
       }
       // let the caller know that the bond was removed
       bond.pendingDelete = true;
-    } else if (bond.principalPaymentSchedule.length > 0) {
+    } else if (bond.principalPaymentSchedule.length > 0 && DateUtils.sameDate(new Date(bond.principalPaymentSchedule[0].date), txDate)) {
       bond.principalPaymentSchedule.splice(0, 1);
     }
     if (!bondRemoved) {
       await this.portfolioService.updateAsset(bond, account);
     }
-
   }
 
   /**
@@ -1283,7 +1326,7 @@ export class AssetManagementService {
     if (response) {
       try {
         if (!this.isFutureDate(response.dividendTx.date)) {
-          await this.payDividend(account, dividendTx, response.creditCashAsset);
+          await this.payDividend(account, dividendTx, response.creditCashAsset, false);
           if (response.recurringTransaction) {
             await this.addRecurringTransaction(dividendTx, response.recurringTransaction);
           }
@@ -1297,6 +1340,27 @@ export class AssetManagementService {
       } catch (err) {
         this.logger.error(`Could not add dividend payment: ${err}`, err);
       }
+    }
+  }
+
+  /**
+   * Prompts user to enter details about a principal payment transaction and executes it.
+   * @param asset asset that pays the principal
+   * @param account account that holds the payer asset
+   */
+  async addPrincipalPayment(asset: BondAsset, account: PortfolioAccount) {
+    const accountPresent = await this.requireCurrencyCashAsset(asset.currency, account);
+    if (!accountPresent) {
+      return false;
+    }
+    const data: PrincipalTxEditData = {
+      account,
+      asset,
+    };
+    const response: PrincipalTxEditResponse = await this.dialogsService.showAdaptableScreenModal(PrincipalTransactionEditComponent, data);
+    if (response) {
+      await this.payBondPrincipal(response.principalPayment, asset, response.cashAsset, response.creditCashAsset, account,
+        new Date(response.transactionDate), false, response.fee);
     }
   }
 
@@ -1725,8 +1789,11 @@ export class AssetManagementService {
    * @param account account that holds the payer asset
    * @param dividendTx dividend transaction to execute
    * @param creditCashAsset if `true` credits the cash asset with the dividend amount
+   * @param addNotification if `true` notifies user that transaction was executed
    */
-  private async payDividend(account: PortfolioAccount, dividendTx: DividendTransaction, creditCashAsset: boolean) {
+  private async payDividend(account: PortfolioAccount, dividendTx: DividendTransaction, creditCashAsset: boolean,
+    addNotification: boolean) {
+
     try {
       if (creditCashAsset) {
         const cashAsset = account.getAssetById(dividendTx.asset.id);
@@ -1740,8 +1807,12 @@ export class AssetManagementService {
           paymentTypeStr = 'Rent';
         }
       }
-      await this.portfolioService.addTransaction(dividendTx);
-      this.logger.info(`${paymentTypeStr} paid!`);
+      dividendTx = <DividendTransaction>await this.portfolioService.addTransaction(dividendTx);
+      if (addNotification) {
+        this.portfolioService.addTransactionDoneNotification(dividendTx.description, dividendTx.id);
+      } else {
+        this.logger.info(`${paymentTypeStr} paid!`);
+      }
       return true;
     } catch (err) {
       this.logger.error(`Could not add transaction: ${err}`, err);

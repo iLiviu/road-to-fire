@@ -103,6 +103,7 @@ import { RSPortfolioStorageService } from './services/rs-portfolio-storage.servi
 import { DialogsService } from '../dialogs/dialogs.service';
 import { DebtComponent } from './pages/debt/debt.component';
 import { AbsoluteValuePipe } from 'src/app/shared/pipes/absolute-value.pipe';
+import { PrincipalTransactionEditComponent } from './components/principal-transaction-edit/principal-transaction-edit.component';
 
 @NgModule({
   declarations: [
@@ -164,6 +165,7 @@ import { AbsoluteValuePipe } from 'src/app/shared/pipes/absolute-value.pipe';
     CostTransactionEditComponent,
     DebtComponent,
     AbsoluteValuePipe,
+    PrincipalTransactionEditComponent,
 
   ],
   imports: [
@@ -233,6 +235,7 @@ import { AbsoluteValuePipe } from 'src/app/shared/pipes/absolute-value.pipe';
     InterestTransactionEditComponent,
     PortfolioHistoryAddComponent,
     CostTransactionEditComponent,
+    PrincipalTransactionEditComponent,
   ]
 })
 export class PortfolioModule {

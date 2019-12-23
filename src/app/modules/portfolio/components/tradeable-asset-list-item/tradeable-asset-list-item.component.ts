@@ -6,6 +6,7 @@ import { ViewAsset } from '../../models/view-asset';
 import { AssetManagementService } from '../../services/asset-management.service';
 import { AssetType } from '../../models/asset';
 import { TradeableAsset } from '../../models/tradeable-asset';
+import { BondAsset } from '../../models/bond-asset';
 
 
 /**
@@ -37,6 +38,7 @@ export class TradeableAssetListItemComponent implements OnInit {
   isStockLike: boolean;
   isRentable: boolean;
   isInterestPayer: boolean;
+  isPrincipalPayer: boolean;
 
   constructor(private assetManagementService: AssetManagementService) { }
 
@@ -44,6 +46,7 @@ export class TradeableAssetListItemComponent implements OnInit {
     this.isStockLike = this.viewAsset.asset.isStockLike();
     this.isRentable = this.viewAsset.asset.type === AssetType.RealEstate;
     this.isInterestPayer = (this.viewAsset.asset.type === AssetType.Bond || this.viewAsset.asset.type === AssetType.Deposit);
+    this.isPrincipalPayer = this.viewAsset.asset.type === AssetType.Bond;
   }
 
   delete() {
@@ -84,6 +87,10 @@ export class TradeableAssetListItemComponent implements OnInit {
 
   mergePositions() {
     this.assetManagementService.mergeAssetPositions(<TradeableAsset>this.viewAsset.asset, this.viewAsset.account);
+  }
+
+  payPrincipal() {
+    this.assetManagementService.addPrincipalPayment(<BondAsset>this.viewAsset.asset, this.viewAsset.account);
   }
 
   onItemMenu(event: Event) {
