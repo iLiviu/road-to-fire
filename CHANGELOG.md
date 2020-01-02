@@ -6,6 +6,7 @@
 
 ### Bug fixes
 * Do not update bond principal value when the transaction is just pending.
+* Truncate long asset titles in lists, that hide current price.
 
 ## 1.0.0-beta.2 (2019-12-16)
 

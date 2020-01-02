@@ -17,7 +17,7 @@
       <button mat-menu-item (click)="delete()">Delete</button>
     </mat-menu>
     <h4 mat-line>
-      <span fxFlex>{{viewAsset.asset.description}}</span>
+      <span class="truncate-overflow" fxFlex>{{viewAsset.asset.description}}</span>
       <span>{{viewAsset.currentValue | currency:viewAsset.asset.currency}}</span>
     </h4>
     <h6 mat-line class="mat-h4">
