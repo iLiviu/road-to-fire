@@ -1981,7 +1981,7 @@ export class AssetManagementService {
   private async updateCommonTradeableAssetProperties(asset: TradeableAsset, response: AssetTradeResponse) {
     asset.description = response.description;
     asset.region = response.region || AssetRegion.Unspecified;
-    if (asset.type === AssetType.Bond) {
+    if (asset.type === AssetType.Bond || asset.type === AssetType.P2P) {
       const bond = <BondAsset>asset;
       bond.maturityDate = response.maturityDate;
       bond.principalAmount = response.principalAmount;

@@ -3,6 +3,7 @@
 ### Features
 * Disable browser's default pull-to-refresh gesture to avoid entire app refresh when user swipes down
 * Manually add a bond principal payment
+* Support for P2P loans
 
 ### Bug fixes
 * Do not update bond principal value when the transaction is just pending.

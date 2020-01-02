@@ -18,7 +18,8 @@ export enum AssetType {
   Cryptocurrency = 32,
   RealEstate = 64,
   Debt = 512,
-  TradeableAsset = RealEstate | Cryptocurrency | Commodity | Stock | Bond,
+  P2P = 1024,
+  TradeableAsset = RealEstate | Cryptocurrency | Commodity | Stock | Bond | P2P,
   ETF = 128,
   StockETF = Stock | ETF,
   BondETF = Stock | ETF | Bond,
@@ -52,6 +53,7 @@ export const ASSET_TYPE_LABELS: NumKeyDictionary<string> = {
   [AssetType.CommodityMutualFund]: 'Commodity Mutual Fund',
   [AssetType.MoneyMarketMutualFund]: 'Money Market Mutual Fund',
   [AssetType.Debt]: 'Debt',
+  [AssetType.P2P]: 'P2P Loans',
 };
 
 export interface AssetData {

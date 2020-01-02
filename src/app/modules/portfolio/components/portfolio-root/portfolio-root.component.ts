@@ -32,6 +32,7 @@ const MENU_ROUTES: NavItem[] = [
       { path: 'assets/commodities', title: 'Commodities', svgIcon: 'commodity' },
       { path: 'assets/crypto', title: 'Cryptocurrencies', svgIcon: 'bitcoin' },
       { path: 'assets/debt', title: 'Debt', icon: 'credit_card' },
+      { path: 'assets/p2p', title: 'P2P Loans', icon: 'group' },
       { path: 'assets/real-estate', title: 'Real Estate', icon: 'home' },
       { path: 'assets/stocks', title: 'Stocks', icon: 'trending_up' },
     ]

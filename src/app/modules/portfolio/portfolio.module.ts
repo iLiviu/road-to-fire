@@ -104,6 +104,7 @@ import { DialogsService } from '../dialogs/dialogs.service';
 import { DebtComponent } from './pages/debt/debt.component';
 import { AbsoluteValuePipe } from 'src/app/shared/pipes/absolute-value.pipe';
 import { PrincipalTransactionEditComponent } from './components/principal-transaction-edit/principal-transaction-edit.component';
+import { P2PComponent } from './pages/p2p/p2p.component';
 
 @NgModule({
   declarations: [
@@ -166,7 +167,7 @@ import { PrincipalTransactionEditComponent } from './components/principal-transa
     DebtComponent,
     AbsoluteValuePipe,
     PrincipalTransactionEditComponent,
-
+    P2PComponent,
   ],
   imports: [
     CommonModule,

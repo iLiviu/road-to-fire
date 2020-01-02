@@ -45,8 +45,10 @@ export class TradeableAssetListItemComponent implements OnInit {
   ngOnInit() {
     this.isStockLike = this.viewAsset.asset.isStockLike();
     this.isRentable = this.viewAsset.asset.type === AssetType.RealEstate;
-    this.isInterestPayer = (this.viewAsset.asset.type === AssetType.Bond || this.viewAsset.asset.type === AssetType.Deposit);
-    this.isPrincipalPayer = this.viewAsset.asset.type === AssetType.Bond;
+    this.isInterestPayer = (this.viewAsset.asset.type === AssetType.Bond ||
+      this.viewAsset.asset.type === AssetType.Deposit ||
+      this.viewAsset.asset.type === AssetType.P2P);
+    this.isPrincipalPayer = this.viewAsset.asset.type === AssetType.Bond || this.viewAsset.asset.type === AssetType.P2P;
   }
 
   delete() {

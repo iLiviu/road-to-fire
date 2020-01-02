@@ -335,7 +335,7 @@ export class PeriodicChecksService {
       for (const asset of account.assets) {
         if (asset.type === AssetType.Deposit) {
           await this.checkDeposit(<DepositAsset>asset, account);
-        } else if (asset.type === AssetType.Bond) {
+        } else if (asset.type === AssetType.Bond || asset.type === AssetType.P2P) {
           await this.checkBond(<BondAsset>asset, account);
         }
       }

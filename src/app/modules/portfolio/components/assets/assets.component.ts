@@ -206,7 +206,7 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
       const tradeableAsset = <TradeableAsset>viewAsset.asset;
       viewAsset.initialValue = viewAsset.position.amount * viewAsset.position.buyPrice;
       viewAsset.currentValue = viewAsset.position.amount * tradeableAsset.currentPrice;
-      if (tradeableAsset.type === AssetType.Bond) {
+      if (tradeableAsset.type === AssetType.Bond || tradeableAsset.type === AssetType.P2P) {
         // we need to add position accrued interest to current value for bonds
         const bond = <BondAsset>tradeableAsset;
         viewAsset.currentValue += bond.getUnitAccruedInterest() * viewAsset.position.amount;

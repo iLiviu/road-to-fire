@@ -48,6 +48,7 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
   commodities: AssetGroup;
   cryptocurrencies: AssetGroup;
   groupedAssets: NumKeyDictionary<ViewAsset[]> = {};
+  p2p: AssetGroup;
   realEstate: AssetGroup;
   stocks: AssetGroup;
   mmAssets: AssetGroup;
@@ -372,6 +373,10 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
       assets: this.groupedAssets[AssetType.MoneyMarket] || [],
       overview: this.assetsGroupOverview[AssetType.MoneyMarket]
     };
+    this.p2p = {
+      assets: this.groupedAssets[AssetType.P2P] || [],
+      overview: this.assetsGroupOverview[AssetType.P2P]
+    };
     this.realEstate = {
       assets: this.groupedAssets[AssetType.RealEstate] || [],
       overview: this.assetsGroupOverview[AssetType.RealEstate]
@@ -400,6 +405,7 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
     this.commodities = { assets: [], overview: defaultOverView };
     this.cryptocurrencies = { assets: [], overview: defaultOverView };
     this.mmAssets = { assets: [], overview: defaultOverView };
+    this.p2p = { assets: [], overview: defaultOverView };
     this.realEstate = { assets: [], overview: defaultOverView };
     this.stocks = { assets: [], overview: defaultOverView };
     this.cashBalances = [];

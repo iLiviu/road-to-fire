@@ -19,6 +19,7 @@ import { CapitalGainsComponent } from './pages/capital-gains/capital-gains.compo
 import { RecurringTransactionsComponent } from './pages/recurring-transactions/recurring-transactions.component';
 import { PrivacyComponent } from '../about/pages/privacy/privacy.component';
 import { DebtComponent } from './pages/debt/debt.component';
+import { P2PComponent } from './pages/p2p/p2p.component';
 
 export const portfolioRoutes: Routes = [
 
@@ -33,6 +34,7 @@ export const portfolioRoutes: Routes = [
       { path: 'assets/cash', component: CashComponent },
       { path: 'assets/commodities', component: CommoditiesComponent },
       { path: 'assets/crypto', component: CryptosComponent },
+      { path: 'assets/p2p', component: P2PComponent },
       { path: 'assets/real-estate', component: RealEstateComponent },
       { path: 'assets/debt', component: DebtComponent },
       { path: 'accounts/:accountId', component: AccountComponent, pathMatch: 'full' },

@@ -219,6 +219,29 @@
         </mat-card>
       </mat-grid-tile>
 
+      <mat-grid-tile *ngIf="gridVisibility[GridTiles.P2PGeoAllocation] && p2pGeoAllocationChart.data.length > 0">
+        <mat-card class="grid-card">
+          <mat-card-title>P2P Geo Allocation</mat-card-title>
+
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <canvas baseChart [data]="p2pGeoAllocationChart.data" [labels]="p2pGeoAllocationChart.labels"
+              [options]="pieChartOptions" chartType="doughnut"></canvas>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.P2PCurrencyAllocation] && p2pCurrencyAllocationChart.data.length > 0">
+        <mat-card class="grid-card">
+          <mat-card-title>P2P Currency Allocation</mat-card-title>
+
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <canvas baseChart [data]="p2pCurrencyAllocationChart.data" [labels]="p2pCurrencyAllocationChart.labels"
+              [options]="pieChartOptions" chartType="doughnut"></canvas>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.CashAllocation] && cashAllocationChart.data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Cash Allocation</mat-card-title>

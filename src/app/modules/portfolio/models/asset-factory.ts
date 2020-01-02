@@ -9,7 +9,7 @@ export class AssetFactory {
     let result: Asset;
     if (assetType === AssetType.Deposit) {
       result = new DepositAsset(source);
-    } else if (assetType === AssetType.Bond) {
+    } else if (assetType === AssetType.Bond || assetType === AssetType.P2P) {
       result = new BondAsset(source);
     } else if (Asset.isTradeable(assetType)) {
       result = new TradeableAsset(source);

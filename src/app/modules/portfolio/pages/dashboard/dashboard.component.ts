@@ -25,7 +25,7 @@ import { FloatingMath, binarySearch, DateUtils } from 'src/app/shared/util';
 import { ASSET_REGION_LABELS, AssetRegionHelper } from '../../models/asset-region';
 
 const MULTI_COL_GRID_ROW_HEIGHT = '2:1.6';
-const SINGLE_COL_GRID_ROW_HEIGHT = '1:1';
+const SINGLE_COL_GRID_ROW_HEIGHT = '1:1.1';
 
 /**
  * The order in which to place the assets in the portfolio history chart. We need
@@ -37,6 +37,7 @@ const HISTORY_ASSET_ORDER = [
   AssetType.Bond,
   AssetType.Commodity,
   AssetType.Cryptocurrency,
+  AssetType.P2P,
   AssetType.RealEstate,
   AssetType.Stock];
 
@@ -107,14 +108,18 @@ enum PortfolioHistoryDataField {
 
 
 /**
- * Component to display a page with a summary of the users's portfolio, including:
+ * Component to display a page with a summary of the user's portfolio, including:
  * - percentage of goals completed
  * - portfolio allocation by assets
- * - bonds geographic allocation
- * - stocks geographic allocation
+ * - portfolio history
+ * - unrealized P/L history
+ * - bonds geographic & currency allocation
  * - cryptocurrencies allocation
  * - commodities allocation
  * - cash allocation by currency
+ * - debt allocation
+ * - P2P geographic & currency allocation
+ * - stocks geographic & currency allocation
  * - steps needed to be done to rebalance portfolio
  */
 @Component({
@@ -159,6 +164,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   cryptoAllocationChart: ChartContext = { data: [], labels: [] };
   currencyAllocationChart: ChartContext = { data: [], labels: [] };
   debtAllocationChart: ChartContext = { data: [], labels: [] };
+  p2pCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
+  p2pGeoAllocationChart: ChartContext = { data: [], labels: [] };
   stockCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
   stockGeoAllocationChart: ChartContext = { data: [], labels: [] };
   portfolioHistoryChart: MultiDatasetChartContext = { data: [{ label: '', data: [] }], labels: [] };
@@ -662,8 +669,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         }
         assetTypeAllocation[assetIdKey] += assetBaseCurrencyValue;
 
-        // stocks and bonds can have a geographical region set, so group by that too
-        if (Asset.isStockLike(broadAssetType) || Asset.isBondLike(broadAssetType)) {
+        // tradeable assets can have a geographical region set, so group by that too
+        if (asset.isTradeable()) {
           const regionWeights = (<TradeableAsset>asset).getRegionWeights();
 
           let assetRegionValues: NumKeyDictionary<number> = this.assetRegions[broadAssetType];
@@ -697,8 +704,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.computeCurrenciesAllocationData();
     this.computeAssetCurrencyAllocationData(this.stockCurrencyAllocationChart, AssetType.Stock);
     this.computeAssetCurrencyAllocationData(this.bondCurrencyAllocationChart, AssetType.Bond);
+    this.computeAssetCurrencyAllocationData(this.p2pCurrencyAllocationChart, AssetType.P2P);
     this.computeAssetGeoAllocationData(this.stockGeoAllocationChart, AssetType.Stock);
     this.computeAssetGeoAllocationData(this.bondGeoAllocationChart, AssetType.Bond);
+    this.computeAssetGeoAllocationData(this.p2pGeoAllocationChart, AssetType.P2P);
     this.computeAssetTypeAllocationData(this.cryptoAllocationChart, AssetType.Cryptocurrency);
     this.computeAssetTypeAllocationData(this.commodityAllocationChart, AssetType.Commodity);
     this.computeAssetTypeAllocationData(this.debtAllocationChart, AssetType.Debt);
@@ -902,14 +911,16 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
 
   protected onConfigLoaded() {
     super.onConfigLoaded();
-
     this.baseCurrency = this.portfolioConfig.baseCurrency;
     this.baseCurrencySymbol = getCurrencySymbol(this.baseCurrency, 'wide');
     this.rebalancingSetup = this.portfolioConfig.portfolioAllocation.length > 0;
     this.gridVisibility = this.portfolioConfig.dashboardGridVisibility;
     if (!this.gridVisibility) {
       this.gridVisibility = {};
-      for (const tile of Object.keys(DashboardGridTiles)) {
+    }
+    // always display new tiles that didn't exist in earlier save
+    for (const tile of Object.keys(DashboardGridTiles)) {
+      if (this.gridVisibility[tile] === undefined) {
         this.gridVisibility[tile] = true;
       }
     }

@@ -39,7 +39,7 @@ export class TradeableAssetViewComponent implements OnInit {
   async ngOnInit() {
     this.viewAsset = this.data.viewAsset;
     this.tradeableAsset = <TradeableAsset>this.viewAsset.asset;
-    if (this.viewAsset.asset.type === AssetType.Bond) {
+    if (this.viewAsset.asset.type === AssetType.Bond || this.viewAsset.asset.type === AssetType.P2P) {
       this.bondAsset = <BondAsset>this.viewAsset.asset;
     }
     this.totalPL = this.data.totalReturnStats.totalReturn - this.data.totalReturnStats.totalCost;

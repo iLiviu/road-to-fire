@@ -36,6 +36,11 @@
       </mat-form-field>
 
       <mat-form-field>
+        <input matInput type="number" placeholder="P2P Loans" [formControlName]="AssetType.P2P" required>
+        <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
+      </mat-form-field>
+
+      <mat-form-field>
         <input matInput type="number" placeholder="Real Estate" [formControlName]="AssetType.RealEstate" required>
         <span matPrefix>{{data.baseCurrency | currencySymbol}}</span>
       </mat-form-field>

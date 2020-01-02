@@ -7,7 +7,7 @@
         <mat-tab label="Main">
           <div fxLayout="column" class="text-content">
             <mat-form-field
-              *ngIf="data.assetType !== AssetType.RealEstate && !isMutualFund && data.action !== AssetTradeAction.SELL">
+              *ngIf="exchangeTradedAsset && !isMutualFund && data.action !== AssetTradeAction.SELL">
               <input type="text" placeholder="Securities Exchange Code" matInput [formControl]="exchange"
                 [matAutocomplete]="exchangeCode">
               <mat-autocomplete #exchangeCode="matAutocomplete">
@@ -17,7 +17,7 @@
               </mat-autocomplete>
             </mat-form-field>
 
-            <mat-form-field *ngIf="data.assetType !== AssetType.RealEstate && data.action !== AssetTradeAction.SELL">
+            <mat-form-field *ngIf="exchangeTradedAsset && data.action !== AssetTradeAction.SELL">
               <input matInput type="text" placeholder="Symbol" formControlName="symbol" [matAutocomplete]="assetSymbol">
               <mat-autocomplete #assetSymbol="matAutocomplete">
                 <mat-option *ngFor="let symbol of filteredSuggestedSymbols | async" [value]="symbol.code">
@@ -148,7 +148,7 @@
               <mat-error>Fee must be positive</mat-error>
             </mat-form-field>
 
-            <ng-container *ngIf="data.assetType === AssetType.Bond && data.action !== AssetTradeAction.SELL">
+            <ng-container *ngIf="bondLikeAsset && data.action !== AssetTradeAction.SELL">
               <mat-form-field>
                 <input matInput type="number" placeholder="Coupon interest rate" formControlName="couponRate" required
                   matTooltip="Based on 365 days/year (actual/365)">

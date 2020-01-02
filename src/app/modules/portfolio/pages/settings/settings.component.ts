@@ -72,7 +72,8 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
     AssetType.Stock,
     AssetType.Commodity,
     AssetType.Cryptocurrency,
-    AssetType.RealEstate
+    AssetType.P2P,
+    AssetType.RealEstate,
   ];
   readonly ASSET_TYPE_LABELS = ASSET_TYPE_LABELS;
   readonly currencyCodes = APP_CONSTS.CURRENCY_CODES;

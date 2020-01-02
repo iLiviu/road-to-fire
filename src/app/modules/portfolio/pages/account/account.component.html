@@ -8,7 +8,7 @@
       <button type="button" aria-label="Actions" mat-icon-button matTooltip="Actions" [matMenuTriggerFor]="actionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
-      
+
       <mat-menu #actionsMenu="matMenu">
         <button mat-menu-item (click)="editAccount()">Edit Account Name</button>
         <button mat-menu-item (click)="deleteAccount()">Delete Account</button>
@@ -44,6 +44,9 @@
           <app-tradeable-asset-sum-card [title]="'Cryptocurrencies'" [baseCurrency]="baseCurrency"
             [overview]="cryptocurrencies.overview" *ngIf="cryptocurrencies.assets.length > 0">
           </app-tradeable-asset-sum-card>
+
+          <app-tradeable-asset-sum-card title="P2P Loans" [baseCurrency]="baseCurrency" [overview]="p2p.overview"
+            *ngIf="p2p.assets.length > 0"></app-tradeable-asset-sum-card>
 
           <app-tradeable-asset-sum-card [title]="'Real Estate'" [baseCurrency]="baseCurrency"
             [overview]="realEstate.overview" *ngIf="realEstate.assets.length > 0"></app-tradeable-asset-sum-card>
@@ -81,6 +84,10 @@
 
               <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.Cryptocurrency)">
                 <mat-icon matTooltip="Buy Cryptocurrency" aria-label="Buy Cryptocurrency" svgIcon="bitcoin"></mat-icon>
+              </button>
+
+              <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.P2P)">
+                <mat-icon matTooltip="Buy P2P Loan" aria-label="Buy P2P Loan">group</mat-icon>
               </button>
 
               <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.RealEstate)">
@@ -128,6 +135,10 @@
 
       <mat-tab label="Cryptocurrencies" *ngIf="cryptocurrencies.assets.length > 0">
         <app-tradeable-asset-list [assets]="cryptocurrencies.assets"></app-tradeable-asset-list>
+      </mat-tab>
+
+      <mat-tab label="P2P Loans" *ngIf="p2p.assets.length > 0">
+        <app-tradeable-asset-list [assets]="p2p.assets"></app-tradeable-asset-list>
       </mat-tab>
 
       <mat-tab label="Real Estate" *ngIf="realEstate.assets.length > 0">

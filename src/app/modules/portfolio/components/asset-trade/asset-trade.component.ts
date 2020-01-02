@@ -95,12 +95,14 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
   assetCurrency: string;
   assetForm: FormGroup;
   assetLabel: string;
+  bondLikeAsset: boolean;
   cashAsset: FormControl;
   currentPrice: FormControl;
   description: FormControl;
   couponRate: FormControl;
   cashAssets: Asset[];
   exchange: FormControl;
+  exchangeTradedAsset: boolean;
   fee: FormControl;
   filteredSupportedExchanges: Observable<ExchangeDetails[]>;
   filteredSuggestedSymbols: Observable<SymbolDetails[]>;
@@ -140,7 +142,9 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.singleTabEdit = this.data.assetType !== AssetType.Bond || this.data.action === AssetTradeAction.SELL;
+    this.bondLikeAsset = this.data.assetType === AssetType.Bond || this.data.assetType === AssetType.P2P;
+    this.exchangeTradedAsset = this.data.assetType !== AssetType.RealEstate && this.data.assetType !== AssetType.P2P;
+    this.singleTabEdit = !this.bondLikeAsset || this.data.action === AssetTradeAction.SELL;
     this.stockLikeAsset = Asset.isStockLike(this.data.assetType);
 
     if (this.stockLikeAsset || this.data.assetType === AssetType.Bond) {
@@ -231,7 +235,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
           this.transactionDate.setValue(this.data.position.buyDate);
         }
       }
-      if (this.data.asset.type === AssetType.Bond) {
+      if (this.bondLikeAsset) {
         const bond = <BondAsset>this.data.asset;
         this.principalAmount.setValue(bond.principalAmount);
         this.couponRate.setValue(FloatingMath.fixRoundingError(bond.couponRate * 100));
@@ -262,7 +266,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
 
     });
 
-    if (this.data.assetType === AssetType.Bond) {
+    if (this.bondLikeAsset) {
       this.assetForm.addControl('couponRate', this.couponRate);
       this.assetForm.addControl('maturityDate', this.maturityDate);
       this.assetForm.addControl('principalAmount', this.principalAmount);
