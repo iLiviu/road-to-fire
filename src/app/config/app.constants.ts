@@ -11,16 +11,18 @@ export interface SymbolDetails {
 
 export const APP_CONSTS = {
   TITLE: 'Road To FIRE',
-  VERSION: '1.0.0-beta.2',
+  VERSION: '1.0.0',
   // text to show when user first loads the current new version
-  WHATS_NEW_TITLE: `What's new in version 1.0.0-beta.2!`,
+  WHATS_NEW_TITLE: `What's new in version 1.0.0`,
   WHATS_NEW:
     `Features:
-    * require user to confirm password before disabling encryption
-    * when enabling encryption from settings page, display a second password confirmation field to avoid mistyping password.
-    * allow user to change the current unit price when editing a tradeable asset.
-    * add a close button to the "Connect your storage" popup when not connected to a backend, so user can quickly disable cloud sync.
-    * add autocomplete for symbol when adding/editing a commodity to suggest supported commodities.`,
+    * Disable browser's default pull-to-refresh gesture to avoid entire app refresh when user swipes down
+    * Manually add a bond principal payment
+    * Support for P2P loans
+
+Bug fixes:
+    * Do not update bond principal value when the transaction is just pending.
+    * Truncate long asset titles in lists, that hide current price.`,
   REPOSITORY_URL: 'https://github.com/iLiviu/road-to-fire',
   STORAGE_API_KEYS: {
     DROPBOX: 'kbwh5504okeu3b9',
