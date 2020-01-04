@@ -6,6 +6,9 @@
 ### UI Changes
 * Hide amount field for P2P and Real Estate, as it's irrelevant for these assets.
 
+### Bug Fixes
+* Update previous payment date on bonds and P2P loans when manually adding an interest payment.
+
 ## 1.0.0 (2020-01-03)
 
 ### Features

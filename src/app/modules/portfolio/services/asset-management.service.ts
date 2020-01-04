@@ -102,9 +102,10 @@ export class AssetManagementService {
    * @param account account that holds the payer asset
    * @param addNotification if `true`, adds a notification about the interest payment transaction
    * @param creditCashAsset if `true` updates the balance of the cash asset with the interest amount
+   * @return `true` if transaction executed and `false` if an error ocurred.
    */
   async payInterest(payAmount: number, fee: number, withholdingTax: number, txDate: Date, payerAsset: Asset,
-    cashAsset: Asset, account: PortfolioAccount, addNotification: boolean, creditCashAsset: boolean): Promise<void> {
+    cashAsset: Asset, account: PortfolioAccount, addNotification: boolean, creditCashAsset: boolean): Promise<boolean> {
 
     try {
       if (!cashAsset) {
@@ -123,9 +124,11 @@ export class AssetManagementService {
 
       const tx = this.createInterestTransaction(payAmount, fee, withholdingTax, txDate, payerAsset, account, cashAsset);
       await this.addInterestTransaction(tx, addNotification);
+      return true;
     } catch (err) {
       this.logger.error(`Could not add interest payment: ${err}`, err);
     }
+    return false;
   }
 
   /**
@@ -1281,8 +1284,19 @@ export class AssetManagementService {
     const response: InterestTxEditResponse = await this.dialogsService.showAdaptableScreenModal(InterestTransactionEditComponent, data);
     if (response) {
       const cashAsset = account.getAssetById(tx.asset.id);
-      await this.payInterest(response.tx.value, response.tx.fee, response.tx.withholdingTax, new Date(response.tx.date),
+      const txDate = new Date(response.tx.date);
+      const txExecuted = await this.payInterest(response.tx.value, response.tx.fee, response.tx.withholdingTax, txDate,
         asset, cashAsset, account, false, response.creditCashAsset);
+      if (txExecuted) {
+        if (asset.type === AssetType.Bond || asset.type === AssetType.P2P) {
+          // we need to adjust the previous interest payment date for bonds & P2P loans
+          const bond = <BondAsset>asset;
+          if (!bond.previousInterestPaymentDate || DateUtils.compareDates(new Date(bond.previousInterestPaymentDate), txDate) < 0) {
+            bond.previousInterestPaymentDate = response.tx.date;
+            await this.portfolioService.updateAsset(bond, account);
+          }
+        }
+      }
     }
   }
 
