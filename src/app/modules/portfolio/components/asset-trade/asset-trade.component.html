@@ -120,7 +120,7 @@
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field>
+            <mat-form-field *ngIf="hasAmount">
               <input matInput type="number" placeholder="Amount" formControlName="amount" required>
               <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
               <mat-error *ngIf="amount.errors?.max">Amount can not exceed {{data.position.amount}}</mat-error>
@@ -130,7 +130,7 @@
 
             <mat-form-field>
               <span matPrefix>@&nbsp;</span>
-              <input matInput type="number" placeholder="Price per unit" formControlName="price" required>
+              <input matInput type="number" placeholder="Price{{hasAmount? ' per unit':''}}" formControlName="price" required>
               <span matPrefix>{{assetCurrency | currencySymbol}}</span>
               <mat-error *ngIf="price.errors?.min">Price must be positive</mat-error>
             </mat-form-field>

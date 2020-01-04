@@ -3,6 +3,9 @@
 ### Features
 * Add action buttons on each asset-category tab of the account page, to quickly add/buy an asset.
 
+### UI Changes
+* Hide amount field for P2P and Real Estate, as it's irrelevant for these assets.
+
 ## 1.0.0 (2020-01-03)
 
 ### Features

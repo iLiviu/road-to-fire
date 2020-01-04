@@ -24,6 +24,7 @@ export interface TradeableAssetViewData {
 export class TradeableAssetViewComponent implements OnInit {
 
   bondAsset: BondAsset;
+  hasAmount: boolean;
   tradeableAsset: TradeableAsset;
   totalPL: number;
   totalPLPercent: number;
@@ -44,6 +45,7 @@ export class TradeableAssetViewComponent implements OnInit {
     }
     this.totalPL = this.data.totalReturnStats.totalReturn - this.data.totalReturnStats.totalCost;
     this.totalPLPercent = this.totalPL / this.data.totalReturnStats.totalCost;
+    this.hasAmount = this.tradeableAsset.type !== AssetType.P2P && this.tradeableAsset.type !== AssetType.RealEstate;
   }
 
   copyToClipboard(val: string) {

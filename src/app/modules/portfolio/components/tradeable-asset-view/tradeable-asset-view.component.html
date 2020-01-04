@@ -8,12 +8,14 @@
 <mat-dialog-content>
 
   <div fxLayout="column" fxLayoutGap="8px">
-    <div>
-      <span fxFlex>Assets bought:</span>
-      <span>{{viewAsset.position.amount}}</span>
-    </div>
+    <ng-container *ngIf="hasAmount">
+      <div>
+        <span fxFlex>Assets bought:</span>
+        <span>{{viewAsset.position.amount}}</span>
+      </div>
 
-    <mat-divider></mat-divider>
+      <mat-divider></mat-divider>
+    </ng-container>
 
     <ng-container *ngIf="bondAsset">
       <div>
@@ -38,12 +40,14 @@
       <mat-divider></mat-divider>
     </ng-container>
 
-    <div>
-      <span fxFlex>Buy Price:</span>
-      <span>{{viewAsset.position.buyPrice | currency:viewAsset.asset.currency}}</span>
-    </div>
+    <ng-container *ngIf="hasAmount">
+      <div>
+        <span fxFlex>Buy Price:</span>
+        <span>{{viewAsset.position.buyPrice | currency:viewAsset.asset.currency}}</span>
+      </div>
 
-    <mat-divider></mat-divider>
+      <mat-divider></mat-divider>
+    </ng-container>
 
     <div>
       <span fxFlex>Cost:</span>
@@ -59,13 +63,15 @@
 
     <mat-divider></mat-divider>
 
-    <div>
-      <span fxFlex>Current price (last updated
-        {{ (tradeableAsset.lastQuoteUpdate | formatDate) || 'never' }}):&nbsp;</span>
-      <span>{{tradeableAsset.currentPrice | currency:viewAsset.asset.currency }}</span>
-    </div>
+    <ng-container *ngIf="hasAmount">
+      <div>
+        <span fxFlex>Current price (last updated
+          {{ (tradeableAsset.lastQuoteUpdate | formatDate) || 'never' }}):&nbsp;</span>
+        <span>{{tradeableAsset.currentPrice | currency:viewAsset.asset.currency }}</span>
+      </div>
 
-    <mat-divider></mat-divider>
+      <mat-divider></mat-divider>
+    </ng-container>
 
     <div>
       <span fxFlex>Current value: </span>

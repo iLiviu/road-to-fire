@@ -2,7 +2,7 @@
   <app-edit-dialog [form]="assetForm" title="Transfer from {{data.sourceAsset.description}}"
     (close)="dialogClosed($event)">
     <div class="text-content" fxLayout="column">
-      <mat-form-field *ngIf="!this.fullAssetTransfer">
+      <mat-form-field *ngIf="!fullAssetTransfer">
         <input matInput type="number" placeholder="Amount to transfer" required formControlName="amount">
         <span matPrefix
           *ngIf="cashOrDebtTransfer">{{data.sourceAsset.currency | currencySymbol}}</span>

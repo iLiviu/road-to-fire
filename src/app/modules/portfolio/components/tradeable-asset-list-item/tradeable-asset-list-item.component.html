@@ -6,7 +6,7 @@
     </button>
     <mat-icon mat-icon-button [@indicatorRotate]="expanded ? 'expanded': 'collapsed'">expand_more</mat-icon>
     <mat-menu #groupmenu="matMenu">
-      <button mat-menu-item (click)="buy()">Buy Again</button>
+      <button *ngIf="hasAmount" mat-menu-item (click)="buy()">Buy Again</button>
       <button *ngIf="isStockLike" mat-menu-item (click)="payDividend()">Pay dividend</button>
       <button *ngIf="viewAsset.asset.positions.length > 1" mat-menu-item (click)="mergePositions()">
         Merge positions
@@ -22,8 +22,8 @@
     </h4>
     <h6 mat-line class="mat-h4">
       <span fxFlex>{{viewAsset.asset.amount}} @ {{viewAsset.asset.buyPrice | currency:viewAsset.asset.currency}}
-        ({{viewAsset.initialValue |
-        currency:viewAsset.asset.currency}})</span>
+        ({{viewAsset.initialValue | currency:viewAsset.asset.currency}})
+      </span>
       <span [ngClass]="(viewAsset.profitLoss<0)? 'negative':'positive'">{{viewAsset.profitLoss |
         currency:viewAsset.asset.currency}}
         ({{viewAsset.profitLossPercent | percent:'1.0-2'}})</span>
@@ -47,7 +47,7 @@
     </button>
     <mat-icon *ngIf="!depth" mat-icon-button></mat-icon>
     <mat-menu #menu="matMenu">
-      <button *ngIf="!depth" mat-menu-item (click)="buy()">Buy Again</button>
+      <button *ngIf="!depth && hasAmount" mat-menu-item (click)="buy()">Buy Again</button>
       <button mat-menu-item (click)="sell()">Sell</button>
       <button *ngIf="isStockLike && !depth" mat-menu-item (click)="payDividend()">Pay Dividend</button>
       <button *ngIf="isRentable" mat-menu-item (click)="payRent()">Pay Rent</button>
@@ -67,9 +67,12 @@
       <span>{{viewAsset.currentValue | currency:viewAsset.asset.currency}}</span>
     </h4>
     <h6 mat-line class="mat-h4">
-      <span class="truncate-overflow" fxFlex>
+      <span class="truncate-overflow" fxFlex *ngIf="hasAmount">
         {{viewAsset.position.amount}} @ {{viewAsset.position.buyPrice | currency:viewAsset.asset.currency}}
         ({{viewAsset.initialValue | currency:viewAsset.asset.currency}})
+      </span>
+      <span class="truncate-overflow" fxFlex *ngIf="!hasAmount">
+        {{viewAsset.initialValue | currency:viewAsset.asset.currency}}
       </span>
       <span [ngClass]="(viewAsset.profitLoss<0)? 'negative':'positive'">
         {{viewAsset.profitLoss | currency:viewAsset.asset.currency}}

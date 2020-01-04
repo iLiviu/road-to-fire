@@ -106,6 +106,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
   fee: FormControl;
   filteredSupportedExchanges: Observable<ExchangeDetails[]>;
   filteredSuggestedSymbols: Observable<SymbolDetails[]>;
+  hasAmount: boolean;
   isMutualFund: boolean;
   interestPaymentSchedule: BondInterestPaymentEvent[] = [];
   interestTaxRate: FormControl;
@@ -142,10 +143,18 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.hasAmount = this.data.assetType !== AssetType.P2P && this.data.assetType !== AssetType.RealEstate;
+    let defaultAmount: number;
+    if (this.hasAmount) {
+      defaultAmount = null;
+    } else {
+      defaultAmount = 1;
+    }
     this.bondLikeAsset = this.data.assetType === AssetType.Bond || this.data.assetType === AssetType.P2P;
     this.exchangeTradedAsset = this.data.assetType !== AssetType.RealEstate && this.data.assetType !== AssetType.P2P;
     this.singleTabEdit = !this.bondLikeAsset || this.data.action === AssetTradeAction.SELL;
     this.stockLikeAsset = Asset.isStockLike(this.data.assetType);
+
 
     if (this.stockLikeAsset || this.data.assetType === AssetType.Bond) {
       this.supportedExchanges = APP_CONSTS.SUPPORTED_EXCHANGES.EQUITY;
@@ -182,7 +191,9 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
     this.interestTaxRate = new FormControl();
     this.fee = new FormControl(0);
     this.transactionDate = new FormControl(new Date());
-    this.amount = new FormControl(null);
+
+    this.amount = new FormControl(defaultAmount);
+
     this.updateCashAssetBalance = new FormControl(true);
     this.exchange = new FormControl();
     this.stockType = new FormControl();

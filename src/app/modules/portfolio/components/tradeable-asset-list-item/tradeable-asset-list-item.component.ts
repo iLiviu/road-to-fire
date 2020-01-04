@@ -35,6 +35,7 @@ export class TradeableAssetListItemComponent implements OnInit {
   @Input() viewAsset: ViewAsset;
   expanded: boolean;
   @HostBinding('attr.aria-expanded') ariaExpanded = this.expanded;
+  hasAmount: boolean;
   isStockLike: boolean;
   isRentable: boolean;
   isInterestPayer: boolean;
@@ -49,6 +50,7 @@ export class TradeableAssetListItemComponent implements OnInit {
       this.viewAsset.asset.type === AssetType.Deposit ||
       this.viewAsset.asset.type === AssetType.P2P);
     this.isPrincipalPayer = this.viewAsset.asset.type === AssetType.Bond || this.viewAsset.asset.type === AssetType.P2P;
+    this.hasAmount = this.viewAsset.asset.type !== AssetType.P2P && this.viewAsset.asset.type !== AssetType.RealEstate;
   }
 
   delete() {

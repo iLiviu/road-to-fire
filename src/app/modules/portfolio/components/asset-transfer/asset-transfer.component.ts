@@ -80,6 +80,7 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
   enableRecurringTransaction: FormControl;
   fee: FormControl;
   fullAssetTransfer: boolean;
+  hasAmount: boolean;
   maxAmount: number;
   transactionDate: FormControl;
 
@@ -96,9 +97,10 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
     this.todayDate.setHours(0, 0, 0, 0);
     this.debtFlag = (this.data.sourceAsset.amount < 0) ? 1 : 0;
     this.cashOrDebtTransfer = this.data.sourceAsset.isCashOrDebt();
+    this.hasAmount = this.data.sourceAsset.type !== AssetType.P2P && this.data.sourceAsset.type !== AssetType.RealEstate;
 
     // for tradeable assets, if we are not transferring a position, then all positions must be transferred
-    this.fullAssetTransfer = this.data.sourceAsset.isTradeable() && !this.data.sourcePosition;
+    this.fullAssetTransfer = this.data.sourceAsset.isTradeable() && (!this.data.sourcePosition || !this.hasAmount);
 
     // check if we are transferring a position
     if (this.data.sourcePosition) {

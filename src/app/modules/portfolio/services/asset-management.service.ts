@@ -862,11 +862,15 @@ export class AssetManagementService {
         };
 
         // try to find if we already have an existing asset with the exact symbol (or description if symbol is missing)
+        // P2P & Real Estate positions should not be combined
+        const hasAmount = assetType !== AssetType.P2P && assetType !== AssetType.RealEstate;
         const normalizedSymbol = response.symbol.trim().toUpperCase();
         if (normalizedSymbol) {
           asset = <TradeableAsset>account.findAssetBySymbol(normalizedSymbol, response.assetType, response.cashAsset.currency);
-        } else {
+        } else if (hasAmount) {
           asset = <TradeableAsset>account.findAssetByDescription(response.description, response.assetType, response.cashAsset.currency);
+        } else {
+          asset = null;
         }
         let isNewAsset: boolean;
         if (asset) {
@@ -1888,13 +1892,17 @@ export class AssetManagementService {
       let trSourceAsset: TradeableAsset;
       if (sourceAsset.isTradeable()) {
         // check if we already have positions of this asset on destination
+        // P2P & Real Estate positions should not be combined
+        const hasAmount = sourceAsset.type !== AssetType.P2P && sourceAsset.type !== AssetType.RealEstate;
         trSourceAsset = <TradeableAsset>sourceAsset;
         if (trSourceAsset.symbol) {
           trDestAsset = <TradeableAsset>destinationAccount.findAssetBySymbol(trSourceAsset.symbol, trSourceAsset.type,
             trSourceAsset.currency);
-        } else {
+        } else if (hasAmount) {
           trDestAsset = <TradeableAsset>destinationAccount.findAssetByDescription(trSourceAsset.description, trSourceAsset.type,
             trSourceAsset.currency);
+        } else {
+          trDestAsset = null;
         }
       }
 
