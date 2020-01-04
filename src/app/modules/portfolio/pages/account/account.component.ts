@@ -172,8 +172,8 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
     this.assetManagementService.addDeposit(this.account);
   }
 
-  addDept() {
-    this.assetManagementService.addDept(this.account, this.baseCurrency);
+  addDebt() {
+    this.assetManagementService.addDebt(this.account, this.baseCurrency);
   }
 
   buyAsset(assetType: AssetType) {

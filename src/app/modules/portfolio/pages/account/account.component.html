@@ -54,6 +54,8 @@
           <app-tradeable-asset-sum-card [title]="'Stocks'" [baseCurrency]="baseCurrency" [overview]="stocks.overview"
             *ngIf="stocks.assets.length > 0"></app-tradeable-asset-sum-card>
 
+          <div class="bottom-space"></div>
+
           <eco-fab-speed-dial class="fab-bottom-right">
             <eco-fab-speed-dial-trigger spin="true">
               <button mat-fab color="primary" matTooltip="Add Asset" aria-label="Add Asset">
@@ -70,7 +72,7 @@
                 <mat-icon matTooltip="Create Deposit" aria-label="Create Deposit">access_time</mat-icon>
               </button>
 
-              <button mat-mini-fab color="primary" (click)="addDept()">
+              <button mat-mini-fab color="primary" (click)="addDebt()">
                 <mat-icon matTooltip="Create Debt" aria-label="Create Debt">credit_card</mat-icon>
               </button>
 
@@ -111,42 +113,131 @@
 
       <mat-tab label="Cash" *ngIf="cash.assets.length > 0">
         <app-cash-asset-list [assets]="cash.assets" [multiAccount]="false"></app-cash-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Add Cash Account" aria-label="Add Cash Account"
+            (click)="addCashAsset()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
 
       <mat-tab label="Deposits" *ngIf="deposits.assets.length > 0">
         <app-cash-asset-list [assets]="deposits.assets" [multiAccount]="false"></app-cash-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Create Deposit" aria-label="Create Deposit"
+            (click)="addDeposit()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
 
       <mat-tab label="Money Market" *ngIf="mmAssets.assets.length > 0">
         <app-tradeable-asset-list [assets]="mmAssets.assets"></app-tradeable-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Buy Money Market Fund" aria-label="Buy Money Market Fund"
+            (click)="buyAsset(AssetType.Stock)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
 
       <mat-tab label="Debt" *ngIf="debt.assets.length > 0">
         <app-cash-asset-list [assets]="debt.assets" [multiAccount]="false"></app-cash-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Create Debt" aria-label="Create Debt" (click)="addDebt()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
 
       <mat-tab label="Bonds & Bond ETFs" *ngIf="bonds.assets.length > 0">
         <app-tradeable-asset-list [assets]="bonds.assets"></app-tradeable-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Buy Bond" aria-label="Buy Bond"
+            (click)="buyAsset(AssetType.Bond)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
 
       <mat-tab label="Commodities" *ngIf="commodities.assets.length > 0">
         <app-tradeable-asset-list [assets]="commodities.assets"></app-tradeable-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Buy Commodity" aria-label="Buy Commodity"
+            (click)="buyAsset(AssetType.Commodity)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
 
       <mat-tab label="Cryptocurrencies" *ngIf="cryptocurrencies.assets.length > 0">
         <app-tradeable-asset-list [assets]="cryptocurrencies.assets"></app-tradeable-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Buy Cryptocurrency" aria-label="Buy Cryptocurrency"
+            (click)="buyAsset(AssetType.Cryptocurrency)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
 
       <mat-tab label="P2P Loans" *ngIf="p2p.assets.length > 0">
         <app-tradeable-asset-list [assets]="p2p.assets"></app-tradeable-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Buy P2P Loan" aria-label="Buy P2P Loan"
+            (click)="buyAsset(AssetType.P2P)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
 
       <mat-tab label="Real Estate" *ngIf="realEstate.assets.length > 0">
         <app-tradeable-asset-list [assets]="realEstate.assets"></app-tradeable-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Buy Real Estate" aria-label="Buy Real Estate"
+            (click)="buyAsset(AssetType.RealEstate)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
 
       <mat-tab label="Stocks" *ngIf="stocks.assets.length > 0">
         <app-tradeable-asset-list [assets]="stocks.assets"></app-tradeable-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Buy Stock/ETF" aria-label="Buy Stock/ETF"
+            (click)="buyAsset(AssetType.Stock)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
       </mat-tab>
     </mat-tab-group>
   </div>

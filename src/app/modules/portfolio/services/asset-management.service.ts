@@ -167,7 +167,7 @@ export class AssetManagementService {
    * @param defaultCurrency currency to be selected as default
    * @return Promise that resolves with the new debt asset object
    */
-  async addDept(account: PortfolioAccount, defaultCurrency: string = null) {
+  async addDebt(account: PortfolioAccount, defaultCurrency: string = null) {
     try {
       const newAssetData: AssetData = {
         currency: defaultCurrency,
