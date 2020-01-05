@@ -10,8 +10,8 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field>
-        <input matInput type="number" placeholder="{{isRentable? 'Units':'Amount'}}" formControlName="amount" required>
+      <mat-form-field *ngIf="!isRentable">
+        <input matInput type="number" placeholder="Amount" formControlName="amount" required>
         <mat-error *ngIf="amount.errors?.min">Value must be greater than 0</mat-error>
         <mat-error *ngIf="amount.errors?.invalidInt">Value must be an integer value</mat-error>
       </mat-form-field>
