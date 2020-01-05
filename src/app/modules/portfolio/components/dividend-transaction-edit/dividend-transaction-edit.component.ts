@@ -66,9 +66,14 @@ export class DividendTransactionEditComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: DividendTxEditData) { }
 
   ngOnInit() {
+    let defaultCashAsset = null;
+    if (this.data.dividendTx.asset.id) {
+      defaultCashAsset = this.data.account.getAssetById(this.data.dividendTx.asset.id);
+    }
+
     this.account = this.data.account;
     this.dividendTx = this.data.dividendTx;
-    this.cashAsset = new FormControl();
+    this.cashAsset = new FormControl(defaultCashAsset);
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
     this.amount = new FormControl(null, [Validators.min(1), integerValidator]);

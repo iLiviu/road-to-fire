@@ -55,7 +55,12 @@ export class InterestTransactionEditComponent implements OnInit {
   ngOnInit() {
     this.tx = this.data.tx;
     this.account = this.data.account;
-    this.cashAsset = new FormControl();
+    let defaultCashAsset = null;
+    if (this.tx.asset.id) {
+      defaultCashAsset = this.data.account.getAssetById(this.data.tx.asset.id);
+    }
+
+    this.cashAsset = new FormControl(defaultCashAsset);
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
     this.amount = new FormControl(this.tx.value, [Validators.min(Number.EPSILON)]);

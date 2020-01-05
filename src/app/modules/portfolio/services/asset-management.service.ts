@@ -1279,14 +1279,18 @@ export class AssetManagementService {
     if (!accountPresent) {
       return false;
     }
-    const tx = this.createInterestTransaction(null, 0, null, new Date(), asset, account, null);
+    let cashAsset: Asset = null;
+    if (asset.cashAssetId) {
+      cashAsset = account.getAssetById(asset.cashAssetId);
+    }
+    const tx = this.createInterestTransaction(null, 0, null, new Date(), asset, account, cashAsset);
     const data: InterestTxEditData = {
       account,
       tx,
     };
     const response: InterestTxEditResponse = await this.dialogsService.showAdaptableScreenModal(InterestTransactionEditComponent, data);
     if (response) {
-      const cashAsset = account.getAssetById(tx.asset.id);
+      cashAsset = account.getAssetById(tx.asset.id);
       const txDate = new Date(response.tx.date);
       const txExecuted = await this.payInterest(response.tx.value, response.tx.fee, response.tx.withholdingTax, txDate,
         asset, cashAsset, account, false, response.creditCashAsset);
@@ -1313,6 +1317,10 @@ export class AssetManagementService {
     if (!accountPresent) {
       return false;
     }
+    let defaultCashAsset: Asset = null;
+    if (asset.cashAssetId) {
+      defaultCashAsset = account.getAssetById(asset.cashAssetId);
+    }
 
     const dividendTxData: DividendTransactionData = {
       otherAsset: {
@@ -1323,9 +1331,9 @@ export class AssetManagementService {
         currency: asset.currency,
       },
       asset: {
-        id: null,
-        currency: null,
-        description: null,
+        id: defaultCashAsset ? defaultCashAsset.id : null,
+        currency: defaultCashAsset ? defaultCashAsset.currency : null,
+        description: defaultCashAsset ? defaultCashAsset.description : null,
         accountDescription: account.description,
         accountId: account.id,
       },

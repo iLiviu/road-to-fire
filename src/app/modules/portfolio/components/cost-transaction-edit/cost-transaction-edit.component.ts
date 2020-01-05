@@ -40,7 +40,7 @@ export interface CostTransactionEditResponse {
 const cashAmountValidator = (cashAssetCtrl: FormControl, feeCtrl: FormControl) => {
   return (amountCtrl: FormControl): ValidationErrors | null => {
     const amount = amountCtrl.value;
-    return amount < 0 || ( cashAssetCtrl.value && amount > FloatingMath.fixRoundingError(cashAssetCtrl.value.amount - feeCtrl.value)) ?
+    return amount < 0 || (cashAssetCtrl.value && amount > FloatingMath.fixRoundingError(cashAssetCtrl.value.amount - feeCtrl.value)) ?
       { 'invalidRange': true } : null;
   };
 };
@@ -79,9 +79,13 @@ export class CostTransactionEditComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
+    let defaultCashAsset = null;
+    if (this.data.asset) {
+      defaultCashAsset = this.data.account.getAssetById(this.data.asset.cashAssetId);
+    }
 
-    this.cashAsset = new FormControl();
-    this.amount = new FormControl(0);
+    this.cashAsset = new FormControl(defaultCashAsset);
+    this.amount = new FormControl();
     this.fee = new FormControl(0, [Validators.min(0)]);
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
