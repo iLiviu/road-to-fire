@@ -5,6 +5,7 @@
 
 ### UI Changes
 * Hide amount field for P2P and Real Estate, as it's irrelevant for these assets.
+* Allow editing of cash asset for bonds and P2P loans
 
 ### Bug Fixes
 * Update previous payment date on bonds and P2P loans when manually adding an interest payment.

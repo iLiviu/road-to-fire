@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatSelectionList } from '@angular/material';
 import { FormGroup, FormControl, ValidationErrors, Validators } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
@@ -89,7 +89,7 @@ const transactionValueValidator = (priceCtrl: FormControl, feeCtrl: FormControl,
   styleUrls: ['./asset-trade.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AssetTradeComponent implements OnInit, OnDestroy {
+export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   amount: FormControl;
   assetCurrency: string;
@@ -155,7 +155,6 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
     this.singleTabEdit = !this.bondLikeAsset || this.data.action === AssetTradeAction.SELL;
     this.stockLikeAsset = Asset.isStockLike(this.data.assetType);
 
-
     if (this.stockLikeAsset || this.data.assetType === AssetType.Bond) {
       this.supportedExchanges = APP_CONSTS.SUPPORTED_EXCHANGES.EQUITY;
       this.suggestedSymbols = APP_CONSTS.SUGGESTED_SYMBOLS.EQUITY;
@@ -174,10 +173,15 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
     this.assetLabel = ASSET_TYPE_LABELS[this.data.assetType];
     this.cashAssets = this.data.account.assets
       .filter(asset => asset.type === AssetType.Cash && (!this.data.asset || asset.currency === this.data.asset.currency));
+    let defaultCashAsset = null;
+    if (this.data.asset) {
+      defaultCashAsset = this.data.account.getAssetById(this.data.asset.cashAssetId);
+    }
     if (this.data.action === AssetTradeAction.EDIT) {
       this.assetCurrency = this.data.asset.currency;
     }
-    this.cashAsset = new FormControl();
+
+    this.cashAsset = new FormControl(defaultCashAsset);
     this.symbol = new FormControl();
     this.description = new FormControl();
     this.region = new FormControl();
@@ -191,9 +195,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
     this.interestTaxRate = new FormControl();
     this.fee = new FormControl(0);
     this.transactionDate = new FormControl(new Date());
-
     this.amount = new FormControl(defaultAmount);
-
     this.updateCashAssetBalance = new FormControl(true);
     this.exchange = new FormControl();
     this.stockType = new FormControl();
@@ -284,6 +286,13 @@ export class AssetTradeComponent implements OnInit, OnDestroy {
       this.assetForm.addControl('previousInterestPaymentDate', this.previousInterestPaymentDate);
       this.assetForm.addControl('interestTaxRate', this.interestTaxRate);
       this.assetForm.addControl('withholdInterestTax', this.withholdInterestTax);
+    }
+  }
+
+  ngAfterViewInit() {
+    // if form is valid and we are not editing the asset, mark it as dirty to enable Save button
+    if (this.data.action !== AssetTradeAction.EDIT && this.assetForm.valid) {
+      this.assetForm.markAsDirty();
     }
   }
 

@@ -979,6 +979,9 @@ export class AssetManagementService {
         asset.currentPrice = response.currentPrice;
         asset.symbol = newSymbol;
         asset.type = response.assetType;
+        if (response.cashAsset) {
+          asset.cashAssetId = response.cashAsset.id;
+        }
         this.updateCommonTradeableAssetProperties(asset, response);
 
         await this.portfolioService.updateAsset(asset, account);

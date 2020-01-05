@@ -112,7 +112,7 @@
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field *ngIf="data.action !== AssetTradeAction.EDIT">
+            <mat-form-field *ngIf="data.action !== AssetTradeAction.EDIT || bondLikeAsset">
               <mat-select placeholder="Cash account" formControlName="cashAsset" required>
                 <mat-option *ngFor="let asset of cashAssets" [value]="asset">
                   {{asset.description}} ({{asset.amount | currency:asset.currency}})
