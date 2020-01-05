@@ -11,18 +11,20 @@ export interface SymbolDetails {
 
 export const APP_CONSTS = {
   TITLE: 'Road To FIRE',
-  VERSION: '1.0.0',
+  VERSION: '1.0.1',
   // text to show when user first loads the current new version
-  WHATS_NEW_TITLE: `What's new in version 1.0.0`,
+  WHATS_NEW_TITLE: `What's new in version 1.0.1`,
   WHATS_NEW:
     `Features:
-    * Disable browser's default pull-to-refresh gesture to avoid entire app refresh when user swipes down
-    * Manually add a bond principal payment
-    * Support for P2P loans
+* Add action buttons on each asset-category tab of the account page, to quickly add/buy an asset.
 
-Bug fixes:
-    * Do not update bond principal value when the transaction is just pending.
-    * Truncate long asset titles in lists, that hide current price.`,
+UI Changes:
+* Hide amount field for P2P and Real Estate, as it's irrelevant for these assets.
+* Allow editing of cash asset for bonds and P2P loans
+* Automatically fill cash asset field with default value on Cost, Dividend and Interest transaction dialogs.
+
+Bug Fixes:
+* Update previous payment date on bonds and P2P loans when manually adding an interest payment.`,
   REPOSITORY_URL: 'https://github.com/iLiviu/road-to-fire',
   STORAGE_API_KEYS: {
     DROPBOX: 'kbwh5504okeu3b9',

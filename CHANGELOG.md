@@ -1,4 +1,4 @@
-## Master
+## 1.0.1 (2020-01-05)
 
 ### Features
 * Add action buttons on each asset-category tab of the account page, to quickly add/buy an asset.
