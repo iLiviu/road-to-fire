@@ -1,3 +1,8 @@
+## Master
+
+### Bug Fixes
+* Correctly set currency symbol when a cash asset is selected by default in asset trade dialog
+
 ## 1.0.1 (2020-01-05)
 
 ### Features

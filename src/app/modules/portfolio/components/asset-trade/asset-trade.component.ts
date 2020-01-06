@@ -175,10 +175,8 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
       .filter(asset => asset.type === AssetType.Cash && (!this.data.asset || asset.currency === this.data.asset.currency));
     let defaultCashAsset = null;
     if (this.data.asset) {
-      defaultCashAsset = this.data.account.getAssetById(this.data.asset.cashAssetId);
-    }
-    if (this.data.action === AssetTradeAction.EDIT) {
       this.assetCurrency = this.data.asset.currency;
+      defaultCashAsset = this.data.account.getAssetById(this.data.asset.cashAssetId);
     }
 
     this.cashAsset = new FormControl(defaultCashAsset);
