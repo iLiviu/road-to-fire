@@ -217,22 +217,20 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       mode: 'index',
       callbacks: {
         label: (tooltipItem: any, data: any) => {
-          let totalValue = 0;
-          for (let i = 0; i < data.datasets.length; i++) {
-            totalValue += data.datasets[i].data[tooltipItem.index];
-          }
           let label = data.datasets[tooltipItem.datasetIndex].label || '';
-
           if (label) {
             label += ': ';
           }
           const value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
           label += this.baseCurrencySymbol + value.toLocaleString();
-          if (tooltipItem.datasetIndex !== data.datasets.length - 1) {
-            return label;
-          } else {
-            return [label, 'Total: ' + this.baseCurrencySymbol + totalValue.toLocaleString()];
+          return label;
+        },
+        footer: (tooltipItems: any, data: any) => {
+          let totalValue = 0;
+          for (const tooltipItem of tooltipItems) {
+            totalValue += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
           }
+          return 'Total: ' + this.baseCurrencySymbol + totalValue.toLocaleString();
         }
       }
     },
