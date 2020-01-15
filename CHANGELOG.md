@@ -1,4 +1,4 @@
-## Master
+## 1.0.2 (2020-01-15)
 
 ### UI Changes
 * Display tooltips of nearest point when hovering history charts, not only when hovering the exact point location.
