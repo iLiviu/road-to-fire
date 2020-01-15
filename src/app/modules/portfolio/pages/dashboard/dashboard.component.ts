@@ -215,6 +215,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     legend: this.legendOptions,
     tooltips: {
       mode: 'index',
+      intersect: false,
       callbacks: {
         label: (tooltipItem: any, data: any) => {
           let label = data.datasets[tooltipItem.datasetIndex].label || '';
@@ -235,7 +236,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       }
     },
     hover: {
-      mode: 'index'
+      mode: 'index',
+      intersect: false,
     },
     scales: {
       xAxes: [{

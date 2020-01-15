@@ -1,5 +1,8 @@
 ## Master
 
+### UI Changes
+* Display tooltips of nearest point when hovering history charts, not only when hovering the exact point location.
+
 ### Bug Fixes
 * Correctly set currency symbol when a cash asset is selected by default in asset trade dialog
 
