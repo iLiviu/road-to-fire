@@ -66,6 +66,9 @@ function createAppRStorageModule(serializer: StorageSerializer, remoteStorage: R
           'encryptedData': {
             'type': 'string',
           },
+          'dateAndCurrencyFormat': {
+            'type': 'string'
+          },
           'saveOnCloud': {
             'type': 'boolean'
           },

@@ -21,6 +21,14 @@
             </mat-form-field>
 
             <mat-form-field>
+              <mat-select placeholder="Date and Currency Format" formControlName="dateAndCurrencyFormat" required>
+                <mat-option [value]="LocaleIDs.EN_US">MM/DD/YYYY and $1,234.56</mat-option>
+                <mat-option [value]="LocaleIDs.EN_GB">DD/MM/YYYY and $1,234.56</mat-option>
+                <mat-option [value]="LocaleIDs.EN_BE">DD/MM/YYYY and 1.234,56$</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field>
               <input matInput type="number" placeholder="Yearly Safe Withdrawal Rate" formControlName="withdrawalRate"
                 required>
               <span matPrefix>%&nbsp;</span>

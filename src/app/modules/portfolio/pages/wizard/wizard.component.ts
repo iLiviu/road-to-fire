@@ -11,6 +11,7 @@ import { AppConfig } from 'src/app/core/models/app-storage';
 import { PortfolioConfig, Goal } from '../../models/portfolio-config';
 import { EventsService } from 'src/app/core/services/events.service';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
+import { LocaleIDs } from 'src/app/core/services/locale-service';
 
 const valueMatchesControlValidator = (secondCtrl: FormControl) => {
   return (control: FormControl): ValidationErrors | null => {
@@ -37,6 +38,8 @@ export class WizardComponent implements OnInit {
   configPassword: FormControl;
   configPasswordConfirm: FormControl;
   cloudSyncForm: FormGroup;
+  dateAndCurrencyFormat: FormControl;
+  displayFormatForm: FormGroup;
   encryptionForm: FormGroup;
   fireForm: FormGroup;
   fireNumber: FormControl;
@@ -48,6 +51,7 @@ export class WizardComponent implements OnInit {
 
   readonly APP_CONSTS = APP_CONSTS;
   readonly currencyCodes = APP_CONSTS.CURRENCY_CODES;
+  readonly LocaleIDs = LocaleIDs;
 
   constructor(private storageService: StorageService, private configService: ConfigService,
     private portfolioService: PortfolioService, private logger: LoggerService, private router: Router,
@@ -56,6 +60,7 @@ export class WizardComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.dateAndCurrencyFormat = new FormControl(LocaleIDs.EN_US);
     this.saveOnCloud = new FormControl(false);
     this.passwordProtect = new FormControl(false);
     this.configPassword = new FormControl('');
@@ -68,6 +73,11 @@ export class WizardComponent implements OnInit {
       saveOnCloud: this.saveOnCloud,
       passwordProtect: this.passwordProtect,
     });
+
+    this.displayFormatForm = new FormGroup({
+      dateAndCurrencyFormat: this.dateAndCurrencyFormat,
+    });
+
     this.encryptionForm = new FormGroup({
       passwordProtect: this.passwordProtect,
       configPassword: this.configPassword,
@@ -91,7 +101,7 @@ export class WizardComponent implements OnInit {
   onPasswordProtectionToggled() {
     if (this.passwordProtect.value) {
       this.configPassword.setValidators([Validators.required]);
-      this.configPasswordConfirm.setValidators([Validators.required, valueMatchesControlValidator(this.configPassword) ]);
+      this.configPasswordConfirm.setValidators([Validators.required, valueMatchesControlValidator(this.configPassword)]);
     } else {
       this.configPassword.setValidators([]);
       this.configPasswordConfirm.setValidators([]);
@@ -104,6 +114,9 @@ export class WizardComponent implements OnInit {
     this.wizardDone = true;
     this.appConfig.wizardDone = true;
     this.appConfig.saveOnCloud = this.saveOnCloud.value;
+    this.appConfig.dateAndCurrencyFormat = this.dateAndCurrencyFormat.value;
+    // if locale is not set to en-US we will need to reload the app to apply the new locale
+    const needsReload = this.appConfig.dateAndCurrencyFormat !== LocaleIDs.EN_US;
 
     this.portfolioConfig.goals = [];
     if (this.fireNumber.value) {
@@ -113,7 +126,7 @@ export class WizardComponent implements OnInit {
       };
       this.portfolioConfig.goals.push(fireGoal);
     }
-    this.portfolioConfig.withdrawalRate = this.swr.value  / 100;
+    this.portfolioConfig.withdrawalRate = this.swr.value / 100;
     this.portfolioConfig.baseCurrency = this.baseCurrency.value;
 
     try {
@@ -127,7 +140,11 @@ export class WizardComponent implements OnInit {
 
       await Promise.all([this.portfolioService.saveConfig(this.portfolioConfig), this.configService.saveConfig(this.appConfig)]);
       this.logger.info('Config saved!');
-      this.navigateToHomepage();
+      if (needsReload) {
+        window.location.reload();
+      } else {
+        this.navigateToHomepage();
+      }
     } catch (err) {
       this.logger.error('Could not save config: ' + err, err);
       this.wizardDone = false;

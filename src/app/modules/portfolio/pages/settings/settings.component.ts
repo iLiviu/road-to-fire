@@ -18,6 +18,7 @@ import { FloatingMath } from 'src/app/shared/util';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { AssetManagementService } from '../../services/asset-management.service';
 import { InputDialogType } from 'src/app/modules/dialogs/components/input-dialog/input-dialog.component';
+import { LocaleIDs } from 'src/app/core/services/locale-service';
 
 
 /**
@@ -51,6 +52,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
   configPassword: FormControl;
   configPasswordConfirm: FormControl;
   dataLoaded = false;
+  dateAndCurrencyFormat: FormControl;
   debtToValueRatio: FormControl;
   enable2FA: FormControl;
   encryptionEnabled: boolean;
@@ -75,6 +77,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
     AssetType.P2P,
     AssetType.RealEstate,
   ];
+  readonly LocaleIDs = LocaleIDs;
   readonly ASSET_TYPE_LABELS = ASSET_TYPE_LABELS;
   readonly currencyCodes = APP_CONSTS.CURRENCY_CODES;
 
@@ -126,10 +129,14 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
         }
       } else {
         if (this.authService.is2FAEnabled()) {
-          await this.authService.disable2FA();
+          this.authService.disable2FA();
         }
       }
-
+      let shouldReload = false;
+      if (this.appConfig.dateAndCurrencyFormat !== this.dateAndCurrencyFormat.value) {
+        shouldReload = true;
+      }
+      this.appConfig.dateAndCurrencyFormat = this.dateAndCurrencyFormat.value;
       this.appConfig.saveOnCloud = this.saveOnCloud.value;
       const enableEncryption = this.passwordProtect.value;
       if (this.encryptionEnabled !== enableEncryption) {
@@ -144,7 +151,13 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
       await this.configService.saveConfig(this.appConfig);
       this.settingsSaved = true;
       this.logger.info('Config saved!');
-      this.navigateToHomepage();
+      if (shouldReload
+        && await this.dialogService.confirm('Some settings require reloading the app to take effect. Do you want to reload now?')) {
+
+        window.location.reload();
+      } else {
+        this.navigateToHomepage();
+      }
     } catch (err) {
       this.logger.error('Could not save config!', err);
       this.formSubmitted = false;
@@ -369,6 +382,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
         this.portfolioAllocation.controls[asset.assetType].setValue(FloatingMath.fixRoundingError(asset.allocation * 100));
       }
     }
+    this.dateAndCurrencyFormat = new FormControl(this.appConfig.dateAndCurrencyFormat || LocaleIDs.EN_US);
     this.debtToValueRatio = new FormControl(FloatingMath.fixRoundingError(this.portfolioConfig.loanToValueRatio * 100),
       [Validators.min(0), Validators.max(100)]);
     this.enable2FA = new FormControl(this.authService.is2FAEnabled());
@@ -382,6 +396,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
 
     this.settingsForm = new FormGroup({
       baseCurrencyCtl: this.baseCurrencyCtl,
+      dateAndCurrencyFormat: this.dateAndCurrencyFormat,
       debtToValueRatio: this.debtToValueRatio,
       enable2FA: this.enable2FA,
       withdrawalRate: this.withdrawalRate,

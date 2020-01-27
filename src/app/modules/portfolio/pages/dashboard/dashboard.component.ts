@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, Inject, LOCALE_ID } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
@@ -23,6 +23,7 @@ import {
 } from '../../components/portfolio-history-add/portfolio-history-add.component';
 import { FloatingMath, binarySearch, DateUtils } from 'src/app/shared/util';
 import { ASSET_REGION_LABELS, AssetRegionHelper } from '../../models/asset-region';
+import * as moment from 'moment';
 
 const MULTI_COL_GRID_ROW_HEIGHT = '2:1.6';
 const SINGLE_COL_GRID_ROW_HEIGHT = '1:1.1';
@@ -82,19 +83,6 @@ interface AssetTypeAllocationMap {
 interface AssetCurrencyValueMap {
   [id: number]: Dictionary<number>;
 }
-
-const PERCENT_TOOLTIPS = {
-  callbacks: {
-    label: function (tooltipItem, data) {
-      let label = '';
-      if (data.labels[tooltipItem.index]) {
-        label += data.labels[tooltipItem.index] + ': ';
-      }
-      label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] + '%';
-      return label;
-    }
-  }
-};
 
 interface DatasetEntries {
   empty: boolean;
@@ -181,13 +169,25 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       padding: 6,
     }
   };
+  readonly PERCENT_TOOLTIPS = {
+    callbacks: {
+      label: (tooltipItem: any, data: any) => {
+        let label = '';
+        if (data.labels[tooltipItem.index]) {
+          label += data.labels[tooltipItem.index] + ': ';
+        }
+        label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toLocaleString(this.locale) + '%';
+        return label;
+      }
+    }
+  };
   readonly goalChartOptions = {
     legend: {
       display: false
     },
     tooltips: {
       callbacks: {
-        label: function (tooltipItem, data) {
+        label: (tooltipItem: any, data: any) => {
           let label = '';
           if (data.datasets[tooltipItem.datasetIndex].label) {
             label += data.datasets[tooltipItem.datasetIndex].label + ' ';
@@ -195,7 +195,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
           if (data.labels[tooltipItem.index]) {
             label += data.labels[tooltipItem.index] + ': ';
           }
-          label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] + '%';
+          label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toLocaleString(this.locale) + '%';
           return label;
         }
       }
@@ -205,7 +205,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     rotation: -Math.PI
   };
   pieChartOptions = {
-    tooltips: PERCENT_TOOLTIPS,
+    tooltips: this.PERCENT_TOOLTIPS,
     legend: this.legendOptions,
     maintainAspectRatio: false,
   };
@@ -223,7 +223,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
             label += ': ';
           }
           const value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-          label += this.baseCurrencySymbol + value.toLocaleString();
+          label += this.baseCurrencySymbol + value.toLocaleString(this.locale);
           return label;
         },
         footer: (tooltipItems: any, data: any) => {
@@ -231,7 +231,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
           for (const tooltipItem of tooltipItems) {
             totalValue += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
           }
-          return 'Total: ' + this.baseCurrencySymbol + totalValue.toLocaleString();
+          return 'Total: ' + this.baseCurrencySymbol + totalValue.toLocaleString(this.locale);
         }
       }
     },
@@ -244,14 +244,14 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         type: 'time',
         distribution: 'linear',
         time: {
-          tooltipFormat: 'MMM D YYYY',
+          tooltipFormat: moment.localeData().longDateFormat('LL'),
         }
       }],
       yAxes: [{
         stacked: true,
         ticks: {
           callback: (value: any, index: any, values: any) => {
-            return this.baseCurrencySymbol + value.toLocaleString();
+            return this.baseCurrencySymbol + value.toLocaleString(this.locale);
           }
         }
       }]
@@ -266,7 +266,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   constructor(protected eventsService: EventsService, protected portfolioService: PortfolioService,
     protected logger: LoggerService, protected dialogService: DialogsService, protected router: Router,
     protected assetManagementService: AssetManagementService,
-    protected storageService: StorageService, private cdr: ChangeDetectorRef, private route: ActivatedRoute) {
+    protected storageService: StorageService, private cdr: ChangeDetectorRef, private route: ActivatedRoute,
+    @Inject(LOCALE_ID) public locale: string) {
     super(logger, portfolioService, dialogService, eventsService, router, storageService);
     this.assetTypeLabels[AssetType.Cash] = 'Cash & Equivalents';
   }

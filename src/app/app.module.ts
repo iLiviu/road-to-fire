@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, LOCALE_ID, APP_INITIALIZER } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -7,7 +7,7 @@ import { HammerGestureConfig, HAMMER_GESTURE_CONFIG } from '@angular/platform-br
 import { LayoutModule } from '@angular/cdk/layout';
 import {
   MatSnackBarModule, MatInputModule, MatButtonModule, MatCheckboxModule, MatCardModule, MatToolbarModule,
-  MatTooltipModule, MatIconModule
+  MatTooltipModule, MatIconModule, MAT_DATE_LOCALE,
 } from '@angular/material';
 import { FormsModule } from '@angular/forms';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -30,6 +30,20 @@ import { RSAppStorageService } from './core/services/rs-app-storage.service';
 import { environment } from '../environments/environment';
 import { UpdateService } from './core/services/update.service';
 import { RStorageWidgetCloseButtonComponent } from './core/components/rstoragewidget-close-button/rstoragewidget-close-button.component';
+import { LocaleService } from './core/services/locale-service';
+
+export function localeFactory(localeService: LocaleService) {
+  return localeService.getCurrentLocale();
+}
+
+export function momentLocaleFactory(localeService: LocaleService) {
+  return localeService.getCurrentMomentLocale();
+}
+
+export function localeInitializer(localeService: LocaleService) {
+  return (): Promise<any> => localeService.loadCurrentLocale();
+}
+
 
 @NgModule({
   declarations: [
@@ -70,6 +84,22 @@ import { RStorageWidgetCloseButtonComponent } from './core/components/rstoragewi
     { provide: AppStorageService, useClass: RSAppStorageService },
     { provide: LoggerService, useClass: EventDrivenLoggerService },
     { provide: HAMMER_GESTURE_CONFIG, useClass: HammerGestureConfig },
+    {
+      provide: LOCALE_ID,
+      deps: [LocaleService],
+      useFactory: localeFactory
+    },
+    {
+      provide: MAT_DATE_LOCALE,
+      deps: [LocaleService],
+      useFactory: momentLocaleFactory
+    },
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: localeInitializer,
+      deps: [LocaleService]
+    }
   ],
   bootstrap: [AppComponent, RStorageWidgetCloseButtonComponent]
 })

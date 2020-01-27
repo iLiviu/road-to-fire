@@ -5,6 +5,7 @@ import { EventsService, AppEventType } from './events.service';
 import { AppStorage, AppConfig } from '../models/app-storage';
 import { AppStorageService, CONFIG_PATH, PASS_HASH_PATH } from './app-storage.service';
 import { LoggerService } from './logger.service';
+import { LocaleService, LocaleIDs } from './locale-service';
 
 
 const CONFIG_VERSION = 1;
@@ -35,7 +36,7 @@ export class ConfigService {
   private configLoaded = false;
 
   constructor(private storageService: StorageService, private appStorageService: AppStorageService, private eventsService: EventsService,
-    private logger: LoggerService) {
+    private logger: LoggerService, private localeService: LocaleService) {
     this.storage = this.appStorageService.storage;
     this.initStorage();
   }
@@ -51,6 +52,13 @@ export class ConfigService {
         } else if (event.relativePath === CONFIG_PATH) {
           // delay notifications until sync is complete
           await self.storageService.waitForSync();
+
+          // check if locale changed remotely and replace local cached one
+          const cfg = await self.readConfig();
+          if (cfg.dateAndCurrencyFormat !== this.localeService.getCurrentLocale()) {
+            this.localeService.setCurrentLocale(cfg.dateAndCurrencyFormat);
+          }
+
           self.eventsService.configUpdatedRemotely(self.storage.getId());
         } else if (event.relativePath === PASS_HASH_PATH) {
 
@@ -85,6 +93,7 @@ export class ConfigService {
     let cfg = await this.storage.readConfig();
     if (!cfg) {
       cfg = {
+        dateAndCurrencyFormat: LocaleIDs.EN_US,
         saveOnCloud: false,
         version: CONFIG_VERSION,
         wizardDone: false,
@@ -114,6 +123,7 @@ export class ConfigService {
   async saveConfig(config: AppConfig): Promise<void> {
     await this.storage.saveConfig(config);
     this.storageService.toggleCloudSync(config.saveOnCloud);
+    this.localeService.setCurrentLocale(config.dateAndCurrencyFormat);
   }
 
 

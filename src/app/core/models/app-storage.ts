@@ -4,6 +4,7 @@ import { StorageModule } from '../services/storage.service';
  * Configuration variables for the app (main) storage module
  */
 export interface AppConfig {
+  dateAndCurrencyFormat: string;
   saveOnCloud: boolean;
   version: number;
   wizardDone: boolean;

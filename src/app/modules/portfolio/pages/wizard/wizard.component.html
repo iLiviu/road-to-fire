@@ -112,6 +112,22 @@
           </div>
         </form>
       </mat-step>
+      <mat-step label="Date & Currency Format" [stepControl]="baseCurrencyForm">
+        <form [formGroup]="displayFormatForm" fxLayout="column">
+          <p>Choose how dates and currency values will be displayed in the app.</p>
+          <mat-form-field>
+            <mat-select placeholder="Date and Currency Format" formControlName="dateAndCurrencyFormat" required>
+              <mat-option [value]="LocaleIDs.EN_US">MM/DD/YYYY and $1,234.56</mat-option>
+              <mat-option [value]="LocaleIDs.EN_GB">DD/MM/YYYY and $1,234.56</mat-option>
+              <mat-option [value]="LocaleIDs.EN_BE">DD/MM/YYYY and 1.234,56$</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div fxLayout="row" fxLayoutAlign="end">
+            <button type="button" mat-raised-button matStepperNext color="primary"
+              [disabled]="!displayFormatForm.valid">Next</button>
+          </div>
+        </form>
+      </mat-step>
       <mat-step label="FIRE" [stepControl]="fireForm">
         <form [formGroup]="fireForm" (ngSubmit)="onWizardDone()" fxLayout="column">
           <mat-form-field>

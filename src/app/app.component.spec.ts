@@ -33,6 +33,7 @@ import { Component, NgModule } from '@angular/core';
 import { Router } from '@angular/router';
 import { BrowserDynamicTestingModule } from '@angular/platform-browser-dynamic/testing';
 import { AppConfig } from './core/models/app-storage';
+import { LocaleIDs } from './core/services/locale-service';
 
 class MockUpdateService {
 }
@@ -119,6 +120,7 @@ describe('AppComponent', () => {
     const app = fixture.componentInstance;
     const eventsService = <EventsService>TestBed.get(EventsService);
     const cfg: AppConfig = {
+      dateAndCurrencyFormat: LocaleIDs.EN_US,
       wizardDone: false,
       saveOnCloud: false,
       version: 1,

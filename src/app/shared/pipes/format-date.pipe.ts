@@ -12,7 +12,8 @@ import * as moment from 'moment';
 export class FormatDatePipe implements PipeTransform {
   transform(value: Date | string): string {
     if (value) {
-      const dateStr = moment(value).format(APP_CONSTS.DATE_FORMAT);
+      const format = moment.localeData().longDateFormat(<moment.LongDateFormatKey>APP_CONSTS.LONG_DATE_FORMAT);
+      const dateStr = moment(value).format(format);
       return dateStr;
     } else {
       return undefined;

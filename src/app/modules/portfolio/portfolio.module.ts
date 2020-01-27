@@ -19,18 +19,18 @@ import {
   MatStepperModule,
   MatTooltipModule,
   MatDatepickerModule,
-  MatNativeDateModule,
   MatBadgeModule,
   MatAutocompleteModule,
   MatTableModule,
   MatGridListModule,
-  MatExpansionModule
+  MatExpansionModule,
 } from '@angular/material';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ChartsModule } from 'ng2-charts';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
 
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PortfolioRootComponent } from './components/portfolio-root/portfolio-root.component';
@@ -185,7 +185,7 @@ import { P2PComponent } from './pages/p2p/p2p.component';
     MatMenuModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    MatMomentDateModule,
     MatSidenavModule,
     MatSlideToggleModule,
     MatTabsModule,
