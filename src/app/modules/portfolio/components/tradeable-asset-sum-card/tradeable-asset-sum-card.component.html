@@ -2,9 +2,20 @@
   <mat-card-title>{{title}}</mat-card-title>
   <mat-card-content>
     <div class="mat-subheading-2">
-      <span fxFlex>Current Value</span>
+      <span fxFlex>Net Current Value</span>
       <span [ngClass]="{'negative':overview.currentValue < 0}">{{overview.currentValue | currency:baseCurrency}}</span>
     </div>
+
+    <div *ngIf="overview.debtValue < 0" class="mat-subheading-2">
+      <span fxFlex>Assets Value</span>
+      <span [ngClass]="{'negative':grossPortfolioValue < 0}">{{grossPortfolioValue | currency:baseCurrency}}</span>
+    </div>
+
+    <div *ngIf="overview.debtValue  < 0" class="mat-subheading-2">
+      <span fxFlex>Loan-to-value ratio (LTV):</span>
+      <span>{{currentDebtRatio | percent:'1.0-2'}}</span>
+    </div>
+
     <div class="mat-subheading-2">
       <span fxFlex>Unrealized P/L</span>
       <span [ngClass]="(overview.profitLoss < 0)? 'negative':'positive'">{{overview.profitLoss |

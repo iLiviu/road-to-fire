@@ -6,4 +6,5 @@ export class AssetOverview  {
   initialValue = 0;
   profitLoss = 0;
   profitLossPercent = 0;
+  debtValue = 0;
 }

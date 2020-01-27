@@ -2,6 +2,7 @@
 
 ### Features
 * Add option to select from multiple date and currency formats.
+* Display loan-to-value ratio in account overview tab
 
 ## 1.0.2 (2020-01-15)
 

@@ -225,6 +225,9 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
 
     this.assetsOverview.initialValue += viewAsset.initialValueBaseCurrency;
     this.assetsOverview.currentValue += viewAsset.currentValueBaseCurrency;
+    if (viewAsset.asset.isDebt()) {
+      this.assetsOverview.debtValue += viewAsset.currentValueBaseCurrency;
+    }
   }
 
 
