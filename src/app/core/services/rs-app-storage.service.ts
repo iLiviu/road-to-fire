@@ -72,6 +72,9 @@ function createAppRStorageModule(serializer: StorageSerializer, remoteStorage: R
           'version': {
             'type': 'number'
           },
+          'wizardDone': {
+            'type': 'boolean'
+          },
         }
       });
 
