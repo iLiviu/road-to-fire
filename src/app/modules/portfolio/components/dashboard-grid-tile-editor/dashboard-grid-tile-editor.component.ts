@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Dictionary, NumKeyDictionary } from 'src/app/shared/models/dictionary';
 import { DashboardGridTiles, DashboardGridTilesLabels } from '../../models/dashboard-grid-tiles';
 

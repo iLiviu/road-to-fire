@@ -1,5 +1,5 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatIconModule } from '@angular/material';
+import { MatIconModule } from '@angular/material/icon';
 
 import { RStorageWidgetCloseButtonComponent } from './rstoragewidget-close-button.component';
 import { MockStorageService } from '../../mocks/storage.service.mock';

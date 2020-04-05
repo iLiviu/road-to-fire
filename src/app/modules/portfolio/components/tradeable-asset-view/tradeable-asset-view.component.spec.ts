@@ -1,7 +1,10 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TradeableAssetViewComponent, TradeableAssetViewData } from './tradeable-asset-view.component';
-import { MatDialogModule, MatDividerModule, MatButtonModule, MatDialogRef, MAT_DIALOG_DATA, MatIconModule } from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
 import { FormatDatePipe } from 'src/app/shared/pipes/format-date.pipe';
 import { ViewAsset } from '../../models/view-asset';
 import { SAMPLE_ASSETS, SAMPLE_ACCOUNTS } from '../../mocks/sample-accounts.mock';

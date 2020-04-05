@@ -21,7 +21,7 @@ export class TransactionsListComponent implements OnChanges, OnInit {
 
   @Input() transactions: Transaction[];
   @Input() dataLoaded = false;
-  @ViewChild('viewport', { static: false }) private readonly viewportComponent: CdkVirtualScrollViewport;
+  @ViewChild('viewport') private readonly viewportComponent: CdkVirtualScrollViewport;
   selectionCount = 0;
   txSelectionStates: NumKeyDictionary<boolean> = {};
 

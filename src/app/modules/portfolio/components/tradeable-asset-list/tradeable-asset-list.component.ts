@@ -1,5 +1,5 @@
 import { Component, Input, ViewChild, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
-import { MatSort } from '@angular/material';
+import { MatSort } from '@angular/material/sort';
 
 import { ViewAsset } from '../../models/view-asset';
 

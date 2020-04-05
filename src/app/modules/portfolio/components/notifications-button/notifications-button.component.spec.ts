@@ -1,7 +1,12 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { NotificationsButtonComponent } from './notifications-button.component';
-import { MatListModule, MatButtonModule, MatMenuModule, MatIconModule, MatBadgeModule, MatSnackBar } from '@angular/material';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { AssetManagementService } from '../../services/asset-management.service';
 import { MockAssetManagementService } from 'src/app/modules/dialogs/mocks/asset-management.service.mock';

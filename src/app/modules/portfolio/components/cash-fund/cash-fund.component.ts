@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, ViewChild, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -63,7 +63,7 @@ export class CashFundComponent implements OnInit, OnDestroy {
   isCreditTx = false;
   transactionDate: FormControl;
   todayDate: Date;
-  @ViewChild('recurringTransaction', { static: false }) private readonly recurringTransaction: RecurringTransactionInputComponent;
+  @ViewChild('recurringTransaction') private readonly recurringTransaction: RecurringTransactionInputComponent;
 
   private componentDestroyed$ = new Subject();
 

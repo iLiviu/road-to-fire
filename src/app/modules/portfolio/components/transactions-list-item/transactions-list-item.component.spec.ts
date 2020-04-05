@@ -5,7 +5,12 @@ import { AssetManagementService } from '../../services/asset-management.service'
 import { MockAssetManagementService } from 'src/app/modules/dialogs/mocks/asset-management.service.mock';
 import { FormatDatePipe } from 'src/app/shared/pipes/format-date.pipe';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MatSelectModule, MatFormFieldModule, MatIconModule, MatButtonModule, MatListModule, MatCheckboxModule } from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatSelectModule } from '@angular/material/select';
 import { Transaction, TransactionType, TransactionData } from '../../models/transaction';
 import { SAMPLE_ASSETS, SAMPLE_ACCOUNTS } from '../../mocks/sample-accounts.mock';
 import { FormsModule } from '@angular/forms';

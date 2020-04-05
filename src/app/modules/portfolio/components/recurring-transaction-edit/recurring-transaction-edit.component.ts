@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, OnDestroy, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Transaction, TransactionType } from '../../models/transaction';
 import { RecurringTransactionType, RecurringTransaction } from '../../models/recurring-transaction';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { PortfolioService } from '../../services/portfolio.service';
@@ -57,7 +57,7 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
   readonly AssetType = AssetType;
 
   private componentDestroyed$ = new Subject();
-  @ViewChild('recTxInput', { static: false }) private readonly recTxInput: RecurringTransactionInputComponent;
+  @ViewChild('recTxInput') private readonly recTxInput: RecurringTransactionInputComponent;
 
   constructor(public dialogRef: MatDialogRef<RecurringTransactionEditComponent>,
     @Inject(MAT_DIALOG_DATA) public data: RecurringTransactionEditData) {

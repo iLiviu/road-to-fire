@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, FormControl, ValidationErrors, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subscription, Subject } from 'rxjs';
 
 import { PortfolioAccount } from '../../models/portfolio-account';
@@ -86,7 +86,7 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
 
   readonly AssetType = AssetType;
 
-  @ViewChild('recurringTransaction', { static: false }) private readonly recurringTransaction: RecurringTransactionInputComponent;
+  @ViewChild('recurringTransaction') private readonly recurringTransaction: RecurringTransactionInputComponent;
   private readonly componentDestroyed$ = new Subject();
 
   constructor(public dialogRef: MatDialogRef<AssetTransferComponent>,

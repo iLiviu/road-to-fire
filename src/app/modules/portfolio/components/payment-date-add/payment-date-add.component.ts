@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { RecurringTransactionType } from '../../models/recurring-transaction';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DateUtils } from 'src/app/shared/util';

@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
 import { PortfolioService } from '../../services/portfolio.service';
 import { getDateAsISOString, FloatingMath, DateUtils } from 'src/app/shared/util';
@@ -60,7 +60,7 @@ export class DividendTransactionEditComponent implements OnInit {
   paymentTypeStr = 'dividend';
   isRentable: boolean;
 
-  @ViewChild('recurringTransaction', { static: false }) private readonly recurringTransaction: RecurringTransactionInputComponent;
+  @ViewChild('recurringTransaction') private readonly recurringTransaction: RecurringTransactionInputComponent;
 
   constructor(public dialogRef: MatDialogRef<DividendTransactionEditComponent>,
     @Inject(MAT_DIALOG_DATA) public data: DividendTxEditData) { }

@@ -2,7 +2,10 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TransactionViewComponent } from './transaction-view.component';
 import { FormatDatePipe } from 'src/app/shared/pipes/format-date.pipe';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDividerModule, MatButtonModule, MatIconModule } from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
 import { TransactionData, TransactionType, Transaction } from '../../models/transaction';
 import { SAMPLE_ACCOUNTS, SAMPLE_ASSETS } from '../../mocks/sample-accounts.mock';
 

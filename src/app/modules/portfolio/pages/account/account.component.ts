@@ -1,7 +1,7 @@
 import { Component, ViewChild, OnDestroy, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
-import { MatTab } from '@angular/material';
+import { MatTab } from '@angular/material/tabs';
 
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
 import { PortfolioAccount } from '../../models/portfolio-account';
@@ -59,8 +59,8 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
 
   private currentAccountId: number;
   private refreshTimer: any;
-  @ViewChild('transactionsList', { static: false }) private readonly transactionsList: TransactionsListComponent;
-  @ViewChild('transactionsTab', { static: false }) private readonly transactionsTab: MatTab;
+  @ViewChild('transactionsList') private readonly transactionsList: TransactionsListComponent;
+  @ViewChild('transactionsTab') private readonly transactionsTab: MatTab;
 
   private paramMapSubscription: Subscription;
 

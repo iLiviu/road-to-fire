@@ -1,9 +1,12 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TransactionApproveComponent, TransactionApproveData } from './transaction-approve.component';
-import {
-  MatDialogModule, MatDividerModule, MatButtonModule, MatIconModule, MatDialogRef, MAT_DIALOG_DATA, MatSelectModule, MatFormFieldModule
-} from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { FormatDatePipe } from 'src/app/shared/pipes/format-date.pipe';
 import { TransactionData, TransactionType, Transaction } from '../../models/transaction';

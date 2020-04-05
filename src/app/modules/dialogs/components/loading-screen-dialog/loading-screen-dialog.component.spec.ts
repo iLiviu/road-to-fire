@@ -1,8 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import {
-  MatDialogModule, MatDialogRef, MAT_DIALOG_DATA, MatProgressSpinnerModule
-} from '@angular/material';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { LoadingScreenDialogComponent } from './loading-screen-dialog.component';
 

@@ -1,7 +1,9 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PortfolioRootComponent } from './portfolio-root.component';
-import { MatListModule, MatIconModule, MatSidenavModule } from '@angular/material';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MenuListItemComponent } from 'src/app/shared/components/menu-list-item/menu-list-item.component';
 import { MockPortfolioService } from '../../mocks/portfolio.service.mock';

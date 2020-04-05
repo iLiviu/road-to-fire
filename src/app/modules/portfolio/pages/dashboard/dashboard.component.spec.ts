@@ -5,10 +5,18 @@ import { TopToolbarComponent } from '../../components/top-toolbar/top-toolbar.co
 import { RefreshQuotesButtonComponent } from '../../components/refresh-quotes-button/refresh-quotes-button.component';
 import { NotificationsButtonComponent } from '../../components/notifications-button/notifications-button.component';
 import { FormatDatePipe } from 'src/app/shared/pipes/format-date.pipe';
-import {
-  MatListModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatDialogModule,
-  MatToolbarModule, MatBadgeModule, MatCardModule, MatSelectModule, MatFormFieldModule, MatMenuModule, MatGridListModule
-} from '@angular/material';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';

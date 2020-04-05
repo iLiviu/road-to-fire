@@ -1,9 +1,13 @@
 import { TestBed, async, fakeAsync, flush } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
-import {
-  MatSnackBarModule, MatInputModule, MatCheckboxModule, MatButtonModule, MatCardModule, MatToolbarModule, MatTooltipModule
-} from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { StorageService } from './core/services/storage.service';
 import { MockStorageService } from './core/mocks/storage.service.mock';
 import { AuthService } from './core/services/auth.service';

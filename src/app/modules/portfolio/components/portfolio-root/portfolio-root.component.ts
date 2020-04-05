@@ -5,7 +5,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable, Subscription, Subject } from 'rxjs';
 import { map, filter, withLatestFrom, takeUntil } from 'rxjs/operators';
 import { Router, NavigationEnd } from '@angular/router';
-import { MatSidenav } from '@angular/material';
+import { MatSidenav } from '@angular/material/sidenav';
 import * as Hammer from 'hammerjs';
 
 import * as WebAPK from 'src/web-apk';

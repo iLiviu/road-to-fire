@@ -1,5 +1,5 @@
 import { Directive, HostListener, AfterViewInit, Input } from '@angular/core';
-import { MatTabGroup } from '@angular/material';
+import { MatTabGroup } from '@angular/material/tabs';
 import * as Hammer from 'hammerjs';
 
 

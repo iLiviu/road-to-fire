@@ -1,7 +1,9 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RecurringTransactionViewComponent } from './recurring-transaction-view.component';
-import { MatDialogModule, MatDividerModule, MatButtonModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
 import { FormatDatePipe } from 'src/app/shared/pipes/format-date.pipe';
 import { RecurringTransaction, RecurringTransactionType, RecurringTransactionData } from '../../models/recurring-transaction';
 import { Transaction, TransactionType, TransactionData } from '../../models/transaction';

@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, ViewChild, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
 
 import { Asset, AssetType } from '../../models/asset';
@@ -70,7 +70,7 @@ export class CostTransactionEditComponent implements OnInit, OnDestroy {
 
   readonly TransactionType = TransactionType;
 
-  @ViewChild('recurringTransaction', { static: false }) private readonly recurringTransaction: RecurringTransactionInputComponent;
+  @ViewChild('recurringTransaction') private readonly recurringTransaction: RecurringTransactionInputComponent;
   private componentDestroyed$ = new Subject();
 
   constructor(public dialogRef: MatDialogRef<CostTransactionEditComponent>,

@@ -2,11 +2,19 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AssetTradeComponent, AssetTradeData, AssetTradeAction } from './asset-trade.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {
-  MatTabsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatCheckboxModule, MatButtonModule, MatListModule,
-  MatAutocompleteModule, MatDatepickerModule, MatIconModule, MatToolbarModule, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA,
-  MatNativeDateModule
-} from '@angular/material';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { EditDialogComponent } from '../edit-dialog/edit-dialog.component';
 import { SwipeTabsDirective } from 'src/app/shared/directives/swipe-tabs.directive';
 import { CurrencySymbolPipe } from 'src/app/shared/pipes/currency-symbol.pipe';

@@ -14,10 +14,18 @@ import { LoggerService } from 'src/app/core/services/logger.service';
 import { PortfolioService } from '../../services/portfolio.service';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 import { StorageService } from 'src/app/core/services/storage.service';
-import {
-  MatListModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatToolbarModule, MatBadgeModule, MatCardModule,
-  MatSelectModule, MatFormFieldModule, MatMenuModule, MatDialogModule, MatSnackBarModule,
-} from '@angular/material';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';

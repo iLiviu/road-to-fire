@@ -4,7 +4,7 @@ import {
   TransactionType,
   Transaction
 } from '../../models/transaction';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { RecurringTransaction, RecurringTransactionType } from '../../models/recurring-transaction';
 import { ExchangeTransaction } from '../../models/exchange-transaction';
 import { TransferTransaction } from '../../models/transfer-transaction';

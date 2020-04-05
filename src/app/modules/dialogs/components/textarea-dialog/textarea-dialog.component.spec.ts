@@ -2,7 +2,10 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TextareaDialogComponent } from './textarea-dialog.component';
 import { FormsModule } from '@angular/forms';
-import { MatDialogModule, MatFormFieldModule, MatButtonModule, MatDialogRef, MAT_DIALOG_DATA, MatInputModule } from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('TextareaDialogComponent', () => {
