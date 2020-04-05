@@ -16,7 +16,7 @@ import { StorageService } from 'src/app/core/services/storage.service';
 import { TradeableAsset } from '../../models/tradeable-asset';
 import { DashboardGridTileEditorComponent } from '../../components/dashboard-grid-tile-editor/dashboard-grid-tile-editor.component';
 import { DashboardGridTiles } from '../../models/dashboard-grid-tiles';
-import { PortfolioHistoryEntry, PortfolioAssetValue, PortfolioHistory } from '../../models/portfolio-history';
+import { PortfolioHistoryEntry, PortfolioAssetValue, PortfolioHistory, PortfolioHistoryDataField } from '../../models/portfolio-history';
 import { getCurrencySymbol } from '@angular/common';
 import {
   PortfolioHistoryAddComponent, PortfolioHistoryAddComponentInput
@@ -87,11 +87,6 @@ interface AssetCurrencyValueMap {
 interface DatasetEntries {
   empty: boolean;
   data: number[];
-}
-
-enum PortfolioHistoryDataField {
-  Assets,
-  UnrealizedPL,
 }
 
 
@@ -294,10 +289,33 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * Prompt user to manually add the value of the portfolio for a given date and store the result.
    */
   async addPortfolioHistory() {
+    const newEntry = await this.addPortfolioHistoryEntry(PortfolioHistoryDataField.Assets);
+    if (newEntry) {
+      this.logger.info('Edited portfolio history entry!');
+      this.displayPortfolioHistory();
+    }
+  }
+
+  /**
+   * Prompt user to manually add the value of the unrealized P/L for a given date and store the result.
+   */
+  async addUnrealizedPLHistory() {
+    const newEntry = await this.addPortfolioHistoryEntry(PortfolioHistoryDataField.UnrealizedPL);
+    if (newEntry) {
+      this.logger.info('Edited unrealized P/L entry!');
+      this.displayUnrealizedPLHistory();
+    }
+  }
+
+  /**
+   * Prompt user to manually add the value of the portfolio or unrealized P/L for a given date and store the result.
+   */
+  async addPortfolioHistoryEntry(field: PortfolioHistoryDataField) {
     const history = await this.portfolioService.getPortfolioHistory();
     const data: PortfolioHistoryAddComponentInput = {
       baseCurrency: this.baseCurrency,
       portfolioHistoryEntries: history.entries,
+      fieldToEdit: field,
     };
     const newEntry: PortfolioHistoryEntry = await this.dialogService.showAdaptableScreenModal(PortfolioHistoryAddComponent, data);
     if (newEntry) {
@@ -318,9 +336,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       // no need to wait for saving
       this.portfolioService.savePortfolioHistory(history);
       this.allPortfolioHistory = history;
-      this.logger.info('Edited portfolio history entry!');
-      this.displayPortfolioHistory();
     }
+    return newEntry;
   }
 
   async changeDisplaySettings() {
@@ -860,7 +877,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         assets = entry.assetsUnrealizedPL;
       }
       // skip dates not in our time frame or without any data
-      if (assets && (!minDate || minDate.getTime() <= entryDate.getTime())) {
+      if (assets && assets.length > 0 && (!minDate || minDate.getTime() <= entryDate.getTime())) {
         for (const assetType of Object.keys(this.assetTypeLabels)) {
           dataSets[assetType].data.push(0); // initialize all asset portfolio values with 0 for the current entry day
         }

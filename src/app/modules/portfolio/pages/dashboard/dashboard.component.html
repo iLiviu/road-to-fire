@@ -119,6 +119,11 @@
               <button mat-menu-item (click)="onPLHTimeFrameChanged('5Y')">5Y</button>
               <button mat-menu-item (click)="onPLHTimeFrameChanged('10Y')">10Y</button>
             </mat-menu>
+
+            <button type="button" mat-icon-button (click)="addUnrealizedPLHistory()"
+              matTooltip="Manually add history data">
+              <mat-icon aria-label="Manually add history data">add_circle_outline</mat-icon>
+            </button>
           </mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">

@@ -3,11 +3,12 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { FormControl, FormGroup, FormArray } from '@angular/forms';
 import { AssetType } from '../../models/asset';
 import { binarySearch, FloatingMath, DateUtils } from 'src/app/shared/util';
-import { PortfolioHistoryEntry, PortfolioAssetValue } from '../../models/portfolio-history';
+import { PortfolioHistoryEntry, PortfolioAssetValue, PortfolioHistoryDataField } from '../../models/portfolio-history';
 
 export interface PortfolioHistoryAddComponentInput {
   baseCurrency: string;
   portfolioHistoryEntries: PortfolioHistoryEntry[];
+  fieldToEdit: PortfolioHistoryDataField;
 }
 
 @Component({
@@ -56,20 +57,24 @@ export class PortfolioHistoryAddComponent implements OnInit {
    */
   dialogClosed(saveData: boolean) {
     if (saveData) {
-      const selectedDate = new Date(this.portfolioDate.value);
-      selectedDate.setHours(0, 0, 0, 0);
-      const newEntry: PortfolioHistoryEntry = {
-        date: selectedDate.toISOString(),
-        assets: [],
-        value: 0,
-        assetsUnrealizedPL: [],
-        unrealizedPL: 0,
-      };
-      // if we are updating an existing entry, copy the data we are not editing (unrealized P/L)
+      let newEntry: PortfolioHistoryEntry;
+      // if we are updating an existing entry, copy the data we are not editing
       if (this.selectedEntry) {
-        newEntry.unrealizedPL = this.selectedEntry.unrealizedPL;
-        newEntry.assetsUnrealizedPL = this.selectedEntry.assetsUnrealizedPL;
+        newEntry = Object.assign({}, this.selectedEntry);
+      } else {
+        const selectedDate = new Date(this.portfolioDate.value);
+        selectedDate.setHours(0, 0, 0, 0);
+        newEntry = {
+          date: selectedDate.toISOString(),
+          assets: [],
+          value: 0,
+          assetsUnrealizedPL: [],
+          unrealizedPL: 0,
+        };
       }
+
+      const assetsToEdit: PortfolioAssetValue[] = [];
+      let assetsValue = 0;
 
       // tslint:disable-next-line: forin
       for (const assetType in AssetType) {
@@ -79,10 +84,19 @@ export class PortfolioHistoryAddComponent implements OnInit {
             type: +assetType,
             value: ctrl.value,
           };
-          newEntry.assets.push(value);
-          newEntry.value += ctrl.value;
+          assetsToEdit.push(value);
+          assetsValue += ctrl.value;
         }
       }
+
+      if (this.data.fieldToEdit === PortfolioHistoryDataField.Assets) {
+        newEntry.assets = assetsToEdit;
+        newEntry.value = assetsValue;
+      } else {
+        newEntry.assetsUnrealizedPL = assetsToEdit;
+        newEntry.unrealizedPL = assetsValue;
+      }
+
       this.dialogRef.close(newEntry);
     } else {
       this.dialogRef.close(null);
@@ -119,7 +133,14 @@ export class PortfolioHistoryAddComponent implements OnInit {
         }
       }
 
-      for (const value of this.selectedEntry.assets) {
+      let assetsToEdit: PortfolioAssetValue[];
+      if (this.data.fieldToEdit === PortfolioHistoryDataField.Assets) {
+        assetsToEdit = this.selectedEntry.assets;
+      } else {
+        assetsToEdit = this.selectedEntry.assetsUnrealizedPL;
+      }
+
+      for (const value of assetsToEdit) {
         const ctrl = this.historyForm.controls[value.type];
         if (ctrl) {
           ctrl.setValue(FloatingMath.round2Decimals(value.value));

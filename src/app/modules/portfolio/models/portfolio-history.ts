@@ -16,3 +16,8 @@ export interface PortfolioHistoryEntry {
 export interface PortfolioHistory {
   entries: PortfolioHistoryEntry[];
 }
+
+export enum PortfolioHistoryDataField {
+  Assets,
+  UnrealizedPL,
+}
