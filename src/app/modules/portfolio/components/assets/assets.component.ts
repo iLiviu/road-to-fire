@@ -154,10 +154,11 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
     const viewAssets = this.createViewAssets();
 
     // check for any foreign currencies and get their quotes
+    const requiredCurrencies: string[] = [];
     for (const viewAsset of viewAssets) {
-      this.getCurrencyRate(viewAsset.asset.currency);
+      requiredCurrencies.push(viewAsset.asset.currency);
     }
-    await this.getForexRates();
+    await this.updateForexRates(requiredCurrencies);
 
     for (const viewAsset of viewAssets) {
       this.computeAssetValue(viewAsset);

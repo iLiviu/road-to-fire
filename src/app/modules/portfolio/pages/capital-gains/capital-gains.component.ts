@@ -114,14 +114,15 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
     this.totalFees = 0;
 
     // check for any foreign currencies and get their quotes
+    const requiredCurrencies: string[] = [];
     for (const tx of this.transactions) {
       const txDate = new Date(tx.date);
       if (tx.isSellTrade() && txDate.getFullYear() === this.currentYear) {
         const sellTx: TradeTransaction = <TradeTransaction>tx;
-        this.getCurrencyRate(sellTx.asset.currency);
+        requiredCurrencies.push(sellTx.asset.currency);
       }
     }
-    await this.getForexRates();
+    await this.updateForexRates(requiredCurrencies);
 
     try {
       for (const tx of this.transactions) {

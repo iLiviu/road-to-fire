@@ -20,7 +20,6 @@ export class PortfolioPageComponent implements OnInit, OnDestroy {
   portfolioConfig: PortfolioConfig;
 
   protected forexRates: Dictionary<number> = {};
-  protected requiredFXPairs: Dictionary<boolean> = {};
 
   private eventSubscription: Subscription;
   private configLoaded: boolean;
@@ -101,8 +100,7 @@ export class PortfolioPageComponent implements OnInit, OnDestroy {
 
   /**
    * Get the conversion rate between a currency and base currency.
-   * If forex rates are not yet available, assume rate of 1 and queue
-   * the currency to get its Forex rate
+   * If forex rate is not available, throw an error
    * @param currency currency to get the rate for
    */
   protected getCurrencyRate(currency: string): number {
@@ -113,26 +111,29 @@ export class PortfolioPageComponent implements OnInit, OnDestroy {
         // we already have the forex rates
         rate = this.forexRates[currencyPair];
       } else {
-        // queue the pair to get it's rate
-        this.requiredFXPairs[currencyPair] = true;
+        throw new Error('Forex rate not available for currency: ' + currency);
       }
     }
     return rate;
   }
 
   /**
-   * Get the exchange rates for symbols that are required to calculate
-   * data to be displayed
+   * Update the exchange rates for a list of currencies and store the result for
+   * later use
    */
-  protected async getForexRates(): Promise<boolean> {
-    const pairs = Object.keys(this.requiredFXPairs);
-    if (pairs.length > 0) {
+  protected async updateForexRates(currencies: string[]): Promise<boolean> {
+    const requiredFXPairs: string[] = [];
+    for (const currency of currencies) {
+      if (currency !== this.baseCurrency) {
+        requiredFXPairs.push(currency + this.baseCurrency);
+      }
+    }
+    if (requiredFXPairs.length > 0) {
       try {
-        const rates = await this.portfolioService.getForexRates(pairs);
+        const rates = await this.portfolioService.getForexRates(requiredFXPairs);
         for (const quote of rates) {
           this.forexRates[quote.symbol] = quote.price;
         }
-        this.requiredFXPairs = {};
         return true;
       } catch (e) {
         const errMsg = 'An error occurred while retrieving forex rates!';

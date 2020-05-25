@@ -596,7 +596,6 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.liabilitiesValue = 0;
     this.portfolioValue = 0;
     this.portfolioUnrealizedPL = 0;
-    this.requiredFXPairs = {};
     this.assetsTotalValue = {};
     this.currenciesTotalValue = {};
     this.assetCurrenciesValue = {};
@@ -605,13 +604,14 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.assetDescriptions = {};
     this.assetsUnrealizedPL = {};
 
-    // check for any foreign currencies and queue them for quote update
+    // check for any foreign currencies and get updated quotes for them
+    const requiredCurrencies: string[] = [];
     for (const account of this.accounts) {
       for (const asset of account.assets) {
-        this.getCurrencyRate(asset.currency);
+        requiredCurrencies.push(asset.currency);
       }
     }
-    await this.getForexRates();
+    await this.updateForexRates(requiredCurrencies);
 
     for (const account of this.accounts) {
       for (const asset of account.assets) {
