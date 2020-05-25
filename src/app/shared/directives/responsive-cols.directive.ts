@@ -1,6 +1,7 @@
 import { Directive, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { MatGridList } from '@angular/material/grid-list';
 import { MediaChange, MediaObserver } from '@angular/flex-layout';
+import { filter, map } from 'rxjs/operators';
 
 export interface IResponsiveColumnsMap {
   xs?: number;
@@ -24,9 +25,9 @@ export class ResponsiveColsDirective implements OnInit {
   }
 
   @Input('responsiveCols')
-  public set cols(map: IResponsiveColumnsMap) {
-    if (map && ('object' === (typeof map))) {
-      this.countBySize = map;
+  public set cols(colsMap: IResponsiveColumnsMap) {
+    if (colsMap && ('object' === (typeof colsMap))) {
+      this.countBySize = colsMap;
     }
   }
 
@@ -42,7 +43,11 @@ export class ResponsiveColsDirective implements OnInit {
   public ngOnInit(): void {
     this.initializeColsCount();
 
-    this.media.media$
+    this.media.asObservable()
+      .pipe(
+        filter((changes: MediaChange[]) => changes.length > 0),
+        map((changes: MediaChange[]) => changes[0])
+      )
       .subscribe((changes: MediaChange) => {
         if (this.countBySize[changes.mqAlias] !== this.grid.cols) {
           this.setGridCols(this.countBySize[changes.mqAlias]);

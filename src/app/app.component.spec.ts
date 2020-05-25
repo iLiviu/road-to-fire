@@ -88,7 +88,7 @@ describe('AppComponent', () => {
     })
       .overrideModule(BrowserDynamicTestingModule, { set: { entryComponents: [MockComponent] } })
       .compileComponents();
-    router = TestBed.get(Router);
+    router = TestBed.inject(Router);
   }));
 
   it('should create the app', async(() => {
@@ -99,7 +99,7 @@ describe('AppComponent', () => {
 
   it(`should set proper title`, async(() => {
     const fixture = TestBed.createComponent(AppComponent);
-    const titleService = TestBed.get(Title);
+    const titleService = TestBed.inject(Title);
     expect(titleService.getTitle()).toEqual('Road To FIRE');
   }));
 
@@ -109,7 +109,7 @@ describe('AppComponent', () => {
       { path: 'portfolio/:subpath', component: MockComponent },
     ]);
     const app = fixture.componentInstance;
-    const eventsService = <EventsService>TestBed.get(EventsService);
+    const eventsService = <EventsService>TestBed.inject(EventsService);
     eventsService.storageWiped();
     flush();
     fixture.detectChanges();
@@ -122,7 +122,7 @@ describe('AppComponent', () => {
       { path: 'portfolio/:subpath', component: MockComponent },
     ]);
     const app = fixture.componentInstance;
-    const eventsService = <EventsService>TestBed.get(EventsService);
+    const eventsService = <EventsService>TestBed.inject(EventsService);
     const cfg: AppConfig = {
       dateAndCurrencyFormat: LocaleIDs.EN_US,
       wizardDone: false,
@@ -139,7 +139,7 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     const spy = spyOn(app, 'reloadApp');
-    const eventsService = <EventsService>TestBed.get(EventsService);
+    const eventsService = <EventsService>TestBed.inject(EventsService);
     eventsService.configUpdatedRemotely('roadtofire');
     flush();
     fixture.detectChanges();
@@ -150,7 +150,7 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     const spy = spyOn(app, 'reloadApp');
-    const eventsService = <EventsService>TestBed.get(EventsService);
+    const eventsService = <EventsService>TestBed.inject(EventsService);
     eventsService.encryptionStateChangedRemotely();
     flush();
     fixture.detectChanges();
