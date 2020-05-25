@@ -2,11 +2,13 @@
   <app-top-toolbar pageTitle="Dashboard">
     <div>
       <app-refresh-quotes-button></app-refresh-quotes-button>
-      <app-notifications-button></app-notifications-button>
+
       <button type="button" aria-label="Display settings" mat-icon-button matTooltip="Display settings"
         (click)="changeDisplaySettings()">
         <mat-icon>visibility</mat-icon>
       </button>
+
+      <app-notifications-button></app-notifications-button>
     </div>
   </app-top-toolbar>
   <div class="page-content">
