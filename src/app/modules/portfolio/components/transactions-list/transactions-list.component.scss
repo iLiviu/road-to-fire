@@ -6,7 +6,7 @@ mat-nav-list {
 }
 
 .list-viewport {
-  height: 100%;
+  height: calc(100% - 40px);
 }
 
 .transactions-list {

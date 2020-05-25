@@ -5,12 +5,19 @@
     </div>
 
     <mat-nav-list dense class="transactions-list">
+      <div mat-subheader fxLayout="row">
+        <div>Debit: {{ totalDebit | currency:baseCurrency }}</div>
+        <div fxFlex></div>
+        <div>Credit: {{ totalCredit | currency:baseCurrency }}</div>
+      </div>
+      
       <cdk-virtual-scroll-viewport itemSize="76" class="list-viewport" #viewport>
         <app-transactions-list-item *cdkVirtualFor="let tx of transactions; trackBy: txIdTrackFn" [transaction]="tx"
           [selected]="txSelectionStates[tx.id]" (selectStateChange)="itemSelectStateChanged($event, tx)">
         </app-transactions-list-item>
       </cdk-virtual-scroll-viewport>
     </mat-nav-list>
+
     <mat-toolbar *ngIf="selectionCount > 0">
       <span fxFlex>{{selectionCount}} selected</span>
       <button type="button" aria-label="Check All" mat-button color="primary" (click)="toggleCheckTransactions()">

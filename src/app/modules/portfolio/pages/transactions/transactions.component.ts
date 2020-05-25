@@ -2,12 +2,16 @@ import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@
 import { Router } from '@angular/router';
 
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
-import { Transaction } from '../../models/transaction';
+import { Transaction, TransactionType } from '../../models/transaction';
 import { PortfolioService } from '../../services/portfolio.service';
 import { LoggerService } from 'src/app/core/services/logger.service';
 import { PortfolioPageComponent } from '../../components/portfolio-page/portfolio-page.component';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 import { StorageService } from 'src/app/core/services/storage.service';
+import {
+  TransactionsFilterEditComponent, TransactionFilters
+} from '../../components/transactions-filter-edit/transactions-filter-edit.component';
+import { DateUtils } from 'src/app/shared/util';
 
 /**
  * Component to display a page where the user can see the list of all transactions and manage (delete) them
@@ -20,8 +24,10 @@ import { StorageService } from 'src/app/core/services/storage.service';
 })
 export class TransactionsComponent extends PortfolioPageComponent implements OnInit {
 
+  allTransactions: Transaction[];
   transactions: Transaction[];
   transactionsLoaded = false;
+  filters: TransactionFilters;
 
   private loadTimer;
 
@@ -33,6 +39,26 @@ export class TransactionsComponent extends PortfolioPageComponent implements OnI
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.filters = {
+      includedTypes: {},
+      minDate: null,
+      maxDate: null,
+    };
+    // select all transaction types
+    Object.values(TransactionType).forEach(txType => this.filters.includedTypes[txType] = true);
+  }
+
+  /**
+   * Open the filter editor dialog and allow user to select filters for transactions
+   */
+  async showFilterDialog() {
+    const newFilters = await this.dialogService.showAdaptableScreenModal(TransactionsFilterEditComponent, this.filters);
+    if (newFilters) {
+      this.filters = newFilters;
+      this.filterTransactions();
+      this.cdr.markForCheck();
+    }
   }
 
   protected onConfigLoaded() {
@@ -52,16 +78,26 @@ export class TransactionsComponent extends PortfolioPageComponent implements OnI
     }
   }
 
+  /**
+   * Display only transactions that match the given filters
+   */
+  private filterTransactions() {
+    this.transactions = this.allTransactions.filter((tx: Transaction) =>
+      this.filters.includedTypes[tx.type] &&
+      (!this.filters.minDate || DateUtils.compareDates(this.filters.minDate, new Date(tx.date)) <= 0) &&
+      (!this.filters.maxDate || DateUtils.compareDates(this.filters.maxDate, new Date(tx.date)) >= 0)
+    );
+  }
+
   private async loadTransactions() {
     try {
-      const transactions = await this.portfolioService.getTransactions();
-      this.transactions = transactions;
+      this.allTransactions = await this.portfolioService.getTransactions();
+      this.filterTransactions();
     } catch (err) {
       this.logger.error('An error occurred while retrieving transactions!', err);
     }
     this.transactionsLoaded = true;
     this.cdr.markForCheck();
-
   }
 
 

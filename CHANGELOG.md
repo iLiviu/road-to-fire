@@ -2,6 +2,7 @@
 
 ### Features
 * Manually edit unrealized P/L history entries
+* Add option to filter transactions
 
 ## 1.1.0 (2020-01-27)
 

@@ -1,6 +1,11 @@
 <ng-container *ngIf="assetsLoaded">
   <app-top-toolbar pageTitle="{{account.description}}">
     <div>
+      <button *ngIf="displayTxFilterButton" type="button" aria-label="Filter Transactions" mat-icon-button matTooltip="Filter Transactions"
+        (click)="showFilterDialog()">
+        <mat-icon>filter_list</mat-icon>
+      </button>
+
       <app-notifications-button></app-notifications-button>
 
       <button type="button" aria-label="Actions" mat-icon-button matTooltip="Actions" [matMenuTriggerFor]="actionsMenu">
@@ -15,7 +20,7 @@
   </app-top-toolbar>
 
   <div class="page-content">
-    <mat-tab-group [swipeTabs]="{hasSideNav: true}" class="mat-tab-group-fill-height">
+    <mat-tab-group [swipeTabs]="{hasSideNav: true}" class="mat-tab-group-fill-height" (selectedTabChange)="tabChanged($event)">
       <mat-tab label="Overview">
         <div>
           <app-tradeable-asset-sum-card [title]="'Total'" [baseCurrency]="baseCurrency" [overview]="assetsOverview">
@@ -104,7 +109,8 @@
 
       <mat-tab label="Transactions" #transactionsTab>
         <ng-template matTabContent>
-          <app-transactions-list #transactionsList [transactions]="transactions" [dataLoaded]="transactionsLoaded">
+          <app-transactions-list #transactionsList [transactions]="transactions" [baseCurrency]="baseCurrency"
+            [dataLoaded]="transactionsLoaded">
           </app-transactions-list>
         </ng-template>
       </mat-tab>

@@ -1,7 +1,7 @@
 import { Component, ViewChild, OnDestroy, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
-import { MatTab } from '@angular/material/tabs';
+import { MatTab, MatTabChangeEvent } from '@angular/material/tabs';
 
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
 import { PortfolioAccount } from '../../models/portfolio-account';
@@ -9,7 +9,7 @@ import { PortfolioService } from '../../services/portfolio.service';
 import { AssetType } from '../../models/asset';
 import { AssetsComponent } from '../../components/assets/assets.component';
 import { AssetOverview } from '../../models/asset-overview';
-import { Transaction } from '../../models/transaction';
+import { Transaction, TransactionType } from '../../models/transaction';
 import { LoggerService } from 'src/app/core/services/logger.service';
 import { CurrencyBalance } from '../../models/currency-balance';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
@@ -19,6 +19,10 @@ import { Dictionary, NumKeyDictionary } from 'src/app/shared/models/dictionary';
 import { TransactionsListComponent } from '../../components/transactions-list/transactions-list.component';
 import { StorageService } from 'src/app/core/services/storage.service';
 import { Subscription } from 'rxjs';
+import {
+  TransactionFilters, TransactionsFilterEditComponent
+} from '../../components/transactions-filter-edit/transactions-filter-edit.component';
+import { DateUtils } from 'src/app/shared/util';
 
 interface AssetGroup {
   overview: AssetOverview;
@@ -36,7 +40,10 @@ interface AssetGroup {
 })
 export class AccountComponent extends AssetsComponent implements OnInit, OnDestroy {
 
+  static readonly TRANSACTIONS_TAB_IDX = 1;
+
   account: PortfolioAccount;
+  allTransactions: Transaction[];
   assetsGroupOverview: Dictionary<AssetOverview> = {};
   cash: AssetGroup;
   cashBalances: CurrencyBalance[];
@@ -44,9 +51,11 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
   depositBalances: CurrencyBalance[];
   debt: AssetGroup;
   debtBalances: CurrencyBalance[];
+  displayTxFilterButton: boolean;
   bonds: AssetGroup;
   commodities: AssetGroup;
   cryptocurrencies: AssetGroup;
+  filters: TransactionFilters;
   groupedAssets: NumKeyDictionary<ViewAsset[]> = {};
   p2p: AssetGroup;
   realEstate: AssetGroup;
@@ -74,6 +83,14 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
   ngOnInit() {
     super.ngOnInit();
     this.assetTypes = AssetType.All;
+
+    this.filters = {
+      includedTypes: {},
+      minDate: null,
+      maxDate: null,
+    };
+    // select all transaction types
+    Object.values(TransactionType).forEach(txType => this.filters.includedTypes[txType] = true);
 
     // called every time account id parameter changes in route
     this.paramMapSubscription = this.route.paramMap
@@ -181,6 +198,23 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
 
   }
 
+  tabChanged(tabChangeEvent: MatTabChangeEvent) {
+    this.displayTxFilterButton = tabChangeEvent.index === AccountComponent.TRANSACTIONS_TAB_IDX;
+  }
+
+  /**
+   * Open the filter editor dialog and allow user to select filters for transactions
+   */
+  async showFilterDialog() {
+    const newFilters = await this.dialogService.showAdaptableScreenModal(TransactionsFilterEditComponent, this.filters);
+    if (newFilters) {
+      this.filters = newFilters;
+      this.filterTransactions();
+      this.cdr.markForCheck();
+    }
+  }
+
+
   protected handleEvents(event: AppEvent) {
     switch (event.type) {
       case AppEventType.TRANSACTION_ADDED:
@@ -208,6 +242,17 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
       default:
         super.handleEvents(event);
     }
+  }
+
+  /**
+   * Display only transactions that match the given filters
+   */
+  private filterTransactions() {
+    this.transactions = this.allTransactions.filter((tx: Transaction) =>
+      this.filters.includedTypes[tx.type] &&
+      (!this.filters.minDate || DateUtils.compareDates(this.filters.minDate, new Date(tx.date)) <= 0) &&
+      (!this.filters.maxDate || DateUtils.compareDates(this.filters.maxDate, new Date(tx.date)) >= 0)
+    );
   }
 
   private onTransactionsUpdated() {
@@ -262,10 +307,10 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
    */
   private async updateTransactionsList(accId) {
     try {
-      this.transactions = [];
+      this.allTransactions = [];
       this.transactionsLoaded = false;
-      this.transactions = await this.portfolioService.getAccountTransactions(accId);
-
+      this.allTransactions = await this.portfolioService.getAccountTransactions(accId);
+      this.filterTransactions();
     } catch (err) {
       this.logger.error('An error occurred while loading account transactions!', err);
     }

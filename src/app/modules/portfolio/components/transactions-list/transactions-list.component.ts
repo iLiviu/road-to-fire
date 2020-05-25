@@ -1,9 +1,9 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild, ChangeDetectionStrategy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 
 import { Transaction } from '../../models/transaction';
 import * as Hammer from 'hammerjs';
-import { NumKeyDictionary } from 'src/app/shared/models/dictionary';
+import { NumKeyDictionary, Dictionary } from 'src/app/shared/models/dictionary';
 import { PortfolioService } from '../../services/portfolio.service';
 import { LoggerService } from 'src/app/core/services/logger.service';
 
@@ -21,11 +21,17 @@ export class TransactionsListComponent implements OnChanges, OnInit {
 
   @Input() transactions: Transaction[];
   @Input() dataLoaded = false;
+  @Input() baseCurrency: string;
   @ViewChild('viewport') private readonly viewportComponent: CdkVirtualScrollViewport;
   selectionCount = 0;
   txSelectionStates: NumKeyDictionary<boolean> = {};
+  totalDebit: number;
+  totalCredit: number;
 
-  constructor(private portfolioService: PortfolioService, private logger: LoggerService) {
+  private forexRates: Dictionary<number> = {};
+
+
+  constructor(private portfolioService: PortfolioService, private logger: LoggerService, protected cdr: ChangeDetectorRef) {
 
   }
 
@@ -41,6 +47,9 @@ export class TransactionsListComponent implements OnChanges, OnInit {
       // dates are in ISO format so string comparison is fine
       this.transactions.sort((a, b) => a.date < b.date ? 1 : -1);
       this.initSelectionState();
+      this.calculateTxStats();
+    } else if (changes.baseCurrency && this.transactions) {
+      this.calculateTxStats();
     }
     if (changes.dataLoaded && this.dataLoaded) {
       // hack so that gestures can be tracked in parent components
@@ -130,5 +139,71 @@ export class TransactionsListComponent implements OnChanges, OnInit {
         this.selectionCount++;
       }
     }
+  }
+
+  /**
+   * Get the conversion rate between a currency and base currency.
+   * If forex rate is not available, throw an error
+   * @param currency currency to get the rate for
+   */
+  protected getCurrencyRate(currency: string): number {
+    let rate = 1;
+    if (currency !== this.baseCurrency) {
+      const currencyPair: string = currency + this.baseCurrency;
+      if (this.forexRates[currencyPair]) {
+        // we already have the forex rates
+        rate = this.forexRates[currencyPair];
+      } else {
+        throw new Error('Forex rate not available for currency: ' + currency);
+      }
+    }
+    return rate;
+  }
+
+  /**
+ * Update the exchange rates for a list of currencies and store the result for
+ * later use
+ */
+  protected async updateForexRates(currencies: string[]): Promise<boolean> {
+    const requiredFXPairs: string[] = [];
+    for (const currency of currencies) {
+      if (currency !== this.baseCurrency) {
+        requiredFXPairs.push(currency + this.baseCurrency);
+      }
+    }
+    if (requiredFXPairs.length > 0) {
+      try {
+        const rates = await this.portfolioService.getForexRates(requiredFXPairs);
+        for (const quote of rates) {
+          this.forexRates[quote.symbol] = quote.price;
+        }
+        return true;
+      } catch (e) {
+        const errMsg = 'An error occurred while retrieving forex rates!';
+        throw new Error(errMsg);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Calculate total debit & credit value in base currency for the transactions list
+   */
+  private async calculateTxStats() {
+    this.totalDebit = 0;
+    this.totalCredit = 0;
+    const requiredCurrencies: string[] = [];
+    this.transactions.forEach(tx => requiredCurrencies.push(tx.asset.currency));
+    await this.updateForexRates(requiredCurrencies);
+
+    for (const tx of this.transactions) {
+      const txValue = tx.value * this.getCurrencyRate(tx.asset.currency);
+      if (tx.isDebit()) {
+        this.totalDebit += txValue;
+      } else if (tx.isCredit()) {
+        this.totalCredit += txValue;
+      }
+    }
+    this.cdr.markForCheck();
   }
 }

@@ -29,6 +29,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ChartsModule } from 'ng2-charts';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { MatTreeModule } from '@angular/material/tree';
 
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PortfolioRootComponent } from './components/portfolio-root/portfolio-root.component';
@@ -103,6 +104,7 @@ import { DebtComponent } from './pages/debt/debt.component';
 import { AbsoluteValuePipe } from 'src/app/shared/pipes/absolute-value.pipe';
 import { PrincipalTransactionEditComponent } from './components/principal-transaction-edit/principal-transaction-edit.component';
 import { P2PComponent } from './pages/p2p/p2p.component';
+import { TransactionsFilterEditComponent } from './components/transactions-filter-edit/transactions-filter-edit.component';
 
 @NgModule({
   declarations: [
@@ -166,6 +168,7 @@ import { P2PComponent } from './pages/p2p/p2p.component';
     AbsoluteValuePipe,
     PrincipalTransactionEditComponent,
     P2PComponent,
+    TransactionsFilterEditComponent,
   ],
   imports: [
     CommonModule,
@@ -201,7 +204,7 @@ import { P2PComponent } from './pages/p2p/p2p.component';
     PortfolioRoutingModule,
     AboutModule,
     MatGridListModule,
-
+    MatTreeModule,
   ],
   exports: [
   ],
@@ -235,6 +238,7 @@ import { P2PComponent } from './pages/p2p/p2p.component';
     PortfolioHistoryAddComponent,
     CostTransactionEditComponent,
     PrincipalTransactionEditComponent,
+    TransactionsFilterEditComponent,
   ]
 })
 export class PortfolioModule {
