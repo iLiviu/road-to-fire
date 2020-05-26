@@ -4,6 +4,9 @@
 * Manually edit unrealized P/L history entries
 * Add option to filter transactions
 
+### Bug fixes
+* Fix executing multiple due interest/principal payment transactions for a bond
+
 ## 1.1.0 (2020-01-27)
 
 ### Features

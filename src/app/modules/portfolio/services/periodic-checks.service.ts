@@ -196,11 +196,11 @@ export class PeriodicChecksService {
         await this.payPrincipal(bond.principalAmount, bond, account, expirationDate);
         needsRecheck = false;
       }
+    }
 
-      if (needsRecheck) {
-        // a interest/principal payment was made. check again if we sill have due payments
-        await this.checkBond(bond, account);
-      }
+    if (needsRecheck) {
+      // a interest/principal payment was made. check again if we sill have due payments
+      await this.checkBond(bond, account);
     }
   }
 
