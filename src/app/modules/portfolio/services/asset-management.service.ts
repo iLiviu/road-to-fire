@@ -757,12 +757,12 @@ export class AssetManagementService {
   }
 
   /**
-   * Liquidate a given deposit and optionally credit cash account with deposit amount and interest (if deposit reached maturity)
+   * Liquidate a given deposit after prompting the user for confirmation and optionally credit cash account with deposit
+   * amount and interest (if deposit reached maturity)
    * @param deposit deposit to liquidate
    * @param account account that holds the deposit
    */
   async liquidateDeposit(deposit: DepositAsset, account: PortfolioAccount) {
-
     const cashAssetsCount = account.assets
       .reduce((acc, asset) => acc + ((asset.type === AssetType.Cash && asset.currency === deposit.currency) ? 1 : 0), 0);
     if (cashAssetsCount === 0) {
@@ -783,48 +783,90 @@ export class AssetManagementService {
       account: account,
     };
     const result: DepositLiquidateResponse = await this.dialogsService.showAdaptableScreenModal(DepositLiquidateComponent, data);
-
     if (result) {
       try {
-        result.cashAsset.amount = FloatingMath.fixRoundingError(result.cashAsset.amount + deposit.amount);
-        const asset1$ = this.portfolioService.removeAsset(deposit, account);
-        const asset2$ = this.portfolioService.updateAsset(result.cashAsset, account);
-        await Promise.all([asset1$, asset2$]);
-        this.logger.info('Deposit liquidated');
-        const txData: TransferTransactionData = {
-          asset: {
-            accountDescription: account.description,
-            accountId: account.id,
-            id: deposit.id,
-            description: deposit.description,
-            currency: deposit.currency,
-          },
-          value: deposit.amount,
-          date: result.transactionDate,
-          description: `Liquidated ${deposit.description}`,
-          otherAsset: {
-            id: result.cashAsset.id,
-            currency: result.cashAsset.currency,
-            description: result.cashAsset.description,
-            accountDescription: account.description,
-            accountId: account.id,
-          },
-          type: TransactionType.Transfer,
-          fee: 0,
-        };
-        const tx = new TransferTransaction(txData);
-        this.addTransaction(tx);
-
-        if (result.transactionDate >= deposit.maturityDate && result.creditInterest) {
-          const interestAmount = deposit.getPayableInterest();
-          const withholdingTax = deposit.getWithholdingTax();
-          await this.payInterest(interestAmount, 0, withholdingTax, new Date(result.transactionDate), deposit, result.cashAsset,
-            account, true, true);
-        }
+        await this.liquidateDepositAtDate(deposit, account, new Date(result.transactionDate),
+          result.cashAsset, false, result.creditInterest);
       } catch (err) {
         this.logger.error('Could not liquidate deposit!', err);
       }
     }
+  }
+
+  /**
+   * Liquidate a given deposit and optionally credit cash account with deposit amount and interest (if deposit reached maturity)
+   * @param deposit deposit to liquidate
+   * @param account account that holds the deposit
+   * @param txDate the date at which transaction is executed (based on which interest is paid or not)
+   * @param cashAsset the cash asset where the money is to be transferred (optional)
+   * @param automaticTransaction if true, adds notification about executed transactions (liquidation and optionally interest payment)
+   * @param creditInterest if true, credits the accumulated interest in the cash account
+   */
+  async liquidateDepositAtDate(deposit: DepositAsset, account: PortfolioAccount, txDate: Date, cashAsset: Asset,
+    automaticTransaction: boolean, creditInterest: boolean) {
+
+    let tx = this.createDepositLiquidateTransaction(deposit, account, txDate, cashAsset);
+
+    if (cashAsset) {
+      cashAsset.amount = FloatingMath.fixRoundingError(cashAsset.amount + tx.value);
+      const asset1$ = this.portfolioService.removeAsset(deposit, account);
+      const asset2$ = this.portfolioService.updateAsset(cashAsset, account);
+      await Promise.all([asset1$, asset2$]);
+
+      if (automaticTransaction) {
+        tx = <TransferTransaction>await this.addAutomaticTransaction(tx);
+      } else {
+        tx = <TransferTransaction>await this.addTransaction(tx);
+        this.logger.info('Deposit liquidated');
+      }
+    } else {
+      await this.portfolioService.addPendingTransactionNotification('Pending deposit liquidation', tx);
+      deposit.pendingDelete = true;
+      await this.portfolioService.updateAsset(deposit, account);
+    }
+
+    if (DateUtils.compareDates(txDate, new Date(deposit.maturityDate)) >= 0 && creditInterest) {
+      const interestAmount = deposit.getPayableInterest();
+      const withholdingTax = deposit.getWithholdingTax();
+      await this.payInterest(interestAmount, 0, withholdingTax, txDate, deposit, cashAsset,
+        account, automaticTransaction, true);
+    }
+  }
+
+  /**
+   * Create & return a deposit liquidation transaction and fill it with data
+   * @param deposit deposit to liquidate
+   * @param account account that holds the deposit
+   * @param txDate the date at which transaction is executed
+   * @param cashAsset the cash asset where the money is to be transferred (optional)
+   */
+  createDepositLiquidateTransaction(deposit: DepositAsset, account: PortfolioAccount, txDate: Date, cashAsset: Asset) {
+    const txDescription = `Liquidated ${deposit.description}`;
+    const txValue = deposit.amount;
+    const txData: TransferTransactionData = {
+      asset: {
+        accountDescription: account.description,
+        accountId: account.id,
+        id: deposit.id,
+        description: deposit.description,
+        currency: deposit.currency,
+      },
+      otherAsset: {
+        accountDescription: account.description,
+        accountId: account.id,
+        currency: deposit.currency,
+      },
+      date: txDate.toISOString(),
+      description: txDescription,
+      type: TransactionType.Transfer,
+      fee: 0,
+      value: txValue,
+    };
+    if (cashAsset) {
+      txData.otherAsset.id = cashAsset.id;
+      txData.otherAsset.description = cashAsset.description;
+    }
+    return new TransferTransaction(txData);
   }
 
   /**
@@ -1513,6 +1555,12 @@ export class AssetManagementService {
     } catch (err) {
       throw new Error(`Could not log transaction: ${err}`);
     }
+  }
+
+  private async addAutomaticTransaction(tx: Transaction) {
+    tx = await this.addTransaction(tx);
+    this.portfolioService.addTransactionDoneNotification(tx.description, tx.id);
+    return tx;
   }
 
   /**

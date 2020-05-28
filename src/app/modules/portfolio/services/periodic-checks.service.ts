@@ -105,46 +105,9 @@ export class PeriodicChecksService {
         }
         await this.portfolioService.updateAsset(deposit, account);
       } else {
-        await this.assetManagementService.payInterest(interestAmount, 0, withholdingTax, expirationDate, deposit, null,
-          account, true, true);
-
-        const txDescription = 'Liquidated deposit ' + deposit.description;
-        const txValue = deposit.amount;
-        const txData: TransferTransactionData = {
-          asset: {
-            accountDescription: account.description,
-            accountId: account.id,
-            id: deposit.id,
-            description: deposit.description,
-            currency: deposit.currency,
-          },
-          otherAsset: {
-            accountDescription: account.description,
-            accountId: account.id,
-            currency: deposit.currency,
-          },
-          date: expirationDate.toISOString(),
-          description: txDescription,
-          type: TransactionType.Transfer,
-          fee: 0,
-          value: txValue,
-        };
-        let tx = new TransferTransaction(txData);
-
         const cashAsset = this.getCashAsset(deposit, account);
-        if (cashAsset) {
-          cashAsset.amount = FloatingMath.fixRoundingError(cashAsset.amount + txValue);
-          await this.portfolioService.updateAsset(cashAsset, account);
-          await this.portfolioService.removeAsset(deposit, account);
-          tx.otherAsset.description = cashAsset.description;
-          tx.otherAsset.id = cashAsset.id;
-          tx = <TransferTransaction>await this.addAutomaticTransaction(tx);
-        } else {
-          await this.portfolioService.addPendingTransactionNotification('Pending deposit liquidation', tx);
-          deposit.pendingDelete = true;
-          await this.portfolioService.updateAsset(deposit, account);
-        }
-
+        await this.assetManagementService.liquidateDepositAtDate(deposit, account, expirationDate,
+          cashAsset, true, true);
       }
     }
   }
