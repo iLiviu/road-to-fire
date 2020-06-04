@@ -1,4 +1,4 @@
-## Master
+## 1.2.0 (2020-06-04)
 
 ### Features
 * Manually edit unrealized P/L history entries

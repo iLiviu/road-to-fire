@@ -11,13 +11,17 @@ export interface SymbolDetails {
 
 export const APP_CONSTS = {
   TITLE: 'Road To FIRE',
-  VERSION: '1.1.0',
+  VERSION: '1.2.0',
   // text to show when user first loads the current new version
-  WHATS_NEW_TITLE: `What's new in version 1.1.0`,
+  WHATS_NEW_TITLE: `What's new in version 1.2.0`,
   WHATS_NEW:
     `Features:
-  * Add option to select from multiple date and currency formats.
-  * Display loan-to-value ratio in account overview tab.`,
+  * Manually edit unrealized P/L history entries
+  * Add option to filter transactions
+  * Display bond/deposit interest & principal payment transactions in scheduled transactions list
+
+Bug fixes:
+  * Fix executing multiple due interest/principal payment transactions for a bond`,
   REPOSITORY_URL: 'https://github.com/iLiviu/road-to-fire',
   STORAGE_API_KEYS: {
     DROPBOX: 'kbwh5504okeu3b9',
