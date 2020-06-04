@@ -248,4 +248,5 @@ export const TRANSACTION_ICONS = {
   [TransactionType.CashDividend]: 'arrow_forward',
   [TransactionType.CashInterest]: 'arrow_forward',
   [TransactionType.CapitalCost]: 'arrow_back',
+  [TransactionType.PrincipalPayment]: 'arrow_forward',
 };

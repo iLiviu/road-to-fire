@@ -1122,89 +1122,19 @@ export class AssetManagementService {
     // we only update bond values if the transaction will be executed now
     const updateBondValues = (!this.isFutureDate(txDate.toISOString()) && cashAsset) ? true : false;
 
-    const txDescription = 'Principal payment for ' + bond.description;
     const newPrincipal = FloatingMath.fixRoundingError(bond.principalAmount - principalPayment);
-    const initialBondPrincipal = bond.principalAmount;
-    let paymentMade = false;
-    let totalAmount = 0;
-    let totalCost = 0;
-    let totalGrossCost = 0;
-    let totalValue = 0;
-    let avgBuyPrice = 0;
-    let avgGrossBuyPrice = 0;
-    let oldestBuyDate: Date;
-    for (const position of bond.positions) {
-      const buyDate = new Date(position.buyDate);
-      // only consider positions opened before the payment date
-      if (DateUtils.compareDates(buyDate, txDate) < 0) {
-        paymentMade = true;
-        if (!oldestBuyDate || buyDate.getTime() < oldestBuyDate.getTime()) {
-          oldestBuyDate = buyDate;
-        }
-        const paymentValue = principalPayment * position.amount;
-        const discount = position.buyPrice / initialBondPrincipal;
 
-        // treat bond redemption as a trade so it can be counted for capital gains
-        const buyPrice = principalPayment * discount;
-        const grossBuyPrice = principalPayment * (position.grossBuyPrice / initialBondPrincipal);
+    let tx = this.createBondPrincipalPaymentTransaction(principalPayment, bond, cashAsset, account, txDate, fee, updateBondValues);
 
-        totalAmount = totalAmount + position.amount;
-        totalValue = FloatingMath.fixRoundingError(totalValue + paymentValue);
-        totalCost = totalCost + position.amount * buyPrice;
-        totalGrossCost = totalGrossCost + position.amount * grossBuyPrice;
-
-        if (updateBondValues) {
-          // update buy price for new principal
-          position.buyPrice = newPrincipal * discount;
-          position.grossBuyPrice = newPrincipal * (position.grossBuyPrice / initialBondPrincipal);
-        }
-      }
-    }
     let txExecuted = false;
-    if (paymentMade) {
-      bond.updateStats(); // buy prices updated
-      if (totalAmount > 0) {
-        avgBuyPrice = totalCost / totalAmount;
-        avgGrossBuyPrice = totalGrossCost / totalAmount;
-        totalValue -= fee;
-      }
-      const txData: SellTransactionData = {
-        asset: {
-          accountDescription: account.description,
-          accountId: account.id,
-          id: bond.id,
-          description: bond.description,
-          currency: bond.currency,
-        },
-        otherAsset: {
-          id: cashAsset ? cashAsset.id : null,
-          currency: bond.currency,
-          description: cashAsset ? cashAsset.description : null,
-          accountDescription: account.description,
-          accountId: account.id,
-        },
-        date: txDate.toISOString(),
-        description: txDescription,
-        type: TransactionType.PrincipalPayment,
-        fee: fee || 0,
-        value: totalValue,
-        rate: principalPayment,
-        amount: totalAmount,
-        buyPrice: avgBuyPrice,
-        grossBuyPrice: avgGrossBuyPrice,
-        buyDate: oldestBuyDate.toISOString(),
-        positionId: null,
-      };
-      let tx = new SellTransaction(txData);
-
-
+    if (tx) {
       if (!this.isFutureDate(txDate.toISOString())) {
         if (cashAsset) {
           // we adjust principal (we do it here because we only pay principal if at least 1 matching position
           // exists)
           bond.principalAmount = newPrincipal;
           if (creditCash) {
-            cashAsset.amount = FloatingMath.fixRoundingError(cashAsset.amount + totalValue);
+            cashAsset.amount = FloatingMath.fixRoundingError(cashAsset.amount + tx.value);
             await this.portfolioService.updateAsset(cashAsset, account);
           }
           tx = <SellTransaction>await this.addTransaction(tx);
@@ -1238,6 +1168,96 @@ export class AssetManagementService {
     if (!bondRemoved) {
       await this.portfolioService.updateAsset(bond, account);
     }
+  }
+
+  /**
+   * Create a bond principal payment transaction using provided data
+   * @param principalPayment the principal to pay
+   * @param bond bond to pay principal from
+   * @param cashAsset the cash asset where payment is to be made
+   * @param account bond's account
+   * @param txDate the date when transaction is executed
+   * @param fee fee paid for transaction
+   * @param updateBondValues if true, adjusts the buy price for each position from which principal was paid.
+   */
+  createBondPrincipalPaymentTransaction(principalPayment: number, bond: BondAsset, cashAsset: Asset, account: PortfolioAccount,
+    txDate: Date, fee: number, updateBondValues: boolean) {
+    const txDescription = 'Principal payment for ' + bond.description;
+    const newPrincipal = FloatingMath.fixRoundingError(bond.principalAmount - principalPayment);
+    const initialBondPrincipal = bond.principalAmount;
+    let paymentMade = false;
+    let totalAmount = 0;
+    let totalCost = 0;
+    let totalGrossCost = 0;
+    let totalValue = 0;
+    let oldestBuyDate: Date;
+    for (const position of bond.positions) {
+      const buyDate = new Date(position.buyDate);
+      // only consider positions opened before the payment date
+      if (DateUtils.compareDates(buyDate, txDate) < 0) {
+        paymentMade = true;
+        if (!oldestBuyDate || buyDate.getTime() < oldestBuyDate.getTime()) {
+          oldestBuyDate = buyDate;
+        }
+        const paymentValue = principalPayment * position.amount;
+        const discount = position.buyPrice / initialBondPrincipal;
+
+        // treat bond redemption as a trade so it can be counted for capital gains
+        const buyPrice = principalPayment * discount;
+        const grossBuyPrice = principalPayment * (position.grossBuyPrice / initialBondPrincipal);
+
+        totalAmount = totalAmount + position.amount;
+        totalValue = FloatingMath.fixRoundingError(totalValue + paymentValue);
+        totalCost = totalCost + position.amount * buyPrice;
+        totalGrossCost = totalGrossCost + position.amount * grossBuyPrice;
+
+        if (updateBondValues) {
+          // update buy price for new principal
+          position.buyPrice = newPrincipal * discount;
+          position.grossBuyPrice = newPrincipal * (position.grossBuyPrice / initialBondPrincipal);
+        }
+      }
+    }
+    if (paymentMade) {
+      let avgBuyPrice = 0;
+      let avgGrossBuyPrice = 0;
+      bond.updateStats(); // buy prices updated
+      if (totalAmount > 0) {
+        avgBuyPrice = totalCost / totalAmount;
+        avgGrossBuyPrice = totalGrossCost / totalAmount;
+        totalValue -= fee;
+      }
+      const txData: SellTransactionData = {
+        asset: {
+          accountDescription: account.description,
+          accountId: account.id,
+          id: bond.id,
+          description: bond.description,
+          currency: bond.currency,
+        },
+        otherAsset: {
+          id: cashAsset ? cashAsset.id : null,
+          currency: bond.currency,
+          description: cashAsset ? cashAsset.description : null,
+          accountDescription: account.description,
+          accountId: account.id,
+        },
+        date: txDate.toISOString(),
+        description: txDescription,
+        type: TransactionType.PrincipalPayment,
+        fee: fee || 0,
+        value: totalValue,
+        rate: principalPayment,
+        amount: totalAmount,
+        buyPrice: avgBuyPrice,
+        grossBuyPrice: avgGrossBuyPrice,
+        buyDate: oldestBuyDate.toISOString(),
+        positionId: null,
+      };
+      return new SellTransaction(txData);
+    }
+
+    return null;
   }
 
   /**
@@ -1748,7 +1768,7 @@ export class AssetManagementService {
    * @param account account that holds the payer asset
    * @param cashAsset cash asset that receives the interest
    */
-  private createInterestTransaction(payAmount: number, fee: number, withholdingTax: number, txDate: Date, payerAsset: Asset,
+  createInterestTransaction(payAmount: number, fee: number, withholdingTax: number, txDate: Date, payerAsset: Asset,
     account: PortfolioAccount, cashAsset: Asset) {
     const txDescription = `Interest paid from ${payerAsset.description}`;
     const txData: InterestTransactionData = {

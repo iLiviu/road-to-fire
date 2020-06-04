@@ -814,6 +814,7 @@ export class PortfolioService {
         goals: [
           { title: 'Financial Independence', value: 1000000 },
         ],
+        hideBondAndDepositsRecurringTxs: false,
       };
     }
     return cfg;

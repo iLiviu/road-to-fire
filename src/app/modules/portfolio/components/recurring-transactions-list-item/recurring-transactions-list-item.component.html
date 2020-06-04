@@ -1,13 +1,20 @@
 <mat-list-item class="list-item"
   [ngClass]="{'positive':isCredit && !recTx.inactive, 'negative':isDebit && !recTx.inactive}" (click)="view()">
-  <button type="button" aria-label="Actions" mat-icon-button [matMenuTriggerFor]="menu" (click)="onItemMenu($event)"
-    matTooltip="Actions">
-    <mat-icon>more_vert</mat-icon>
-  </button>
-  <mat-menu #menu="matMenu">
-    <button mat-menu-item (click)="edit()">Edit</button>
-    <button mat-menu-item (click)="delete()">Delete</button>
-  </mat-menu>
+  <ng-container *ngIf="recTx.id">
+    <button type="button" aria-label="Actions" mat-icon-button [matMenuTriggerFor]="menu" (click)="onItemMenu($event)"
+      matTooltip="Actions">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="edit()">Edit</button>
+      <button mat-menu-item (click)="delete()">Delete</button>
+    </mat-menu>
+  </ng-container>
+  <ng-container *ngIf="!recTx.id">
+    <div class="mat-icon-button"></div>
+  </ng-container>
+  
 
   <mat-icon mat-list-icon color="{{recTx.inactive? 'warn':''}}">{{txIcon}}</mat-icon>
 

@@ -102,6 +102,6 @@
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close="edit">Edit</button>
+  <button *ngIf="recTx.id" mat-button mat-dialog-close="edit">Edit</button>
   <button mat-button mat-dialog-close cdkFocusInitial>Close</button>
 </mat-dialog-actions>

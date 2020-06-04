@@ -3,6 +3,7 @@
 ### Features
 * Manually edit unrealized P/L history entries
 * Add option to filter transactions
+* Display bond/deposit interest & principal payment transactions in scheduled transactions list
 
 ### Bug fixes
 * Fix executing multiple due interest/principal payment transactions for a bond

@@ -16,6 +16,7 @@ export class MockPortfolioService {
     portfolioAllocation: [{ assetType: AssetType.Cash, allocation: 1 }],
     withdrawalRate: 0.04,
     dashboardGridVisibility: {},
+    hideBondAndDepositsRecurringTxs: false,
   };
   notifications: AppNotification[] = [];
   accounts = Object.values(SAMPLE_ACCOUNTS);
