@@ -18,10 +18,12 @@ import { CurrencySymbolPipe } from 'src/app/shared/pipes/currency-symbol.pipe';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 import { MockDialogsService } from 'src/app/modules/dialogs/mocks/dialogs.service.mock';
 import { PortfolioHistoryAddComponent, PortfolioHistoryAddComponentInput } from './portfolio-history-add.component';
+import { PortfolioHistoryDataField } from '../../models/portfolio-history';
 
 const dialogData: PortfolioHistoryAddComponentInput = {
   baseCurrency: 'EUR',
   portfolioHistoryEntries: [],
+  fieldToEdit: PortfolioHistoryDataField.Assets,
 };
 
 describe('PortfolioHistoryAddComponent', () => {
