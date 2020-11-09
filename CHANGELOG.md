@@ -1,3 +1,8 @@
+## Master
+
+### UI Changes
+* Format asset position size
+
 ## 1.2.0 (2020-06-04)
 
 ### Features

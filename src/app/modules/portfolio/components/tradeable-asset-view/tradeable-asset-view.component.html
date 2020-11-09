@@ -11,7 +11,7 @@
     <ng-container *ngIf="hasAmount">
       <div>
         <span fxFlex>Assets bought:</span>
-        <span>{{viewAsset.position.amount}}</span>
+        <span>{{viewAsset.position.amount | number}}</span>
       </div>
 
       <mat-divider></mat-divider>
