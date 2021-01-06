@@ -710,21 +710,29 @@ export class AssetManagementService {
 
           const newAsset: DepositAsset = <DepositAsset>await this.portfolioService.addAsset(result.asset, account);
           this.logger.info('Deposit created!');
-          const txData: TransactionData = {
+
+          const txData: TransferTransactionData = {
             asset: {
+              accountDescription: account.description,
+              accountId: account.id,
+              id: result.sourceAsset.id,
+              description: result.sourceAsset.description,
+              currency: result.sourceAsset.currency,
+            },
+            otherAsset: {
               accountDescription: account.description,
               accountId: account.id,
               id: newAsset.id,
               description: newAsset.description,
               currency: newAsset.currency,
             },
-            value: newAsset.amount,
             date: newAsset.creationDate,
             description: `Fund deposit: ${newAsset.description}`,
-            type: TransactionType.DebitCash,
+            type: TransactionType.CashTransfer,
             fee: 0,
+            value: newAsset.amount,
           };
-          this.addTransaction(new Transaction(txData));
+          this.addTransaction(new TransferTransaction(txData));
         } catch (err) {
           this.logger.error(`Could not add deposit: ${err}`, err);
         }
@@ -858,7 +866,7 @@ export class AssetManagementService {
       },
       date: txDate.toISOString(),
       description: txDescription,
-      type: TransactionType.Transfer,
+      type: TransactionType.CashTransfer,
       fee: 0,
       value: txValue,
     };

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { PortfolioAccount } from '../models/portfolio-account';
-import { Transaction } from '../models/transaction';
+import { Transaction, TransactionType } from '../models/transaction';
 import { Asset, AssetType } from '../models/asset';
 import { StorageChangeEvent, StorageChangeOrigin, StorageService } from 'src/app/core/services/storage.service';
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
@@ -24,7 +24,10 @@ import { TwoWayTransaction } from '../models/two-way-transaction';
 import { FloatingMath } from 'src/app/shared/util';
 import { PortfolioHistory } from '../models/portfolio-history';
 import { UserAppError } from 'src/app/shared/models/user-app-error';
+import { TransferTransaction, TransferTransactionData } from '../models/transfer-transaction';
 
+
+const PORTFOLIO_VERSION = 2;
 
 enum ChangeAction {
   ADDED,
@@ -793,6 +796,51 @@ export class PortfolioService {
     return this.storage.storePortfolioHistory(history);
   }
 
+
+  /**
+   * Check if portfolio is stored is in an old format and upgrade if necessary
+   * @param cfg stored portfolio configuration
+   */
+  async upgradePortfolioVersion(cfg: PortfolioConfig): Promise<PortfolioConfig> {
+    if (!cfg.version || cfg.version < 2) {
+      // Version 2 modified how deposit fund transactions are viewed (transfer instead of debit)
+      const transactions = await this.storage.getAllTransactions();
+      const promises: Promise<Transaction>[] = [];
+      for (const tx of transactions) {
+        if (tx.type === TransactionType.DebitCash && tx.description.startsWith('Fund deposit:')) {
+          const txData: TransferTransactionData = {
+            id: tx.id,
+            asset: {
+              accountDescription: tx.asset.accountDescription,
+              accountId: tx.asset.accountId,
+              currency: tx.asset.currency,
+            },
+            otherAsset: {
+              accountDescription: tx.asset.accountDescription,
+              accountId: tx.asset.accountId,
+              id: tx.asset.id,
+              description: tx.asset.description,
+              currency: tx.asset.currency,
+            },
+            date: tx.date,
+            description: tx.description,
+            type: TransactionType.CashTransfer,
+            fee: tx.fee,
+            value: tx.value,
+          };
+          const newTx = new TransferTransaction(txData);
+          const promise = this.updateTransaction(newTx);
+          promises.push(promise);
+        }
+      }
+      await Promise.all(promises);
+
+      cfg.version = PORTFOLIO_VERSION;
+      await this.saveConfig(cfg);
+    }
+    return cfg;
+  }
+
   /**
    * Read the portfolio config. If no config is stored, create a default one.
    * @returns Promise that resolves with the portfolio configuration.
@@ -815,7 +863,15 @@ export class PortfolioService {
           { title: 'Financial Independence', value: 1000000 },
         ],
         hideBondAndDepositsRecurringTxs: false,
+        version: PORTFOLIO_VERSION,
       };
+    } else {
+
+    }
+
+    // upgrade old portfolio version if needed
+    if (!cfg.version || cfg.version < PORTFOLIO_VERSION) {
+      cfg = await this.upgradePortfolioVersion(cfg);
     }
     return cfg;
   }

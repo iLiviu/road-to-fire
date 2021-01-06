@@ -256,7 +256,9 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
   }
 
   private onTransactionsUpdated() {
-    this.updateTransactionsList(this.account.id);
+    if (this.account) {
+      this.updateTransactionsList(this.account.id);
+    }
   }
 
   private onDataUpdated() {

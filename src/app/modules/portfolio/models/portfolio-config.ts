@@ -21,4 +21,5 @@ export interface PortfolioConfig {
   dashboardGridVisibility: Dictionary<boolean>;
   loanToValueRatio: number;
   hideBondAndDepositsRecurringTxs: boolean;
+  version: number;
 }

@@ -3,6 +3,9 @@
 ### UI Changes
 * Format asset position size
 
+### Bug fixes
+* Treat deposit creation transaction as a transfer, not a debit of cash
+
 ## 1.2.0 (2020-06-04)
 
 ### Features
