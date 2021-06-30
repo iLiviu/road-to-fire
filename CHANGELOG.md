@@ -6,6 +6,7 @@
 
 ### Bug fixes
 * Treat deposit creation transaction as a transfer, not a debit of cash
+* Swipe between tabs
 
 ## 1.2.0 (2020-06-04)
 
