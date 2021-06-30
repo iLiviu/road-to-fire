@@ -831,6 +831,10 @@ export class PortfolioService {
           const newTx = new TransferTransaction(txData);
           const promise = this.updateTransaction(newTx);
           promises.push(promise);
+        } else if (tx.type ===  TransactionType.Transfer && tx.description.startsWith('Liquidated ')) {
+          tx.type = TransactionType.CashTransfer;
+          const promise = this.updateTransaction(tx);
+          promises.push(promise);
         }
       }
       await Promise.all(promises);
