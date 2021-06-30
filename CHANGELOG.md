@@ -7,6 +7,7 @@
 ### Bug fixes
 * Treat deposit creation transaction as a transfer, not a debit of cash
 * Swipe between tabs
+* Correctly build list of currency pairs to get forex rates for
 
 ## 1.2.0 (2020-06-04)
 

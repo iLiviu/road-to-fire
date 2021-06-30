@@ -122,12 +122,13 @@ export class PortfolioPageComponent implements OnInit, OnDestroy {
    * later use
    */
   protected async updateForexRates(currencies: string[]): Promise<boolean> {
-    const requiredFXPairs: string[] = [];
+    const fxPairs: Dictionary<boolean> = {};
     for (const currency of currencies) {
       if (currency !== this.baseCurrency) {
-        requiredFXPairs.push(currency + this.baseCurrency);
+        fxPairs[currency + this.baseCurrency] = true;
       }
     }
+    const requiredFXPairs: string[] = Object.keys(fxPairs);
     if (requiredFXPairs.length > 0) {
       try {
         const rates = await this.portfolioService.getForexRates(requiredFXPairs);
