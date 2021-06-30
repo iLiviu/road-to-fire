@@ -2,6 +2,7 @@
 
 ### UI Changes
 * Format asset position size
+* Option to filter asset transfers and cash transfers separately in transactions list
 
 ### Bug fixes
 * Treat deposit creation transaction as a transfer, not a debit of cash

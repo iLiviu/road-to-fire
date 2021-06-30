@@ -44,7 +44,8 @@ const filtersTree: FilterNode[] = [
     title: 'Neutral',
     children: [
       { title: 'Exchange', txType: TransactionType.Exchange, children: null },
-      { title: 'Transfer', txType: TransactionType.Transfer, children: null },
+      { title: 'Asset Transfer', txType: TransactionType.Transfer, children: null },
+      { title: 'Cash Transfer', txType: TransactionType.CashTransfer, children: null },
     ]
   },
 ];
