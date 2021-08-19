@@ -8,6 +8,7 @@
 * Treat deposit creation transaction as a transfer, not a debit of cash
 * Swipe between tabs
 * Correctly build list of currency pairs to get forex rates for
+* Update gross buy price when manually editing an asset's buy price
 
 ## 1.2.0 (2020-06-04)
 

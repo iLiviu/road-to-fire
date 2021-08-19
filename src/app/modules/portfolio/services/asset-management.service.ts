@@ -1021,6 +1021,7 @@ export class AssetManagementService {
           position.amount = response.amount;
           position.buyDate = response.transactionDate;
           position.buyPrice = response.price;
+          position.grossBuyPrice = FloatingMath.fixRoundingError(response.price + (response.fee / response.amount));
         }
         if (asset.symbol !== newSymbol) {
           // allow quote to be refreshed if symbol is changed
