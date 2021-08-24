@@ -244,6 +244,7 @@ export const TRANSACTION_ICONS = {
   [TransactionType.Buy]: 'arrow_back',
   [TransactionType.Exchange]: 'euro_symbol',
   [TransactionType.Transfer]: 'swap_horiz',
+  [TransactionType.CashTransfer]: 'swap_horiz',
   [TransactionType.Dividend]: 'arrow_forward',
   [TransactionType.CashDividend]: 'arrow_forward',
   [TransactionType.CashInterest]: 'arrow_forward',
