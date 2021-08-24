@@ -125,6 +125,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   currenciesTotalValue: Dictionary<number> = {};
   currentDebtRatio: number;
   dataLoaded = false;
+  dataLoading = false;
   debtAllocationPercentage: number;
   debtToAcquire: number;
   hasDebt: boolean;
@@ -909,21 +910,28 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * Loads the portfolio data and computes the stats
    */
   private async loadData() {
-    try {
-      const accounts = await this.portfolioService.getAccounts();
-      this.accounts = accounts;
-      await this.computeStats();
-      this.onDataLoaded();
+    if (!this.dataLoading) {
+      this.dataLoading = true;
+      try {
+        const accounts = await this.portfolioService.getAccounts();
+        this.accounts = accounts;
+        await this.computeStats();
+        this.onDataLoaded();
 
-      if (accounts.length === 0) {
-        const canAdd = await this.dialogService.confirm(`Looks like you don't have any accounts. Would you like to add one now?`);
-        if (canAdd) {
-          this.router.navigate(['../accounts/new'], { relativeTo: this.route });
+        if (accounts.length === 0) {
+          const canAdd = await this.dialogService.confirm(`Looks like you don't have any accounts. Would you like to add one now?`);
+          if (canAdd) {
+            this.router.navigate(['../accounts/new'], { relativeTo: this.route });
+          }
         }
+      } catch (err) {
+        this.onDataLoaded();
+        this.logger.error('Could not retrieve accounts!', err);
       }
-    } catch (err) {
-      this.onDataLoaded();
-      this.logger.error('Could not retrieve accounts!', err);
+      this.dataLoading = false;
+    } else {
+      // postpone reload until current load is finished
+      this.onDataUpdated();
     }
   }
 
