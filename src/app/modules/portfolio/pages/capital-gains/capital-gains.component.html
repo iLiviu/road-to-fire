@@ -30,8 +30,8 @@
       </div>
       <div>
         <span fxFlex>Net Total P/L:</span>
-        <span [ngClass]="(grossTotalProfitLoss<0)? 'negative':'positive'">
-          {{grossTotalProfitLoss | currency:baseCurrency }} ({{grossTotalProfitLossPercent | percent:'1.0-2' }})
+        <span [ngClass]="(netTotalProfitLoss<0)? 'negative':'positive'">
+          {{netTotalProfitLoss | currency:baseCurrency }} ({{netTotalProfitLossPercent | percent:'1.0-2' }})
         </span>
       </div>
 
