@@ -1,4 +1,4 @@
-## Master
+## 1.2.1 (2021-08-25)
 
 ### UI Changes
 * Format asset position size
