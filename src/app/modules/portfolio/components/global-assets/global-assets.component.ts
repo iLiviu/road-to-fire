@@ -1,3 +1,5 @@
+import { Injectable } from '@angular/core';
+
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { AssetsComponent } from '../assets/assets.component';
 import { AppEventType, AppEvent } from 'src/app/core/services/events.service';
@@ -9,6 +11,7 @@ import { OnInit } from '@angular/core';
  * Base component for displaying detailed information for a specific asset class.
  * This includes a summary of different statistics and the list of assets
  */
+@Injectable()
 export class GlobalAssetsComponent extends AssetsComponent implements OnInit {
 
   pageTitle: string;

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { CapitalGainsComponent } from './capital-gains.component';
 import { LoggerService } from 'src/app/core/services/logger.service';
@@ -34,7 +34,7 @@ describe('CapitalGainsComponent', () => {
   let component: CapitalGainsComponent;
   let fixture: ComponentFixture<CapitalGainsComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatListModule,

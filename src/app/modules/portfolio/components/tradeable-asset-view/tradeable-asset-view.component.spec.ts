@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { TradeableAssetViewComponent, TradeableAssetViewData } from './tradeable-asset-view.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,7 +26,7 @@ describe('TradeableAssetViewComponent', () => {
   let component: TradeableAssetViewComponent;
   let fixture: ComponentFixture<TradeableAssetViewComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatDialogModule,

@@ -5,7 +5,6 @@
     "types": [
       "jasmine",
       "node",
-      "@types/webappsec-credential-management"
     ]
   },
   "files": [

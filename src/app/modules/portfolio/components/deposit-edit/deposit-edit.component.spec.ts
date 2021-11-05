@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { DepositEditComponent, DepositEditData } from './deposit-edit.component';
 import { EditDialogComponent } from '../edit-dialog/edit-dialog.component';
@@ -29,7 +29,7 @@ describe('DepositEditComponent', () => {
   let component: DepositEditComponent;
   let fixture: ComponentFixture<DepositEditComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatButtonModule,

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { CostTransactionEditComponent, CostTransactionEditData } from './cost-transaction-edit.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,7 +30,7 @@ describe('CostTransactionEditComponent', () => {
   let component: CostTransactionEditComponent;
   let fixture: ComponentFixture<CostTransactionEditComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatButtonModule,

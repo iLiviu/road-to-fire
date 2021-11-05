@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { RecurringTransactionInputComponent } from './recurring-transaction-input.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -45,7 +45,7 @@ describe('RecurringTransactionInputComponent', () => {
   let component: RecurringTransactionInputComponent;
   let fixture: ComponentFixture<RecurringTransactionInputComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatListModule,

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -46,7 +46,7 @@ describe('RecurringTransactionsListItemComponent', () => {
   let component: RecurringTransactionsListItemComponent;
   let fixture: ComponentFixture<RecurringTransactionsListItemComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatListModule,
@@ -72,7 +72,7 @@ describe('RecurringTransactionsListItemComponent', () => {
   beforeEach(() => {
   });
 
-  it('should create', async(() => {
+  it('should create', waitForAsync(() => {
     fixture = TestBed.createComponent(RecurringTransactionsListItemComponent);
     component = fixture.componentInstance;
     component.recTx = recTx;

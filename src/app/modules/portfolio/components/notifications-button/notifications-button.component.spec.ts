@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { NotificationsButtonComponent } from './notifications-button.component';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -22,7 +22,7 @@ describe('NotificationsButtonComponent', () => {
   let component: NotificationsButtonComponent;
   let fixture: ComponentFixture<NotificationsButtonComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatListModule,

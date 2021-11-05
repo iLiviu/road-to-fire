@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { TransactionsListItemComponent } from './transactions-list-item.component';
 import { AssetManagementService } from '../../services/asset-management.service';
@@ -36,7 +36,7 @@ describe('TransactionsListItemComponent', () => {
   let component: TransactionsListItemComponent;
   let fixture: ComponentFixture<TransactionsListItemComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatListModule,

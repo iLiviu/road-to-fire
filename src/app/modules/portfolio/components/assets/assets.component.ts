@@ -1,5 +1,6 @@
 import { OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { Injectable } from '@angular/core';
 
 import { AssetType, Asset } from '../../models/asset';
 import { PortfolioService } from '../../services/portfolio.service';
@@ -18,6 +19,7 @@ import { BondAsset } from '../../models/bond-asset';
 /**
  * Base Component for a UI that displays information about a group of assets
  */
+@Injectable()
 export abstract class AssetsComponent extends PortfolioPageComponent implements OnInit {
 
   assetsLoaded = false;

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { DepositLiquidateComponent, DepositLiquidateData } from './deposit-liquidate.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,7 +29,7 @@ describe('DepositLiquidateComponent', () => {
   let component: DepositLiquidateComponent;
   let fixture: ComponentFixture<DepositLiquidateComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatButtonModule,

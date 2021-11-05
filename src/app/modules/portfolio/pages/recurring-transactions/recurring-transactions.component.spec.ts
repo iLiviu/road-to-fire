@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { RecurringTransactionsComponent } from './recurring-transactions.component';
 import { TopToolbarComponent } from '../../components/top-toolbar/top-toolbar.component';
@@ -40,7 +40,7 @@ describe('RecurringTransactionsComponent', () => {
   let component: RecurringTransactionsComponent;
   let fixture: ComponentFixture<RecurringTransactionsComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatListModule,

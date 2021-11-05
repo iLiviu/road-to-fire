@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { TopToolbarComponent } from './top-toolbar.component';
 import { EventsService } from 'src/app/core/services/events.service';
@@ -11,7 +11,7 @@ describe('TopToolbarComponent', () => {
   let component: TopToolbarComponent;
   let fixture: ComponentFixture<TopToolbarComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatButtonModule,

@@ -1,4 +1,4 @@
-import { TestBed, async, fakeAsync, flush } from '@angular/core/testing';
+import { TestBed, fakeAsync, flush, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -91,13 +91,13 @@ describe('AppComponent', () => {
     router = TestBed.inject(Router);
   }));
 
-  it('should create the app', async(() => {
+  it('should create the app', waitForAsync(() => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   }));
 
-  it(`should set proper title`, async(() => {
+  it(`should set proper title`, waitForAsync(() => {
     const fixture = TestBed.createComponent(AppComponent);
     const titleService = TestBed.inject(Title);
     expect(titleService.getTitle()).toEqual('Road To FIRE');

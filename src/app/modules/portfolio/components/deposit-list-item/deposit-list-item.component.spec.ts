@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { DepositListItemComponent } from './deposit-list-item.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,7 +16,7 @@ describe('DepositListItemComponent', () => {
   let component: DepositListItemComponent;
   let fixture: ComponentFixture<DepositListItemComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatListModule,

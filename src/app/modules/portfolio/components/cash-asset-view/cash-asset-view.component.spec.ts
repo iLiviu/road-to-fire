@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { CashAssetViewComponent } from './cash-asset-view.component';
 import { FormatDatePipe } from 'src/app/shared/pipes/format-date.pipe';
@@ -16,7 +16,7 @@ describe('CashAssetViewComponent', () => {
   let component: CashAssetViewComponent;
   let fixture: ComponentFixture<CashAssetViewComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatButtonModule,

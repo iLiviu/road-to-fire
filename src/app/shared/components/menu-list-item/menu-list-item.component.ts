@@ -23,7 +23,7 @@ import { EventsService, AppEventType } from 'src/app/core/services/events.servic
   ]
 })
 export class MenuListItemComponent implements OnInit, OnDestroy {
-  expanded: boolean;
+  expanded: boolean = false;
   @HostBinding('attr.aria-expanded') ariaExpanded = this.expanded;
   @Input() item: NavItem;
   @Input() depth: number;

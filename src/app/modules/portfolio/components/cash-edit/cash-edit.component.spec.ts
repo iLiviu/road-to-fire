@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { CashEditComponent } from './cash-edit.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,7 +25,7 @@ describe('CashEditComponent', () => {
   let component: CashEditComponent;
   let fixture: ComponentFixture<CashEditComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         MatButtonModule,
