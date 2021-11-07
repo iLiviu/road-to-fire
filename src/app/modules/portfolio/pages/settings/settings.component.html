@@ -13,6 +13,13 @@
             <h2>Display</h2>
 
             <mat-form-field>
+              <mat-select placeholder="Theme" formControlName="theme" matTooltip="Theme for current device" required>
+                <mat-option value="light">Light</mat-option>
+                <mat-option value="dark">Dark</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field>
               <mat-select placeholder="Base Currency" formControlName="baseCurrencyCtl" required>
                 <mat-option *ngFor="let currency of currencyCodes" [value]="currency.code">
                   {{currency.name}}
@@ -38,7 +45,7 @@
             <mat-divider></mat-divider>
 
             <h2>Security & Backup</h2>
-            
+
             <mat-checkbox formControlName="passwordProtect" #passProtect (change)="onPasswordProtectionToggled($event)">
               Password protect application data
             </mat-checkbox>

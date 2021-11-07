@@ -1,6 +1,6 @@
 <button type="button" aria-label="Notifications" mat-icon-button matTooltip="Notifications"
   [disabled]="notifications.length === 0" [matMenuTriggerFor]="notificationsMenu">
-  <mat-icon *ngIf="unreadNotificationsCount > 0" [matBadge]="unreadNotificationsCount" matBadgeColor="warn">
+  <mat-icon *ngIf="unreadNotificationsCount > 0" [matBadge]="unreadNotificationsCount" matBadgeColor="accent">
     notifications</mat-icon>
   <mat-icon *ngIf="unreadNotificationsCount === 0">notifications</mat-icon>
 </button>

@@ -9,7 +9,11 @@ import { LocaleService, LocaleIDs } from './locale-service';
 
 
 const CONFIG_VERSION = 1;
-
+const CONFIG_THEME_KEY = 'roadtofire:theme';
+export const APP_THEMES = {
+    LIGHT : 'light',
+    DARK : 'dark'
+};
 /**
  * Error thrown whenever the saved configuration's object format version is
  * newer than what the app expects.
@@ -21,7 +25,6 @@ export class UnsupportedConfigVersionError extends Error {
     Object.setPrototypeOf(this, UnsupportedConfigVersionError.prototype);
   }
 }
-
 
 /**
  * Service that provides app configuration. Interacts with storage service to read/write configuration
@@ -126,6 +129,23 @@ export class ConfigService {
     this.localeService.setCurrentLocale(config.dateAndCurrencyFormat);
   }
 
+  /**
+   * Get the theme that has been saved in local storage
+   * @returns identifier for current stored theme
+   */
+  getStoredTheme() {
+    const value = localStorage.getItem(CONFIG_THEME_KEY) || APP_THEMES.LIGHT;
+    return value;
+  }
+
+  /**
+   * Update the current theme by storing it in the local storage
+   * @param newValue theme identifier
+   */
+  setCurrentTheme(newValue: string) {
+    localStorage.setItem(CONFIG_THEME_KEY, newValue);
+    this.eventsService.themeChanged(newValue);
+  }
 
 
 }

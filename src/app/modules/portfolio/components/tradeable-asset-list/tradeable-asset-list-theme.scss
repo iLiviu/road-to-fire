@@ -1,0 +1,9 @@
+@mixin tradeable-asset-list-theme($theme) {
+  $primary: map-get($theme, primary);
+  $background: map-get($theme, background);
+
+  .list-header {
+    color: mat-color($primary, text);
+    background-color: mat-color($background, dialog);
+  }
+}

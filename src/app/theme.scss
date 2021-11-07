@@ -1,6 +1,12 @@
 @use '~@angular/material' as mat;
+@use "sass:map";
+
 @import '~@angular/material/theming';
-@import 'theme_colors.scss';
+@import 'shared/components/menu-list-item/menu-list-item-theme.scss';
+@import 'modules/portfolio/components/notifications-button/notifications-button-theme.scss';
+@import 'modules/portfolio/components/tradeable-asset-list/tradeable-asset-list-theme.scss';
+@import 'modules/dialogs/components/message-dialog/message-dialog-theme.scss';
+@import 'core-app-theme.scss';
 
 // Define a custom typography config that overrides the font-family as well as the
 // `headlines` and `body-1` levels.
@@ -13,21 +19,54 @@ $custom-typography: mat.define-typography-config(
 // Be sure that you only ever include this mixin once!
 @include mat.core($custom-typography);
 
+// Create a light theme
+$app-light-theme: mat.define-light-theme((
+ color: (
+   primary: mat.define-palette(mat.$light-blue-palette, 500),
+   accent: mat.define-palette(mat.$pink-palette, 400),
+ )
+));
+// extra theme colors that we use in our app
+$extra-light-colors: (
+  positive: green,
+  warning: rgb(240, 170, 65),
+  snackbar-text: white,
+);
+$app-light-theme: map.set($app-light-theme,extra,$extra-light-colors);
 
+// Define a dark theme
+$app-dark-theme: mat.define-dark-theme((
+ color: (
+   primary: mat.define-palette(mat.$pink-palette),
+   accent: mat.define-palette(mat.$blue-gray-palette),
+ )
+));
+$extra-dark-colors: (
+  positive: rgb(78, 192, 97),
+  warning: rgb(240, 170, 65),
+  snackbar-text: white,
+);
+$app-dark-theme: map.set($app-dark-theme,extra,$extra-dark-colors);
 
-// Define the palettes for your theme using the Material Design palettes available in palette.scss
-// (imported above). For each palette, you can optionally specify a default, lighter, and darker hue.
-$app-primary: mat.define-palette(mat.$light-blue-palette, 500);
-$app-accent: mat.define-palette(mat.$pink-palette, 400);
-// The warn palette is optional (defaults to red).
-$app-warn: mat.define-palette(mat.$red-palette);
+// initialize light theme by default
+@include mat.all-component-themes($app-light-theme);
 
+// Include theme styles for core and each custom component used in the app.
+@mixin app-theme($theme) {
+  @include core-app-theme($theme);
+  @include menu-list-item-theme($theme);
+  @include notifications-button-theme($theme);
+  @include tradeable-asset-list-theme($theme);
+  @include message-dialog-theme($theme);
+}
 
-// Create the theme object (a Sass map containing all of the palettes).
-$app-theme: mat.define-light-theme($app-primary, $app-accent, $app-warn);
+.light-theme {
+  @include app-theme($app-light-theme);
+}
 
+.dark-theme {
+  //include theme colors only for all angular material components
+  @include mat.all-component-colors($app-dark-theme);
 
-// Include theme styles for core and each component used in your app.
-// Alternatively, you can import and @include the theme mixins for each component that you are using.
-@include mat.all-component-themes($app-theme);
-
+  @include app-theme($app-dark-theme);
+}

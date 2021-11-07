@@ -1,3 +1,8 @@
+## Master
+
+### Features
+* Add dark theme support
+
 ## 1.2.1 (2021-08-25)
 
 ### UI Changes

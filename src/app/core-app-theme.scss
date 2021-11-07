@@ -1,0 +1,64 @@
+@mixin core-app-theme($theme) {
+  $background: map-get($theme, background);
+  $foreground: map-get($theme, foreground);
+  $primary: map-get($theme, primary);
+  $extra: map-get($theme, extra);
+  $accent: map-get($theme, accent);
+  $warn: map-get($theme, warn);
+  
+
+  .loader-container {
+    background: mat-color($background, background); 
+  }
+
+  /* unvisited link */
+  a:link {
+      color:mat-color($primary, text);
+  }
+
+  /* visited link */
+  a:visited {
+      color: mat-color($primary, text);
+  }
+
+  /* mouse over link */
+  a:hover {
+      color: mat-color($primary, hover);
+  }
+
+  /* selected link */
+  a:active {
+      color: mat-color($primary, hover);
+  }
+
+  .positive {
+    color: mat-color($extra,positive) !important;
+  }
+
+  .negative {
+    color: mat-color($warn,text) !important;
+  }
+
+  .neutral {
+    color: mat-color($foreground,text) !important;
+  }
+
+  .success-panel {
+    background: mat-color($extra,positive);
+    color: mat-color($extra,snackbar-text);
+  }
+
+  .success-panel .mat-simple-snackbar-action {
+    color: mat-color($warn,text);
+
+  }
+
+  .error-panel {
+    background: mat-color($warn,text);
+    color: mat-color($extra,snackbar-text);
+  }
+
+  .loader {
+    color: mat-color($foreground,text);
+  }
+}

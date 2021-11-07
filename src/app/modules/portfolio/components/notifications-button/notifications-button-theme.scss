@@ -1,0 +1,7 @@
+@mixin notifications-button-theme($theme) {
+  $background: map-get($theme, background);
+
+  .unread {
+    background-color: mat-color($background, focused-button);
+  }
+}

@@ -65,6 +65,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
   saveOnCloud: FormControl;
   settingsSaved = false;
   settingsForm: FormGroup;
+  theme: FormControl;
   twoFactorAvailable: boolean;
   withdrawalRate: FormControl;
 
@@ -103,6 +104,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
   async saveSettings() {
     this.formSubmitted = true;
     try {
+      this.configService.setCurrentTheme(this.theme.value);
       this.portfolioConfig.baseCurrency = this.baseCurrencyCtl.value;
       this.portfolioConfig.loanToValueRatio = this.debtToValueRatio.value / 100;
       this.portfolioConfig.withdrawalRate = +this.withdrawalRate.value / 100;
@@ -393,6 +395,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
     this.passwordProtect = new FormControl(this.encryptionEnabled);
     this.configPassword = new FormControl('');
     this.configPasswordConfirm = new FormControl('');
+    this.theme = new FormControl(this.configService.getStoredTheme());
 
     this.settingsForm = new FormGroup({
       baseCurrencyCtl: this.baseCurrencyCtl,
@@ -406,6 +409,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
       passwordProtect: this.passwordProtect,
       configPassword: this.configPassword,
       configPasswordConfirm: this.configPasswordConfirm,
+      theme: this.theme,
     });
 
     this.onDataLoaded();

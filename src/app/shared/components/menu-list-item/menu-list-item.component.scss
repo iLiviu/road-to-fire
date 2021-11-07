@@ -1,18 +1,6 @@
-@import '../../../theme_colors.scss';
-
 :host {
   display: block;
   outline: none;
-
-  .mat-list-item.active {
-    background-color: $app-selected-background;
-  }
-  &:hover,
-  &:focus {
-    >.mat-list-item:not(.expanded) {
-      background-color: $app-hover-background !important;
-    }
-  }
 }
 
 .mat-list-item {
@@ -34,4 +22,3 @@
 .level2 {
     padding-left: 48px;
 }
-

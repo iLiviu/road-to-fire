@@ -1,4 +1,7 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, NgZone } from '@angular/core';
+import {
+  Component, OnInit, AfterViewInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, NgZone,
+  Renderer2
+} from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Title } from '@angular/platform-browser';
 import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
@@ -9,10 +12,11 @@ import { LoggerService, LogLevel } from './core/services/logger.service';
 import { StorageService } from './core/services/storage.service';
 import { APP_CONSTS } from './config/app.constants';
 import { EventsService, AppEventType, ConfigLoadedData, AppEvent } from './core/services/events.service';
-import { ConfigService } from './core/services/config.service';
+import { ConfigService, APP_THEMES } from './core/services/config.service';
 import { UpdateService } from './core/services/update.service';
 import { AppConfig } from './core/models/app-storage';
 import { DialogsService } from './modules/dialogs/dialogs.service';
+import { throws } from 'assert';
 
 @Component({
   selector: 'app-root',
@@ -32,7 +36,8 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(protected titleService: Title, private logger: LoggerService, private snackBar: MatSnackBar,
     private storageService: StorageService, private router: Router, private eventsService: EventsService,
     private configService: ConfigService, private ngZone: NgZone, private dialogService: DialogsService,
-    protected update: UpdateService, private cdr: ChangeDetectorRef) {
+    protected update: UpdateService, private cdr: ChangeDetectorRef,
+    private renderer: Renderer2) {
     this.loading = true;
     titleService.setTitle(APP_CONSTS.TITLE);
 
@@ -63,6 +68,9 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
           this.reloadApp();
         }
         break;
+      case AppEventType.THEME_CHANGED:
+        this.themeChanged(event.data);
+        break;
     }
   }
 
@@ -77,6 +85,7 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.themeChanged(this.configService.getStoredTheme());
     this.logger.asObservable()
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(event => {
@@ -130,9 +139,18 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
       // reload after sync is done
       await this.storageService.waitForSync();
       this.reloadApp();
-//      dialogRef.close();
+      //      dialogRef.close();
     }
+  }
 
+  private themeChanged(newTheme: string) {
+    if (newTheme === APP_THEMES.LIGHT) {
+      this.renderer.addClass(document.body, 'light-theme');
+      this.renderer.removeClass(document.body, 'dark-theme');
+    } else {
+      this.renderer.addClass(document.body, 'dark-theme');
+      this.renderer.removeClass(document.body, 'light-theme');
+    }
   }
 
 

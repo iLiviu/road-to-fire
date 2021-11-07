@@ -24,6 +24,9 @@ import {
 import { FloatingMath, binarySearch, DateUtils } from 'src/app/shared/util';
 import { ASSET_REGION_LABELS, AssetRegionHelper } from '../../models/asset-region';
 import * as moment from 'moment';
+import { ThemeService } from 'ng2-charts';
+import { ChartOptions } from 'chart.js';
+import { APP_THEMES, ConfigService } from 'src/app/core/services/config.service';
 
 const MULTI_COL_GRID_ROW_HEIGHT = '2:1.6';
 const SINGLE_COL_GRID_ROW_HEIGHT = '1:1.1';
@@ -263,13 +266,15 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     protected logger: LoggerService, protected dialogService: DialogsService, protected router: Router,
     protected assetManagementService: AssetManagementService,
     protected storageService: StorageService, private cdr: ChangeDetectorRef, private route: ActivatedRoute,
-    @Inject(LOCALE_ID) public locale: string) {
+    @Inject(LOCALE_ID) public locale: string, private chartsThemeService: ThemeService,
+    private configService: ConfigService) {
     super(logger, portfolioService, dialogService, eventsService, router, storageService);
     this.assetTypeLabels[AssetType.Cash] = 'Cash & Equivalents';
   }
 
   ngOnInit() {
     super.ngOnInit();
+    this.themeChanged(this.configService.getStoredTheme());
   }
 
   /**
@@ -375,6 +380,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       case AppEventType.ASSET_REMOVED:
       case AppEventType.ASSET_UPDATED:
         this.onDataUpdated();
+        break;
+      case AppEventType.THEME_CHANGED:
+        console.log(event.data);
+        this.themeChanged(event.data);
         break;
       default:
         super.handleEvents(event);
@@ -951,5 +960,33 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       }
     }
     this.loadData();
+  }
+
+  /**
+   * Fired when theme changes. Adjusts chart colors to fit current theme
+   * @param newTheme the new theme id
+   */
+  private themeChanged(newTheme: string) {
+    let overrides: ChartOptions;
+    if (newTheme === APP_THEMES.DARK) {
+      overrides = {
+        legend: {
+          labels: { fontColor: 'white' }
+        },
+        scales: {
+          xAxes: [{
+            ticks: { fontColor: 'white' },
+            gridLines: { color: 'rgba(255,255,255,0.1)' }
+          }],
+          yAxes: [{
+            ticks: { fontColor: 'white' },
+            gridLines: { color: 'rgba(255,255,255,0.1)' }
+          }]
+        }
+      };
+    } else {
+      overrides = {};
+    }
+    this.chartsThemeService.setColorschemesOptions(overrides);
   }
 }

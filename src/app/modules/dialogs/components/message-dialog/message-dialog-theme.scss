@@ -1,0 +1,17 @@
+@mixin message-dialog-theme($theme) {
+  $primary: map-get($theme, primary);
+  $warn: map-get($theme, warn);
+  $extra: map-get($theme, extra);
+
+  .error {
+    color: mat-color($warn, text);
+  }
+
+  .info {
+    color: mat-color($primary, text);
+  }
+
+  .warning {
+    color: mat-color($extra, warning);
+  }
+}

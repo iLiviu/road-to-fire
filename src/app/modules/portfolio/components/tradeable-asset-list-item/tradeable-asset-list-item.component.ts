@@ -33,7 +33,7 @@ export class TradeableAssetListItemComponent implements OnInit {
 
   @Input() depth: number;
   @Input() viewAsset: ViewAsset;
-  expanded: boolean = false;
+  expanded = false;
   @HostBinding('attr.aria-expanded') ariaExpanded = this.expanded;
   hasAmount: boolean;
   isStockLike: boolean;

@@ -31,6 +31,7 @@ export enum AppEventType {
   OFFLINE_MODE_TOGGLED,
   CLOUD_STORAGE_CONNECTED,
   CLOUD_STORAGE_NOT_CONNECTED,
+  THEME_CHANGED,
 }
 
 export interface ConfigLoadedData {
@@ -376,4 +377,13 @@ export class EventsService {
     });
   }
 
+  /**
+   * Fired if app theme is changed
+   */
+  themeChanged(newTheme: string) {
+    this.triggerEvent({
+      type: AppEventType.THEME_CHANGED,
+      data: newTheme,
+    });
+  }
 }

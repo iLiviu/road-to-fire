@@ -2,7 +2,6 @@
 @import url('https://fonts.googleapis.com/css?family=Material+Icons');
 @import url('https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300');
 
-
 html, body {
   height: 100%;
   width: 100%;
@@ -59,31 +58,6 @@ html, body {
 
 }
 
-.positive {
-  color: $app-positive;
-}
-
-.negative {
-  color: $app-negative;
-}
-
-.neutral {
-  color: $app-neutral;
-}
-
-.success-panel {
-  background: $app-info-background;
-}
-
-.success-panel .mat-simple-snackbar-action {
-  color: $app-info-action;
-
-}
-
-.error-panel {
-  background: $app-error-background;
-}
-
 .full-screen-dialog {
   height: 100vh;
   width: 100vw !important;
@@ -104,9 +78,7 @@ html, body {
   position:absolute; 
   left: 0px; 
   top:0px; 
-  background: $app-background-color; 
   z-index: 9;
-
 }
 
 .right-align {
@@ -171,26 +143,6 @@ html, body {
   left: calc(50vw - 50px);
 }
 
-
-/* unvisited link */
-a:link {
-    color:$app-link-color;
-}
-
-/* visited link */
-a:visited {
-    color: $app-link-color;
-}
-
-/* mouse over link */
-a:hover {
-    color: $app-link-hover-color;
-}
-
-/* selected link */
-a:active {
-    color: $app-link-active-color;
-}
 
 .mat-tab-group-fill-height {
   height: 100%;
