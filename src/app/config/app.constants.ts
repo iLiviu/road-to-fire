@@ -11,19 +11,12 @@ export interface SymbolDetails {
 
 export const APP_CONSTS = {
   TITLE: 'Road To FIRE',
-  VERSION: '1.2.1',
+  VERSION: '1.3.0',
   // text to show when user first loads the current new version
-  WHATS_NEW_TITLE: `What's new in version 1.2.1`,
+  WHATS_NEW_TITLE: `What's new in version 1.3.0`,
   WHATS_NEW:
-    `UI Changes:
-* Format asset position size
-* Option to filter asset transfers and cash transfers separately in transactions list
-
-Bug fixes:
-* Treat deposit creation transaction as a transfer, not a debit of cash
-* Swipe between tabs
-* Correctly build list of currency pairs to get forex rates for
-* Update gross buy price when manually editing an asset's buy price`,
+    `Features:
+* Added support for dark theme`,
   REPOSITORY_URL: 'https://github.com/iLiviu/road-to-fire',
   STORAGE_API_KEYS: {
     DROPBOX: 'kbwh5504okeu3b9',
