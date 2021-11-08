@@ -37,8 +37,8 @@ $app-light-theme: map.set($app-light-theme,extra,$extra-light-colors);
 // Define a dark theme
 $app-dark-theme: mat.define-dark-theme((
  color: (
-   primary: mat.define-palette(mat.$pink-palette),
-   accent: mat.define-palette(mat.$blue-gray-palette),
+   primary: mat.define-palette(mat.$light-blue-palette, 500),
+   accent: mat.define-palette(mat.$pink-palette, 400),
  )
 ));
 $extra-dark-colors: (
