@@ -141,7 +141,7 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
 
           let assetCapitalGains: AssetCapitalGains;
           if (this.salesGroupBy === SalesGroupBy.Asset) {
-            assetCapitalGains = assetCapitalGainsMap[sellTx.asset.id];
+            assetCapitalGains = assetCapitalGainsMap[sellTx.asset.description];
             if (assetCapitalGains) {
               if (new Date(sellTx.buyDate).toDateString() !== new Date(assetCapitalGains.buyDate).toDateString()) {
                 // if dates are different, do not show any date
@@ -173,7 +173,7 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
               fees: fees,
             };
             this.yearAssetsCapitalGains.push(assetCapitalGains);
-            assetCapitalGainsMap[sellTx.asset.id] = assetCapitalGains;
+            assetCapitalGainsMap[sellTx.asset.description] = assetCapitalGains;
 
           }
         }

@@ -1,3 +1,8 @@
+## Master
+
+### Bug fixes
+* Group capital gains correctly by asset description
+
 ## 1.3.0
 
 ### Features
