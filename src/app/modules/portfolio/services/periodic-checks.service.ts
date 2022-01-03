@@ -206,7 +206,7 @@ export class PeriodicChecksService {
         this.logger.error(`Failed transaction: ${err}`, err);
       }
     } else {
-      this.portfolioService.addPendingTransactionNotification('Pending recurring transaction', recTx.tx);
+      await this.portfolioService.addPendingTransactionNotification('Pending recurring transaction', recTx.tx);
       return true;
     }
     return false;

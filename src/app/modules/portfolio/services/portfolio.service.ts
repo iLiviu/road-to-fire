@@ -25,6 +25,8 @@ import { FloatingMath } from 'src/app/shared/util';
 import { PortfolioHistory } from '../models/portfolio-history';
 import { UserAppError } from 'src/app/shared/models/user-app-error';
 import { TransferTransaction, TransferTransactionData } from '../models/transfer-transaction';
+import { TransactionFactory } from '../models/transaction-factory';
+import { constants } from 'buffer';
 
 
 const PORTFOLIO_VERSION = 2;
@@ -446,9 +448,10 @@ export class PortfolioService {
     if (!date) {
       date = new Date();
     }
+    const txClone = TransactionFactory.newInstance(tx.type, tx);
     const notification: AppNotification = {
       title: title,
-      data: tx,
+      data: txClone,
       unread: true,
       date: date.toISOString(),
       type: AppNotificationType.PENDING_TRANSACTION,

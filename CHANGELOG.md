@@ -2,6 +2,7 @@
 
 ### Bug fixes
 * Group capital gains correctly by asset description
+* Correctly set transaction date for pending recurring transactions
 
 ## 1.3.0
 
