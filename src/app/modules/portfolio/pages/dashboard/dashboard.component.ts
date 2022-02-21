@@ -122,7 +122,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   assetsTotalValue: Dictionary<number> = {};
   assetsValue: number;
   liabilitiesValue: number;
-  assetTypeAllocationMap: AssetTypeAllocationMap = {};
+  assetTypeAllocationMap: AssetTypeAllocationMap = {};  
   assetsUnrealizedPL: Dictionary<number> = {};
   accounts: PortfolioAccount[];
   currenciesTotalValue: Dictionary<number> = {};
@@ -144,6 +144,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   rebalancingSetup: boolean;
   rebalancingSteps: RebalanceStep[] = [];
   assetAllocationChart: ChartContext = { data: [], labels: [] };
+  bondAllocationChart: ChartContext = { data: [], labels: [] };
   bondCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
   bondGeoAllocationChart: ChartContext = { data: [], labels: [] };
   cashAllocationChart: ChartContext = { data: [], labels: [] };
@@ -151,8 +152,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   cryptoAllocationChart: ChartContext = { data: [], labels: [] };
   currencyAllocationChart: ChartContext = { data: [], labels: [] };
   debtAllocationChart: ChartContext = { data: [], labels: [] };
+  p2pAllocationChart: ChartContext = { data: [], labels: [] };
   p2pCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
   p2pGeoAllocationChart: ChartContext = { data: [], labels: [] };
+  stockAllocationChart: ChartContext = { data: [], labels: [] };
   stockCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
   stockGeoAllocationChart: ChartContext = { data: [], labels: [] };
   portfolioHistoryChart: MultiDatasetChartContext = { data: [{ label: '', data: [] }], labels: [] };
@@ -513,8 +516,9 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * Build the chart data for the allocation of a specific asset type.
    * @param chart chart context
    * @param assetType asset type
+   * @param maxItems if provided, the max number of items to include in the chart
    */
-  private computeAssetTypeAllocationData(chart: ChartContext, assetType: AssetType) {
+  private computeAssetTypeAllocationData(chart: ChartContext, assetType: AssetType, maxItems: number = 0) {
     chart.data = [];
     chart.labels = [];
     if (this.assetTypeAllocationMap[assetType]) {
@@ -522,9 +526,20 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       // we need the absolute portfolio value to better represent negative constituents
       const totalValue = this.getAbsTotalAllocationValue(allocation);
 
+      let includedValue = 0;
       for (const [assetId, value] of allocation) {
+        includedValue += value;
         chart.labels.push(this.assetDescriptions[assetId]);
         chart.data.push(this.toPercentage(Math.abs(value), totalValue));
+        if (maxItems && chart.data.length >= maxItems) {
+          break;
+        }
+      }
+
+      // if we don't include all the items, add an "Other" item with the rest of the allocation as value
+      if (chart.data.length < allocation.length) {
+        chart.data.push(this.toPercentage(Math.abs(totalValue) - Math.abs(includedValue), totalValue));
+        chart.labels.push("Other");
       }
     }
   }
@@ -740,6 +755,9 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.computeAssetTypeAllocationData(this.commodityAllocationChart, AssetType.Commodity);
     this.computeAssetTypeAllocationData(this.debtAllocationChart, AssetType.Debt);
     this.computeAssetCurrencyAllocationData(this.cashAllocationChart, AssetType.Cash);
+    this.computeAssetTypeAllocationData(this.bondAllocationChart, AssetType.Bond, 10);
+    this.computeAssetTypeAllocationData(this.p2pAllocationChart, AssetType.P2P, 10);
+    this.computeAssetTypeAllocationData(this.stockAllocationChart, AssetType.Stock, 10);
     this.computeRebalanceSteps();
     await this.computePortfolioHistory();
     this.displayPortfolioHistory();

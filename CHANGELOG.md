@@ -1,5 +1,8 @@
 ## Master
 
+### Features
+* Added charts for top bond, p2p & stock holdings
+
 ### Bug fixes
 * Group capital gains correctly by asset description
 * Correctly set transaction date for pending recurring transactions

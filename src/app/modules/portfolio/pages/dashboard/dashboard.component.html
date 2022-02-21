@@ -158,6 +158,17 @@
         </mat-card>
       </mat-grid-tile>
 
+      <mat-grid-tile *ngIf="gridVisibility[GridTiles.StocksAllocation] && stockAllocationChart.data.length > 0">
+        <mat-card class="grid-card">
+          <mat-card-title>Top Stock Holdings</mat-card-title>
+
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <canvas baseChart [data]="stockAllocationChart.data" [labels]="stockAllocationChart.labels"
+              [options]="pieChartOptions" chartType="doughnut"></canvas>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.StocksGeoAllocation] && stockGeoAllocationChart.data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Stocks Geo Allocation</mat-card-title>
@@ -176,6 +187,17 @@
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas baseChart [data]="stockCurrencyAllocationChart.data" [labels]="stockCurrencyAllocationChart.labels"
+              [options]="pieChartOptions" chartType="doughnut"></canvas>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile *ngIf="gridVisibility[GridTiles.BondsAllocation] && bondAllocationChart.data.length > 0">
+        <mat-card class="grid-card">
+          <mat-card-title>Top Bond Holdings</mat-card-title>
+
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <canvas baseChart [data]="bondAllocationChart.data" [labels]="bondAllocationChart.labels"
               [options]="pieChartOptions" chartType="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
@@ -225,6 +247,17 @@
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
+
+      <mat-grid-tile *ngIf="gridVisibility[GridTiles.P2PAllocation] && p2pAllocationChart.data.length > 0">
+        <mat-card class="grid-card">
+          <mat-card-title>Top P2P Holdings</mat-card-title>
+
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <canvas baseChart [data]="p2pAllocationChart.data" [labels]="p2pAllocationChart.labels"
+              [options]="pieChartOptions" chartType="doughnut"></canvas>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>      
 
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.P2PGeoAllocation] && p2pGeoAllocationChart.data.length > 0">
         <mat-card class="grid-card">
