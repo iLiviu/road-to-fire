@@ -98,7 +98,7 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
    * @param account account of asset
    * @param list the list to add the asset to
    */
-  protected addViewAsset(asset: Asset, account: PortfolioAccount, list: ViewAsset[], ) {
+  protected addViewAsset(asset: Asset, account: PortfolioAccount, list: ViewAsset[]) {
     let viewAsset: ViewAsset;
     let tradeableAsset: TradeableAsset;
     viewAsset = this.createViewAsset(asset, account);
@@ -124,14 +124,16 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
    * @param viewAsset the assets to compute data for
    */
   private computeAssetValue(viewAsset: ViewAsset) {
-    const rate: number = this.getCurrencyRate(viewAsset.asset.currency);
     viewAsset.currentValue = viewAsset.asset.getCurrentValue();
-    const baseCurrencyValue = viewAsset.currentValue * rate;
-    this.totalPortfolioValue += baseCurrencyValue;
-    if (baseCurrencyValue > 0) {
-      this.totalAssetsValue += baseCurrencyValue;
-    } else {
-      this.totalLiabilitiesValue += baseCurrencyValue;
+    if (!viewAsset.asset.isVirtualAsset()) {
+      const rate: number = this.getCurrencyRate(viewAsset.asset.currency);
+      const baseCurrencyValue = viewAsset.currentValue * rate;
+      this.totalPortfolioValue += baseCurrencyValue;
+      if (baseCurrencyValue > 0) {
+        this.totalAssetsValue += baseCurrencyValue;
+      } else {
+        this.totalLiabilitiesValue += baseCurrencyValue;
+      }
     }
   }
 
@@ -200,36 +202,21 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
 
   /**
    * Perform computations for asset's properties
-   * @param asset asset to update data for
+   * @param viewAsset asset to update data for
    */
   protected updateViewAssetData(viewAsset: ViewAsset) {
     const rate: number = this.getCurrencyRate(viewAsset.asset.currency);
-
+    viewAsset.updateAssetData(rate);
     if (viewAsset.asset.isTradeable()) {
-      const tradeableAsset = <TradeableAsset>viewAsset.asset;
-      viewAsset.initialValue = viewAsset.position.amount * viewAsset.position.buyPrice;
-      viewAsset.currentValue = viewAsset.position.amount * tradeableAsset.currentPrice;
-      if (tradeableAsset.type === AssetType.Bond || tradeableAsset.type === AssetType.P2P) {
-        // we need to add position accrued interest to current value for bonds
-        const bond = <BondAsset>tradeableAsset;
-        viewAsset.currentValue += bond.getUnitAccruedInterest() * viewAsset.position.amount;
-      }
-
-      this.assetsOverview.initialUnrealizedValue += viewAsset.initialValue * rate;
-      this.assetsOverview.currentUnrealizedValue += viewAsset.currentValue * rate;
-
+      this.assetsOverview.initialUnrealizedValue += viewAsset.initialValueBaseCurrency;
+      this.assetsOverview.currentUnrealizedValue += viewAsset.currentValueBaseCurrency;
     }
-    viewAsset.initialValueBaseCurrency = viewAsset.initialValue * rate;
-    viewAsset.currentValueBaseCurrency = viewAsset.currentValue * rate;
-
-    viewAsset.profitLoss = viewAsset.currentValue - viewAsset.initialValue;
-    viewAsset.profitLossPercent = (viewAsset.initialValue === 0) ?
-      0 : (viewAsset.currentValue - viewAsset.initialValue) / viewAsset.initialValue;
-
-    this.assetsOverview.initialValue += viewAsset.initialValueBaseCurrency;
-    this.assetsOverview.currentValue += viewAsset.currentValueBaseCurrency;
-    if (viewAsset.asset.isDebt()) {
-      this.assetsOverview.debtValue += viewAsset.currentValueBaseCurrency;
+    if (!viewAsset.asset.isVirtualAsset()) {
+      this.assetsOverview.initialValue += viewAsset.initialValueBaseCurrency;
+      this.assetsOverview.currentValue += viewAsset.currentValueBaseCurrency;
+      if (viewAsset.asset.isDebt()) {
+        this.assetsOverview.debtValue += viewAsset.currentValueBaseCurrency;
+      }
     }
   }
 

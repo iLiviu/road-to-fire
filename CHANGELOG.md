@@ -1,6 +1,7 @@
 ## Master
 
 ### Features
+* Add support for virtual forex assets
 * Added charts for top bond, p2p & stock holdings
 
 ### Bug fixes

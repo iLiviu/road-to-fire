@@ -19,7 +19,8 @@ export enum AssetType {
   RealEstate = 64,
   Debt = 512,
   P2P = 1024,
-  TradeableAsset = RealEstate | Cryptocurrency | Commodity | Stock | Bond | P2P,
+  Forex = 2048,
+  TradeableAsset = RealEstate | Cryptocurrency | Commodity | Stock | Bond | P2P | Forex,
   ETF = 128,
   StockETF = Stock | ETF,
   BondETF = Stock | ETF | Bond,
@@ -54,6 +55,7 @@ export const ASSET_TYPE_LABELS: NumKeyDictionary<string> = {
   [AssetType.MoneyMarketMutualFund]: 'Money Market Mutual Fund',
   [AssetType.Debt]: 'Debt',
   [AssetType.P2P]: 'P2P Loans',
+  [AssetType.Forex]: 'Forex',
 };
 
 export interface AssetData {
@@ -251,6 +253,13 @@ export class Asset implements AssetData {
    */
   isStockLike() {
     return Asset.isStockLike(this.type);
+  }
+
+  /**
+   * Checks if the asset is virtual (does not have an impact in portfolio value)
+   */
+  isVirtualAsset() {
+    return false;
   }
 
   /**

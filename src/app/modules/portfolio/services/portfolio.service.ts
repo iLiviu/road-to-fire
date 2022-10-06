@@ -599,7 +599,8 @@ export class PortfolioService {
         AssetType.RealEstate, // we include real estate for manual quote update
         AssetType.MutualFund,
         AssetType.Cryptocurrency,
-        AssetType.Commodity
+        AssetType.Commodity,
+        AssetType.Forex
       ];
       let assetTypesMask = 0;
       for (const assetType of assetTypes) {

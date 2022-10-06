@@ -1,6 +1,7 @@
 import { PortfolioAccount } from './portfolio-account';
-import { Asset } from './asset';
-import { TradePosition } from './tradeable-asset';
+import { Asset, AssetType } from './asset';
+import { TradeableAsset, TradePosition } from './tradeable-asset';
+import { BondAsset } from './bond-asset';
 
 interface AccountAsset {
   asset: Asset;
@@ -60,5 +61,24 @@ export class ViewAsset {
 
   get account() {
     return this._accAsset.account;
+  }
+
+  updateAssetData(rate: number) {
+    if (this.asset.isTradeable()) {
+      const tradeableAsset = <TradeableAsset>this.asset;
+      this.initialValue = this.position.amount * this.position.buyPrice;
+      this.currentValue = this.position.amount * tradeableAsset.currentPrice;
+      if (tradeableAsset.type === AssetType.Bond || tradeableAsset.type === AssetType.P2P) {
+        // we need to add position accrued interest to current value for bonds
+        const bond = <BondAsset>tradeableAsset;
+        this.currentValue += bond.getUnitAccruedInterest() * this.position.amount;
+      }
+    }
+    this.initialValueBaseCurrency = this.initialValue * rate;
+    this.currentValueBaseCurrency = this.currentValue * rate;
+
+    this.profitLoss = this.currentValue - this.initialValue;
+    this.profitLossPercent = (this.initialValue === 0) ?
+      0 : (this.currentValue - this.initialValue) / this.initialValue;
   }
 }

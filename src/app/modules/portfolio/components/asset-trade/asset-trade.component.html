@@ -168,7 +168,7 @@
               </mat-form-field>
             </ng-container>
 
-            <mat-checkbox *ngIf="data.action !== AssetTradeAction.EDIT" formControlName="updateCashAssetBalance"
+            <mat-checkbox *ngIf="data.action !== AssetTradeAction.EDIT && data.assetType !== AssetType.Forex" formControlName="updateCashAssetBalance"
               (change)="updateCashAssetBalanceToggled()">
               Automatically {{data.action === AssetTradeAction.BUY? 'debit':'credit'}} cash account with {{(amount.value *
       price.value + fee.value * (data.action === AssetTradeAction.BUY? 1:-1) ) | currency: assetCurrency}}

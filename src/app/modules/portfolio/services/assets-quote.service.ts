@@ -40,6 +40,8 @@ export class AssetsQuoteService {
         break;
       case AssetType.MutualFund: path = 'mutualfund';
         break;
+      case AssetType.Forex: path = 'forex';
+        break;
       default:
         throw new Error('Quotes unavailable for asset type:' + assetType);
     }
@@ -54,8 +56,6 @@ export class AssetsQuoteService {
    * @param pairs forex pairs list
    */
   async getForexRates(pairs: string[]): Promise<AssetQuote[]> {
-    const quotes = await this.http.post<AssetQuote[]>(APP_CONSTS.QUOTE_SERVICE_BASE_URL + 'forex',
-      { symbols: pairs }, jsonHttpOptions).toPromise();
-    return quotes;
+    return this.getAssetQuotes(pairs, AssetType.Forex);
   }
 }

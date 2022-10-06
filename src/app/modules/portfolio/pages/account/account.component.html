@@ -91,6 +91,10 @@
                 <mat-icon matTooltip="Buy Cryptocurrency" aria-label="Buy Cryptocurrency" svgIcon="bitcoin"></mat-icon>
               </button>
 
+              <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.Forex)">
+                <mat-icon matTooltip="Open Forex Position" aria-label="Open Forex Position" svgIcon="forex"></mat-icon>
+              </button>
+
               <button mat-mini-fab color="primary" (click)="buyAsset(AssetType.P2P)">
                 <mat-icon matTooltip="Buy P2P Loan" aria-label="Buy P2P Loan">group</mat-icon>
               </button>
@@ -243,6 +247,20 @@
           </button>
         </div>
       </mat-tab>
+
+      <mat-tab label="Forex" *ngIf="forex.assets.length > 0">
+        <app-tradeable-asset-list [assets]="forex.assets"></app-tradeable-asset-list>
+
+        <div class="bottom-space"></div>
+
+        <div class="fab-bottom-right">
+          <button mat-fab color="primary" matTooltip="Open Forex Position" aria-label="Open Forex Position"
+            (click)="buyAsset(AssetType.Forex)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+      </mat-tab>
+
     </mat-tab-group>
   </div>
 </ng-container>

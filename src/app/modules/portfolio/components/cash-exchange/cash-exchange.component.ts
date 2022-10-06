@@ -20,12 +20,15 @@ export interface CashExchangeData {
  * Holds the response from the `CashExchangeComponent` dialog
  */
 export interface CashExchangeResponse {
+  sourceAsset: Asset;
   destinationAsset: Asset;
   amount: number;
   rate: number;
   fee: number;
   transactionDate: string;
   description: string;
+  addForexPosition: boolean;
+  updateCashBalances: boolean;
 }
 
 /**
@@ -59,6 +62,7 @@ const cashAmountValidator = (cashAsset: Asset, feeControl: FormControl) => {
 })
 export class CashExchangeComponent implements OnInit, OnDestroy {
 
+  addForexPosition: FormControl;
   amount: FormControl;
   assetForm: FormGroup;
   cashAssets: Asset[];
@@ -67,8 +71,10 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
   destinationAsset: FormControl;
   fee: FormControl;
   rate: FormControl;
+  sourceAsset: FormControl;
   transactionDate: FormControl;
   todayDate: Date;
+  updateCashBalances: FormControl;
 
   private componentDestroyed$ = new Subject();
 
@@ -87,18 +93,24 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => this.amount.updateValueAndValidity());
-    this.amount = new FormControl(0, [cashAmountValidator(this.data.sourceAsset, this.fee)]);
+    this.amount = new FormControl(0);
+    this.sourceAsset = new FormControl(this.data.sourceAsset);
     this.destinationAsset = new FormControl();
     this.rate = new FormControl(1, [Validators.min(0)]);
     this.transactionDate = new FormControl(new Date());
     this.description = new FormControl('');
+    this.addForexPosition = new FormControl(false);
+    this.updateCashBalances = new FormControl(true);
     this.assetForm = new FormGroup({
+      sourceAsset: this.sourceAsset,
       destinationAsset: this.destinationAsset,
       amount: this.amount,
       rate: this.rate,
       fee: this.fee,
       transactionDate: this.transactionDate,
       description: this.description,
+      addForexPosition: this.addForexPosition,
+      updateCashBalances: this.updateCashBalances,
     });
     this.destinationAsset.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
@@ -106,6 +118,11 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
     this.rate.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => this.transactionValuesChanged());
+    this.sourceAsset.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => this.transactionValuesChanged());
+    this.updateAmountValidators();
+
   }
 
   ngOnDestroy(): void {
@@ -127,8 +144,21 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
    * Generate a default description for transaction
    */
   generateDefaultDescription() {
-    return (this.destinationAsset.value) ?
+    return (this.sourceAsset.value && this.destinationAsset.value) ?
       `Exchange ${this.data.sourceAsset.currency}/${this.destinationAsset.value.currency} @ ${this.rate.value}` : '';
+  }
+
+  updateAmountValidators() {
+    if (this.updateCashBalances.value) {
+      this.amount.setValidators([cashAmountValidator(this.data.sourceAsset, this.fee)]);
+    } else {
+      this.amount.setValidators([]);
+    }
+  }
+
+  updateCashBalancesToggled() {
+    this.updateAmountValidators();
+    this.amount.updateValueAndValidity();
   }
 
 
@@ -140,11 +170,14 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
     if (saveData) {
       const data: CashExchangeResponse = {
         amount: this.amount.value,
+        sourceAsset: this.sourceAsset.value,
         destinationAsset: this.destinationAsset.value,
         fee: this.fee.value,
         rate: this.rate.value,
         transactionDate: getDateAsISOString(this.transactionDate.value),
         description: this.description.value,
+        addForexPosition: this.addForexPosition.value,
+        updateCashBalances: this.updateCashBalances.value,
       };
       this.dialogRef.close(data);
     } else {

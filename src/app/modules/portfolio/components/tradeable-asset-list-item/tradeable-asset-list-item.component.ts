@@ -40,6 +40,7 @@ export class TradeableAssetListItemComponent implements OnInit {
   isRentable: boolean;
   isInterestPayer: boolean;
   isPrincipalPayer: boolean;
+  isVirtual: boolean;
 
   constructor(private assetManagementService: AssetManagementService) { }
 
@@ -51,6 +52,7 @@ export class TradeableAssetListItemComponent implements OnInit {
       this.viewAsset.asset.type === AssetType.P2P);
     this.isPrincipalPayer = this.viewAsset.asset.type === AssetType.Bond || this.viewAsset.asset.type === AssetType.P2P;
     this.hasAmount = this.viewAsset.asset.type !== AssetType.P2P && this.viewAsset.asset.type !== AssetType.RealEstate;
+    this.isVirtual = this.viewAsset.asset.type === AssetType.Forex;
   }
 
   delete() {

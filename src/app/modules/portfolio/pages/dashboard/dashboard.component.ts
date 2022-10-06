@@ -43,7 +43,8 @@ const HISTORY_ASSET_ORDER = [
   AssetType.Cryptocurrency,
   AssetType.P2P,
   AssetType.RealEstate,
-  AssetType.Stock];
+  AssetType.Stock,
+  AssetType.Forex];
 
 interface ChartDataSets {
   label: string;
@@ -122,7 +123,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   assetsTotalValue: Dictionary<number> = {};
   assetsValue: number;
   liabilitiesValue: number;
-  assetTypeAllocationMap: AssetTypeAllocationMap = {};  
+  assetTypeAllocationMap: AssetTypeAllocationMap = {};
   assetsUnrealizedPL: Dictionary<number> = {};
   accounts: PortfolioAccount[];
   currenciesTotalValue: Dictionary<number> = {};
@@ -539,7 +540,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       // if we don't include all the items, add an "Other" item with the rest of the allocation as value
       if (chart.data.length < allocation.length) {
         chart.data.push(this.toPercentage(Math.abs(totalValue) - Math.abs(includedValue), totalValue));
-        chart.labels.push("Other");
+        chart.labels.push('Other');
       }
     }
   }
@@ -652,7 +653,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
 
         if (asset.isTradeable()) {
           const tradeableAsset = <TradeableAsset><Asset>asset;
-          const profitLoss = currentValue - tradeableAsset.getBuyCost();
+          const profitLoss = tradeableAsset.getProfitLoss();
           if (tradeableAsset.symbol) {
             const symbolParts = tradeableAsset.parseSymbol();
             assetIdKey = symbolParts.shortSymbol;
@@ -665,68 +666,72 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
           }
           this.assetsUnrealizedPL[broadAssetType] += assetBaseCurrencyProfitLoss;
         }
-        const assetBaseCurrencyValue = currentValue * rate;
-        this.portfolioValue += assetBaseCurrencyValue;
 
-        if (assetBaseCurrencyValue > 0) {
-          this.assetsValue += assetBaseCurrencyValue;
+        if (!asset.isVirtualAsset()) {
 
-          if (!this.currenciesTotalValue[asset.currency]) {
-            this.currenciesTotalValue[asset.currency] = 0;
-          }
-          this.currenciesTotalValue[asset.currency] += assetBaseCurrencyValue;
+          const assetBaseCurrencyValue = currentValue * rate;
+          this.portfolioValue += assetBaseCurrencyValue;
 
-          if (!this.assetsTotalValue[broadAssetType]) {
-            this.assetsTotalValue[broadAssetType] = 0;
-          }
-          this.assetsTotalValue[broadAssetType] += assetBaseCurrencyValue;
+          if (assetBaseCurrencyValue > 0) {
+            this.assetsValue += assetBaseCurrencyValue;
 
-          if (!this.assetCurrenciesValue[broadAssetType]) {
-            this.assetCurrenciesValue[broadAssetType] = {};
-          }
-          const assetCurrenciesValue = this.assetCurrenciesValue[broadAssetType];
-          if (!assetCurrenciesValue[asset.currency]) {
-            assetCurrenciesValue[asset.currency] = 0;
-          }
-          assetCurrenciesValue[asset.currency] += assetBaseCurrencyValue;
+            if (!this.currenciesTotalValue[asset.currency]) {
+              this.currenciesTotalValue[asset.currency] = 0;
+            }
+            this.currenciesTotalValue[asset.currency] += assetBaseCurrencyValue;
+
+            if (!this.assetsTotalValue[broadAssetType]) {
+              this.assetsTotalValue[broadAssetType] = 0;
+            }
+            this.assetsTotalValue[broadAssetType] += assetBaseCurrencyValue;
+
+            if (!this.assetCurrenciesValue[broadAssetType]) {
+              this.assetCurrenciesValue[broadAssetType] = {};
+            }
+            const assetCurrenciesValue = this.assetCurrenciesValue[broadAssetType];
+            if (!assetCurrenciesValue[asset.currency]) {
+              assetCurrenciesValue[asset.currency] = 0;
+            }
+            assetCurrenciesValue[asset.currency] += assetBaseCurrencyValue;
 
 
-          // debt should never have a positive balance, but if it happens (some operations lead to that)
-          // substract the positive balance from liabilities value
-          if (asset.isDebt()) {
+            // debt should never have a positive balance, but if it happens (some operations lead to that)
+            // substract the positive balance from liabilities value
+            if (asset.isDebt()) {
+              this.liabilitiesValue += assetBaseCurrencyValue;
+            }
+          } else {
             this.liabilitiesValue += assetBaseCurrencyValue;
           }
-        } else {
-          this.liabilitiesValue += assetBaseCurrencyValue;
-        }
 
-        // total allocation for each asset grouped by asset type
-        let assetTypeAllocation = this.assetTypeAllocationMap[broadAssetType];
-        if (!assetTypeAllocation) {
-          assetTypeAllocation = {};
-          this.assetTypeAllocationMap[broadAssetType] = assetTypeAllocation;
-        }
-        if (!assetTypeAllocation[assetIdKey]) {
-          assetTypeAllocation[assetIdKey] = 0;
-          this.assetDescriptions[assetIdKey] = assetDescription;
-        }
-        assetTypeAllocation[assetIdKey] += assetBaseCurrencyValue;
-
-        // tradeable assets can have a geographical region set, so group by that too
-        if (asset.isTradeable()) {
-          const regionWeights = (<TradeableAsset>asset).getRegionWeights();
-
-          let assetRegionValues: NumKeyDictionary<number> = this.assetRegions[broadAssetType];
-          if (!assetRegionValues) {
-            assetRegionValues = {};
-            this.assetRegions[broadAssetType] = assetRegionValues;
+          // total allocation for each asset grouped by asset type
+          let assetTypeAllocation = this.assetTypeAllocationMap[broadAssetType];
+          if (!assetTypeAllocation) {
+            assetTypeAllocation = {};
+            this.assetTypeAllocationMap[broadAssetType] = assetTypeAllocation;
           }
-          for (const regWeight of regionWeights) {
-            const regionId = AssetRegionHelper.getClassificationRegion(regWeight.region);
-            if (!assetRegionValues[regionId]) {
-              assetRegionValues[regionId] = 0;
+          if (!assetTypeAllocation[assetIdKey]) {
+            assetTypeAllocation[assetIdKey] = 0;
+            this.assetDescriptions[assetIdKey] = assetDescription;
+          }
+          assetTypeAllocation[assetIdKey] += assetBaseCurrencyValue;
+
+          // tradeable assets can have a geographical region set, so group by that too
+          if (asset.isTradeable()) {
+            const regionWeights = (<TradeableAsset>asset).getRegionWeights();
+
+            let assetRegionValues: NumKeyDictionary<number> = this.assetRegions[broadAssetType];
+            if (!assetRegionValues) {
+              assetRegionValues = {};
+              this.assetRegions[broadAssetType] = assetRegionValues;
             }
-            assetRegionValues[regionId] += assetBaseCurrencyValue * regWeight.weight;
+            for (const regWeight of regionWeights) {
+              const regionId = AssetRegionHelper.getClassificationRegion(regWeight.region);
+              if (!assetRegionValues[regionId]) {
+                assetRegionValues[regionId] = 0;
+              }
+              assetRegionValues[regionId] += assetBaseCurrencyValue * regWeight.weight;
+            }
           }
         }
       }
@@ -798,7 +803,6 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     } else {
       history = { entries: [] };
     }
-
     if (updateEntries) {
       // create new entry for the current day and add all asset types and their total values
       const entry: PortfolioHistoryEntry = {
@@ -831,7 +835,6 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       } else {
         history.entries.push(entry);
       }
-
       // no need to wait for saving
       this.portfolioService.savePortfolioHistory(history);
     }

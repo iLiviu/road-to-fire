@@ -142,8 +142,16 @@ export class TradeableAsset extends Asset implements TradeableAssetData {
     return this.amount * this.currentPrice;
   }
 
+  getBuyFees() {
+    return ((this.grossBuyPrice - this.buyPrice) * this.amount) | 0;
+  }
+
   getBuyCost() {
-    return this.amount * this.buyPrice;
+    return this.amount * this.buyPrice + this.getBuyFees();
+  }
+
+  getProfitLoss() {
+    return this.getCurrentValue() - this.getBuyCost();
   }
 
 

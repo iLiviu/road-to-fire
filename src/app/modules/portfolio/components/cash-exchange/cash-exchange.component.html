@@ -1,6 +1,13 @@
 <form [formGroup]="assetForm">
   <app-edit-dialog [form]="assetForm" title="Exchange" (close)="dialogClosed($event)">
     <div class="text-content" fxLayout="column">
+      <mat-form-field *ngIf="!data.sourceAsset">
+        <mat-select placeholder="Source Account" formControlName="sourceAsset" required>
+          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+            {{asset.description}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
       <mat-form-field>
         <mat-select placeholder="Destination Account" formControlName="destinationAsset" required>
           <mat-option *ngFor="let asset of cashAssets" [value]="asset">
@@ -37,10 +44,20 @@
         <mat-datepicker #datepicker></mat-datepicker>
         <mat-error>Transaction date can't be in the future</mat-error>
       </mat-form-field>
-      <div *ngIf="destinationAsset.value">
-        {{destinationAsset.value.description}} will be credited with {{(amount.value - fee.value * debtFlag) * rate.value |
-            currency:destinationAsset.value.currency}}
+      <div>
+        <mat-checkbox formControlName="updateCashBalances" (change)="updateCashBalancesToggled()">Update cash
+          balances</mat-checkbox>
       </div>
+      <div>
+        <mat-checkbox formControlName="addForexPosition">Add virtual Forex position</mat-checkbox>
+      </div>
+
+      <div *ngIf="destinationAsset.value">
+        {{destinationAsset.value.description}} will be credited with {{(amount.value - fee.value * debtFlag) *
+        rate.value |
+        currency:destinationAsset.value.currency}}
+      </div>
+
     </div>
   </app-edit-dialog>
 </form>

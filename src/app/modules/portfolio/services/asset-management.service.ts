@@ -50,7 +50,7 @@ import { TransactionFactory } from '../models/transaction-factory';
 import { AssetFactory } from '../models/asset-factory';
 import { TwoWayTransaction } from '../models/two-way-transaction';
 import { InterestTransaction, InterestTransactionData } from '../models/interest-transaction';
-import { FloatingMath, DateUtils } from 'src/app/shared/util';
+import { FloatingMath, DateUtils, getDateAsISOString } from 'src/app/shared/util';
 import { TotalReturnStats } from '../models/total-return-stats';
 import {
   InterestTxEditResponse, InterestTransactionEditComponent, InterestTxEditData
@@ -440,8 +440,9 @@ export class AssetManagementService {
     });
     if (result) {
       try {
-        await this.exchange(asset, account, result.destinationAsset, account, result.amount, result.rate, result.fee);
-        this.logger.info('Cash exchanged');
+        if (result.updateCashBalances) {
+          await this.exchange(asset, account, result.destinationAsset, account, result.amount, result.rate, result.fee);
+        }
         const txData: ExchangeTransactionData = {
           asset: {
             accountDescription: account.description,
@@ -467,6 +468,52 @@ export class AssetManagementService {
         };
         const tx = new ExchangeTransaction(txData);
         await this.addTransaction(tx);
+        this.logger.info('Cash exchanged');
+
+        if (result.addForexPosition) {
+          const fullSymbol = result.destinationAsset.currency + asset.currency;
+          let debitAmount = Math.abs(result.amount);
+          // check if we have an opposite forex asset, and sell that if true, instead of creating a position
+          const oppositeSymbol = (asset.currency + result.destinationAsset.currency).trim().toUpperCase();
+          const oppositeAsset = <TradeableAsset>account.findAssetBySymbol(oppositeSymbol, AssetType.Forex,
+            result.destinationAsset.currency);
+          if (oppositeAsset) {
+            await this.mergePositions(oppositeAsset, account);
+            let sellAmount: number;
+            if (oppositeAsset.amount > debitAmount) {
+              sellAmount = debitAmount;
+            } else {
+              sellAmount = oppositeAsset.amount;
+            }
+            this.sell(oppositeAsset.positions[0], oppositeAsset, account, sellAmount, 1 / result.rate, result.fee, false, asset);
+            debitAmount -= sellAmount;
+          }
+
+          if (debitAmount > 0) {
+            const tradeData: AssetTradeResponse = {
+              amount: FloatingMath.fixRoundingError(debitAmount * result.rate),
+              price: 1 / result.rate,
+              currentPrice: result.rate,
+              cashAsset: asset,
+              description: fullSymbol,
+              fee: result.fee,
+              symbol: fullSymbol,
+              transactionDate: getDateAsISOString(result.transactionDate),
+              updateCashAssetBalance: false,
+              assetType: AssetType.Forex,
+              couponRate: 0,
+              interestPaymentSchedule: [],
+              interestTaxRate: 0,
+              maturityDate: '',
+              previousInterestPaymentDate: '',
+              principalAmount: 0,
+              principalPaymentSchedule: [],
+              region: AssetRegion.Unspecified,
+              withholdInterestTax: false
+            };
+            const newAsset = await this.buy(account, tradeData);
+          }
+        }
       } catch (err) {
         this.logger.error('Could not exchange cash: ' + err, err);
       }
@@ -878,6 +925,78 @@ export class AssetManagementService {
   }
 
   /**
+   * Adds a new position to an asset. If an asset does not exist for the provided symbol, it creates one.
+   * Optionally updates cash balance.
+   * @param account account that holds/will hold the asset
+   * @param tradeData asset transaction data
+   */
+  private async buy(account: PortfolioAccount, tradeData: AssetTradeResponse) {
+    const position: TradePosition = {
+      amount: tradeData.amount,
+      buyDate: tradeData.transactionDate,
+      buyPrice: tradeData.price,
+      grossBuyPrice: FloatingMath.fixRoundingError(tradeData.price + (tradeData.fee / tradeData.amount)),
+    };
+
+    // try to find if we already have an existing asset with the exact symbol (or description if symbol is missing)
+    // P2P & Real Estate positions should not be combined
+    const hasAmount = tradeData.assetType !== AssetType.P2P && tradeData.assetType !== AssetType.RealEstate;
+    const normalizedSymbol = tradeData.symbol.trim().toUpperCase();
+    let asset: TradeableAsset;
+    if (normalizedSymbol) {
+      asset = <TradeableAsset>account.findAssetBySymbol(normalizedSymbol, tradeData.assetType, tradeData.cashAsset.currency);
+    } else if (hasAmount) {
+      asset = <TradeableAsset>account.findAssetByDescription(tradeData.description, tradeData.assetType, tradeData.cashAsset.currency);
+    } else {
+      asset = null;
+    }
+    let isNewAsset: boolean;
+    if (asset) {
+      isNewAsset = false;
+      asset.addPosition(position);
+      asset.updateStats();
+    } else {
+      isNewAsset = true;
+      const assetData: TradeableAssetData = {
+        amount: tradeData.amount,
+        positions: [position],
+        currency: tradeData.cashAsset.currency,
+        buyPrice: tradeData.price,
+        grossBuyPrice: position.grossBuyPrice,
+        currentPrice: tradeData.price,
+        symbol: normalizedSymbol,
+        type: tradeData.assetType,
+        lastQuoteUpdate: null,
+        region: null,
+        customRegions: [],
+        description: null,
+        cashAssetId: tradeData.cashAsset.id,
+      };
+      asset = <TradeableAsset>AssetFactory.newInstance(tradeData.assetType);
+      Object.assign(asset, assetData);
+      asset.cashAssetId = tradeData.cashAsset.id;
+    }
+
+    this.updateCommonTradeableAssetProperties(asset, tradeData);
+    const transactionValue = FloatingMath.fixRoundingError(tradeData.amount * tradeData.price + tradeData.fee);
+    if (tradeData.updateCashAssetBalance) {
+      if (tradeData.cashAsset.amount < transactionValue) {
+        throw new Error('Not enough balance in cash account');
+      }
+      tradeData.cashAsset.amount = FloatingMath.fixRoundingError(tradeData.cashAsset.amount - transactionValue);
+      await this.portfolioService.updateAsset(tradeData.cashAsset, account);
+    }
+    let newAsset: Asset;
+    if (isNewAsset) {
+      newAsset = await this.portfolioService.addAsset(asset, account);
+    } else {
+      newAsset = await this.portfolioService.updateAsset(asset, account);
+    }
+
+    return newAsset;
+  }
+
+  /**
    * Prompts user to enter details about a buy transaction and executes it, optionally updating cash balance.
    * @param assetType type of tradeable asset
    * @param account account that holds/will hold the asset
@@ -907,67 +1026,10 @@ export class AssetManagementService {
     const response: AssetTradeResponse = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
     if (response) {
       try {
-        const position: TradePosition = {
-          amount: response.amount,
-          buyDate: response.transactionDate,
-          buyPrice: response.price,
-          grossBuyPrice: FloatingMath.fixRoundingError(response.price + (response.fee / response.amount)),
-        };
-
-        // try to find if we already have an existing asset with the exact symbol (or description if symbol is missing)
-        // P2P & Real Estate positions should not be combined
-        const hasAmount = assetType !== AssetType.P2P && assetType !== AssetType.RealEstate;
-        const normalizedSymbol = response.symbol.trim().toUpperCase();
-        if (normalizedSymbol) {
-          asset = <TradeableAsset>account.findAssetBySymbol(normalizedSymbol, response.assetType, response.cashAsset.currency);
-        } else if (hasAmount) {
-          asset = <TradeableAsset>account.findAssetByDescription(response.description, response.assetType, response.cashAsset.currency);
-        } else {
-          asset = null;
-        }
-        let isNewAsset: boolean;
-        if (asset) {
-          isNewAsset = false;
-          asset.addPosition(position);
-          asset.updateStats();
-        } else {
-          isNewAsset = true;
-          const assetData: TradeableAssetData = {
-            amount: response.amount,
-            positions: [position],
-            currency: response.cashAsset.currency,
-            buyPrice: response.price,
-            grossBuyPrice: position.grossBuyPrice,
-            currentPrice: response.price,
-            symbol: normalizedSymbol,
-            type: response.assetType,
-            lastQuoteUpdate: null,
-            region: null,
-            customRegions: [],
-            description: null,
-            cashAssetId: response.cashAsset.id,
-          };
-          asset = <TradeableAsset>AssetFactory.newInstance(assetType);
-          Object.assign(asset, assetData);
-          asset.cashAssetId = response.cashAsset.id;
-        }
-
-        this.updateCommonTradeableAssetProperties(asset, response);
-        const transactionValue = FloatingMath.fixRoundingError(response.amount * response.price + response.fee);
-        if (response.updateCashAssetBalance) {
-          if (response.cashAsset.amount < transactionValue) {
-            throw new Error('Not enough balance in cash account');
-          }
-          response.cashAsset.amount = FloatingMath.fixRoundingError(response.cashAsset.amount - transactionValue);
-          await this.portfolioService.updateAsset(response.cashAsset, account);
-        }
-        let newAsset: Asset;
-        if (isNewAsset) {
-          newAsset = await this.portfolioService.addAsset(asset, account);
-        } else {
-          newAsset = await this.portfolioService.updateAsset(asset, account);
-        }
+        const newAsset = await this.buy(account, response);
         this.logger.info('Asset bought!');
+
+        const transactionValue = FloatingMath.fixRoundingError(response.amount * response.price + response.fee);
         const txData: TradeTransactionData = {
           asset: {
             accountDescription: account.description,
@@ -1464,6 +1526,27 @@ export class AssetManagementService {
     }
   }
 
+  private async mergePositions(asset: TradeableAsset, account: PortfolioAccount) {
+    if (asset.positions.length > 1) {
+      let grossBuyPrice = 0;
+      let amount = 0;
+      let value = 0;
+      for (const pos of asset.positions) {
+        value += pos.amount * pos.grossBuyPrice;
+        amount = FloatingMath.fixRoundingError(amount + pos.amount);
+      }
+      if (amount) {
+        grossBuyPrice = value / amount;
+      }
+      const firstPos = asset.positions[0];
+      firstPos.amount = asset.amount;
+      firstPos.buyPrice = asset.buyPrice;
+      firstPos.grossBuyPrice = grossBuyPrice;
+      asset.positions.splice(1);
+      await this.portfolioService.updateAsset(asset, account);
+    }
+  }
+
   /**
    * Merge all positions of an asset into a single one, averaging the buy price
    * @param asset asset who's positions to merge
@@ -1473,24 +1556,7 @@ export class AssetManagementService {
     const response = await this.dialogsService.confirm(`Are you sure you want to merge all positions into one? The action can't be undone`);
     if (response) {
       try {
-        if (asset.positions.length > 1) {
-          let grossBuyPrice = 0;
-          let amount = 0;
-          let value = 0;
-          for (const pos of asset.positions) {
-            value += pos.amount * pos.grossBuyPrice;
-            amount = FloatingMath.fixRoundingError(amount + pos.amount);
-          }
-          if (amount) {
-            grossBuyPrice = value / amount;
-          }
-          const firstPos = asset.positions[0];
-          firstPos.amount = asset.amount;
-          firstPos.buyPrice = asset.buyPrice;
-          firstPos.grossBuyPrice = grossBuyPrice;
-          asset.positions.splice(1);
-        }
-        await this.portfolioService.updateAsset(asset, account);
+        await this.mergePositions(asset, account);
         this.logger.info('Positions merged!');
       } catch (err) {
         this.logger.error(`Could not merge positions: ${err}`, err);
@@ -1523,8 +1589,8 @@ export class AssetManagementService {
           const trAsset = <TradeableAsset>asset;
           row.region = trAsset.getRegionString();
           row.buyPrice = trAsset.buyPrice;
-          row.fees = ((trAsset.grossBuyPrice - trAsset.buyPrice) * trAsset.amount) | 0;
-          row.cost = trAsset.buyPrice * trAsset.amount + row.fees;
+          row.fees = trAsset.getBuyFees();
+          row.cost = trAsset.getBuyCost();
           row.currentPrice = trAsset.currentPrice;
           row.currentValue = trAsset.getCurrentValue();
           row.symbol = trAsset.symbol;

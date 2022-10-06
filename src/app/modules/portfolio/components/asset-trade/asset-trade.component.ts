@@ -152,7 +152,8 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
       defaultAmount = 1;
     }
     this.bondLikeAsset = this.data.assetType === AssetType.Bond || this.data.assetType === AssetType.P2P;
-    this.exchangeTradedAsset = this.data.assetType !== AssetType.RealEstate && this.data.assetType !== AssetType.P2P;
+    this.exchangeTradedAsset = this.data.assetType !== AssetType.RealEstate && this.data.assetType !== AssetType.P2P &&
+      this.data.assetType !== AssetType.Forex;
     this.singleTabEdit = !this.bondLikeAsset || this.data.action === AssetTradeAction.SELL;
     this.stockLikeAsset = Asset.isStockLike(this.data.assetType);
 
@@ -195,7 +196,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.fee = new FormControl(0);
     this.transactionDate = new FormControl(new Date());
     this.amount = new FormControl(defaultAmount);
-    this.updateCashAssetBalance = new FormControl(true);
+    this.updateCashAssetBalance = new FormControl(this.data.assetType !== AssetType.Forex);
     this.exchange = new FormControl();
     this.stockType = new FormControl();
     this.stockType.valueChanges.pipe(takeUntil(this.componentDestroyed$)).subscribe((value) => {
