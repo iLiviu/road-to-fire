@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, FormControl, ValidationErrors, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, ValidationErrors, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subscription, Subject } from 'rxjs';
 
@@ -40,8 +40,8 @@ export interface AssetTransferResponse {
  * @param maxAmount maximum allowed amount
  * @param feeCtrl form control that holds the fee value
  */
-const amountValidator = (maxAmount: number, feeCtrl: FormControl) => {
-  return (control: FormControl): ValidationErrors | null => {
+const amountValidator = (maxAmount: number, feeCtrl: UntypedFormControl) => {
+  return (control: UntypedFormControl): ValidationErrors | null => {
     const amount = control.value;
     let invalidRange: boolean;
     if (maxAmount < 0) {
@@ -69,20 +69,20 @@ const amountValidator = (maxAmount: number, feeCtrl: FormControl) => {
 export class AssetTransferComponent implements OnInit, OnDestroy {
 
   todayDate: Date;
-  assetForm: FormGroup;
-  amount: FormControl;
+  assetForm: UntypedFormGroup;
+  amount: UntypedFormControl;
   cashOrDebtTransfer: boolean;
   debtFlag: number;
-  description: FormControl;
-  destinationAccount: FormControl;
-  destinationAsset: FormControl;
+  description: UntypedFormControl;
+  destinationAccount: UntypedFormControl;
+  destinationAsset: UntypedFormControl;
   destinationCashAssets: Asset[] = [];
-  enableRecurringTransaction: FormControl;
-  fee: FormControl;
+  enableRecurringTransaction: UntypedFormControl;
+  fee: UntypedFormControl;
   fullAssetTransfer: boolean;
   hasAmount: boolean;
   maxAmount: number;
-  transactionDate: FormControl;
+  transactionDate: UntypedFormControl;
 
   readonly AssetType = AssetType;
 
@@ -110,21 +110,21 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
     }
 
     this.data.accounts.sort((a, b) => a.description < b.description ? -1 : 1);
-    this.description = new FormControl('Transfer');
-    this.transactionDate = new FormControl(new Date());
-    this.destinationAccount = new FormControl();
+    this.description = new UntypedFormControl('Transfer');
+    this.transactionDate = new UntypedFormControl(new Date());
+    this.destinationAccount = new UntypedFormControl();
     this.destinationAccount.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => this.onDestinationAccountChanged());
-    this.destinationAsset = new FormControl();
-    this.enableRecurringTransaction = new FormControl();
-    this.fee = new FormControl(0, [Validators.min(0)]);
+    this.destinationAsset = new UntypedFormControl();
+    this.enableRecurringTransaction = new UntypedFormControl();
+    this.fee = new UntypedFormControl(0, [Validators.min(0)]);
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => this.amount.updateValueAndValidity());
-    this.amount = new FormControl(this.fullAssetTransfer ? this.maxAmount : 0, [amountValidator(this.maxAmount, this.fee)]);
+    this.amount = new UntypedFormControl(this.fullAssetTransfer ? this.maxAmount : 0, [amountValidator(this.maxAmount, this.fee)]);
 
-    this.assetForm = new FormGroup({
+    this.assetForm = new UntypedFormGroup({
       amount: this.amount,
       destinationAccount: this.destinationAccount,
       description: this.description,

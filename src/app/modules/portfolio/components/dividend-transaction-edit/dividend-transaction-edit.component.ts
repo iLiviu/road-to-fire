@@ -2,7 +2,7 @@ import { Component, OnInit, Inject, ChangeDetectionStrategy, ChangeDetectorRef, 
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators, ValidationErrors } from '@angular/forms';
 import { PortfolioService } from '../../services/portfolio.service';
 import { getDateAsISOString, FloatingMath, DateUtils } from 'src/app/shared/util';
 import { DividendTransaction } from '../../models/dividend-transaction';
@@ -25,7 +25,7 @@ export interface DividendTxEditResponse {
  * Validates if an input is a valid integer
  * @param control form control that needs to be validated
  */
-const integerValidator = (control: FormControl): ValidationErrors | null => {
+const integerValidator = (control: UntypedFormControl): ValidationErrors | null => {
   return !Number.isInteger(control.value) ? { 'invalidInt': true } : null;
 };
 
@@ -44,19 +44,19 @@ export class DividendTransactionEditComponent implements OnInit {
   asset: Asset;
   account: PortfolioAccount;
   assetCurrency: string;
-  assetForm: FormGroup;
-  amount: FormControl;
+  assetForm: UntypedFormGroup;
+  amount: UntypedFormControl;
   cashAssets: Asset[];
-  cashAsset: FormControl;
-  dividend: FormControl;
-  enableRecurringTransaction: FormControl;
-  fee: FormControl;
+  cashAsset: UntypedFormControl;
+  dividend: UntypedFormControl;
+  enableRecurringTransaction: UntypedFormControl;
+  fee: UntypedFormControl;
   isScheduledTx = false;
-  taxRate: FormControl;
-  transactionDate: FormControl;
+  taxRate: UntypedFormControl;
+  transactionDate: UntypedFormControl;
   todayDate: Date;
-  updateCashAssetBalance: FormControl;
-  withholdTax: FormControl;
+  updateCashAssetBalance: UntypedFormControl;
+  withholdTax: UntypedFormControl;
   paymentTypeStr = 'dividend';
   isRentable: boolean;
 
@@ -73,13 +73,13 @@ export class DividendTransactionEditComponent implements OnInit {
 
     this.account = this.data.account;
     this.dividendTx = this.data.dividendTx;
-    this.cashAsset = new FormControl(defaultCashAsset);
+    this.cashAsset = new UntypedFormControl(defaultCashAsset);
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
-    this.amount = new FormControl(null, [Validators.min(1), integerValidator]);
-    this.dividend = new FormControl(this.dividendTx.rate, [Validators.min(0)]);
-    this.enableRecurringTransaction = new FormControl();
-    this.fee = new FormControl(this.dividendTx.fee || 0, [Validators.min(0)]);
+    this.amount = new UntypedFormControl(null, [Validators.min(1), integerValidator]);
+    this.dividend = new UntypedFormControl(this.dividendTx.rate, [Validators.min(0)]);
+    this.enableRecurringTransaction = new UntypedFormControl();
+    this.fee = new UntypedFormControl(this.dividendTx.fee || 0, [Validators.min(0)]);
     let txDate: Date;
     if (this.dividendTx.date) {
       txDate = new Date(this.dividendTx.date);
@@ -87,15 +87,15 @@ export class DividendTransactionEditComponent implements OnInit {
       txDate = new Date();
     }
     this.assetCurrency = this.dividendTx.payerAsset.currency;
-    this.transactionDate = new FormControl(txDate);
-    this.withholdTax = new FormControl(this.dividendTx.withholdingTax > 0);
+    this.transactionDate = new UntypedFormControl(txDate);
+    this.withholdTax = new UntypedFormControl(this.dividendTx.withholdingTax > 0);
     let calculatedTaxRate = 0;
     if (this.dividendTx.amount && this.dividendTx.rate) {
       calculatedTaxRate = this.dividendTx.withholdingTax / (this.dividendTx.amount * this.dividendTx.rate);
     }
-    this.taxRate = new FormControl(FloatingMath.fixRoundingError(calculatedTaxRate * 100), [Validators.min(0), Validators.max(100)]);
-    this.updateCashAssetBalance = new FormControl(true);
-    this.assetForm = new FormGroup({
+    this.taxRate = new UntypedFormControl(FloatingMath.fixRoundingError(calculatedTaxRate * 100), [Validators.min(0), Validators.max(100)]);
+    this.updateCashAssetBalance = new UntypedFormControl(true);
+    this.assetForm = new UntypedFormGroup({
       amount: this.amount,
       cashAsset: this.cashAsset,
       dividend: this.dividend,

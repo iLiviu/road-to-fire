@@ -56,7 +56,7 @@ export class SwipeTabsDirective implements AfterViewInit {
   @HostListener('swipeleft', ['$event'])
   onSwipeleft(event: any) {
     if (this.tabGroup.selectedIndex + 1 <= this.tabGroup._tabs.length - 1) {
-      this.tabGroup.selectedIndex += 1;
+      this.tabGroup.selectedIndex = this.tabGroup.selectedIndex + 1;
     }
   }
 
@@ -72,7 +72,7 @@ export class SwipeTabsDirective implements AfterViewInit {
     }
     if (canSwitch) {
       if (this.tabGroup.selectedIndex - 1 >= 0) {
-        this.tabGroup.selectedIndex -= 1;
+        this.tabGroup.selectedIndex = this.tabGroup.selectedIndex - 1;
       }
     }
   }

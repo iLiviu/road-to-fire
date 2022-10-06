@@ -2,7 +2,7 @@ import { Component, OnInit, Inject, OnDestroy, ViewChild, ChangeDetectionStrateg
 import { Transaction, TransactionType } from '../../models/transaction';
 import { RecurringTransactionType, RecurringTransaction } from '../../models/recurring-transaction';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators } from '@angular/forms';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { PortfolioService } from '../../services/portfolio.service';
 import { Asset, AssetType } from '../../models/asset';
@@ -31,26 +31,26 @@ export interface RecurringTransactionEditData {
 export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
 
   accounts: PortfolioAccount[];
-  assetForm: FormGroup;
-  amount: FormControl;
-  description: FormControl;
-  destinationAccount: FormControl;
-  destinationAsset: FormControl;
+  assetForm: UntypedFormGroup;
+  amount: UntypedFormControl;
+  description: UntypedFormControl;
+  destinationAccount: UntypedFormControl;
+  destinationAsset: UntypedFormControl;
   destinationCashAssets: Asset[] = [];
-  fee: FormControl;
+  fee: UntypedFormControl;
   isCashDestination: boolean;
   isCredit: boolean;
   isDebit: boolean;
   isEditableSource: boolean;
   recTx: RecurringTransaction;
-  sourceAccount: FormControl;
+  sourceAccount: UntypedFormControl;
   sourceCashAssets: Asset[] = [];
-  sourceAsset: FormControl;
+  sourceAsset: UntypedFormControl;
   tx: Transaction;
-  transactionDate: FormControl;
+  transactionDate: UntypedFormControl;
   twoWayTx: TwoWayTransaction;
   txOccurrence: string;
-  withholdingTax: FormControl;
+  withholdingTax: UntypedFormControl;
 
   readonly TransactionType = TransactionType;
   readonly RecurringTransactionType = RecurringTransactionType;
@@ -71,7 +71,7 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
     if (this.tx.type === TransactionType.DebitCash || this.tx.type === TransactionType.CreditCash) {
       // nothing special
     } else if (this.tx.isDividend() || this.tx.isInterestPayment()) {
-      this.withholdingTax = new FormControl(this.recTx.tx.withholdingTax, [Validators.min(0)]);
+      this.withholdingTax = new UntypedFormControl(this.recTx.tx.withholdingTax, [Validators.min(0)]);
     } else if (this.recTx.tx.isTransfer() || this.recTx.tx.isPrincipalPayment()) {
       this.twoWayTx = <TwoWayTransaction>this.tx;
       this.isCashDestination = this.tx.isTrade();
@@ -82,13 +82,13 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
     this.isCredit = this.tx.isCredit();
     this.isDebit = this.tx.isDebit();
 
-    this.amount = new FormControl(this.recTx.tx.value);
-    this.fee = new FormControl(this.recTx.tx.fee, [Validators.min(0)]);
+    this.amount = new UntypedFormControl(this.recTx.tx.value);
+    this.fee = new UntypedFormControl(this.recTx.tx.fee, [Validators.min(0)]);
     this.amount.setValidators([Validators.min(Number.EPSILON)]);
-    this.description = new FormControl(this.recTx.tx.description);
-    this.transactionDate = new FormControl(new Date(this.recTx.tx.date));
+    this.description = new UntypedFormControl(this.recTx.tx.description);
+    this.transactionDate = new UntypedFormControl(new Date(this.recTx.tx.date));
 
-    this.assetForm = new FormGroup({
+    this.assetForm = new UntypedFormGroup({
       amount: this.amount,
       description: this.description,
       fee: this.fee,
@@ -168,7 +168,7 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
 
   private loadData() {
     const account = this.getAccountById(this.tx.asset.accountId);
-    this.sourceAccount = new FormControl(account);
+    this.sourceAccount = new UntypedFormControl(account);
     this.sourceAccount.markAsTouched();
     this.assetForm.addControl('sourceAccount', this.sourceAccount);
     this.sourceAccount.valueChanges
@@ -185,7 +185,7 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
         this.isCashDestination = true;
       }
     }
-    this.sourceAsset = new FormControl(srcAsset);
+    this.sourceAsset = new UntypedFormControl(srcAsset);
     this.sourceAsset.markAsTouched();
     this.assetForm.addControl('sourceAsset', this.sourceAsset);
     this.sourceAsset.valueChanges
@@ -201,7 +201,7 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
 
     if (this.twoWayTx) {
       const destAccount = this.getAccountById(this.twoWayTx.otherAsset.accountId);
-      this.destinationAccount = new FormControl(destAccount);
+      this.destinationAccount = new UntypedFormControl(destAccount);
       this.destinationAccount.markAsTouched();
       this.destinationAccount.valueChanges
         .pipe(takeUntil(this.componentDestroyed$))
@@ -218,7 +218,7 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
           this.isCashDestination = true;
         }
       }
-      this.destinationAsset = new FormControl(destAsset);
+      this.destinationAsset = new UntypedFormControl(destAsset);
       this.destinationAsset.markAsTouched();
       this.assetForm.addControl('destinationAsset', this.destinationAsset);
     }

@@ -27,7 +27,7 @@ export const portfolioRoutes: Routes = [
     path: '',
     component: PortfolioRootComponent,
     children: [
-      { path: '', redirectTo: 'home' },
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: DashboardComponent },
       { path: 'assets/stocks', component: StocksComponent },
       { path: 'assets/bonds', component: BondsComponent },

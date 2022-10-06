@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSelectionList } from '@angular/material/list';
-import { FormGroup, FormControl, ValidationErrors, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, ValidationErrors, Validators } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
 import { startWith, map, takeUntil } from 'rxjs/operators';
 import {
@@ -70,8 +70,8 @@ export interface AssetTradeResponse {
  * @param feeCtrl fee FormControl
  * @param cashAssetCtrl cashAsset FormControl
  */
-const transactionValueValidator = (priceCtrl: FormControl, feeCtrl: FormControl, cashAssetCtrl: FormControl) => {
-  return (control: FormControl): ValidationErrors | null => {
+const transactionValueValidator = (priceCtrl: UntypedFormControl, feeCtrl: UntypedFormControl, cashAssetCtrl: UntypedFormControl) => {
+  return (control: UntypedFormControl): ValidationErrors | null => {
     const amount: number = control.value;
     const fee = feeCtrl.value;
     const price = priceCtrl.value;
@@ -92,41 +92,41 @@ const transactionValueValidator = (priceCtrl: FormControl, feeCtrl: FormControl,
 })
 export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  amount: FormControl;
+  amount: UntypedFormControl;
   assetCurrency: string;
-  assetForm: FormGroup;
+  assetForm: UntypedFormGroup;
   assetLabel: string;
   bondLikeAsset: boolean;
-  cashAsset: FormControl;
-  currentPrice: FormControl;
-  description: FormControl;
-  couponRate: FormControl;
+  cashAsset: UntypedFormControl;
+  currentPrice: UntypedFormControl;
+  description: UntypedFormControl;
+  couponRate: UntypedFormControl;
   cashAssets: Asset[];
-  exchange: FormControl;
+  exchange: UntypedFormControl;
   exchangeTradedAsset: boolean;
-  fee: FormControl;
+  fee: UntypedFormControl;
   filteredSupportedExchanges: Observable<ExchangeDetails[]>;
   filteredSuggestedSymbols: Observable<SymbolDetails[]>;
   hasAmount: boolean;
   isMutualFund: boolean;
   interestPaymentSchedule: BondInterestPaymentEvent[] = [];
-  interestTaxRate: FormControl;
-  maturityDate: FormControl;
-  previousInterestPaymentDate: FormControl;
-  price: FormControl;
-  principalAmount: FormControl;
+  interestTaxRate: UntypedFormControl;
+  maturityDate: UntypedFormControl;
+  previousInterestPaymentDate: UntypedFormControl;
+  price: UntypedFormControl;
+  principalAmount: UntypedFormControl;
   principalPaymentSchedule: BondPrincipalPaymentEvent[] = [];
-  region: FormControl;
+  region: UntypedFormControl;
   singleTabEdit: boolean;
   stockLikeAsset: boolean;
-  stockType: FormControl;
-  symbol: FormControl;
+  stockType: UntypedFormControl;
+  symbol: UntypedFormControl;
   supportedExchanges: ExchangeDetails[];
   suggestedSymbols: SymbolDetails[];
   todayDate: Date;
-  transactionDate: FormControl;
-  updateCashAssetBalance: FormControl;
-  withholdInterestTax: FormControl;
+  transactionDate: UntypedFormControl;
+  updateCashAssetBalance: UntypedFormControl;
+  withholdInterestTax: UntypedFormControl;
 
 
   readonly AssetTradeAction = AssetTradeAction;
@@ -181,24 +181,24 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
       defaultCashAsset = this.data.account.getAssetById(this.data.asset.cashAssetId);
     }
 
-    this.cashAsset = new FormControl(defaultCashAsset);
-    this.symbol = new FormControl();
-    this.description = new FormControl();
-    this.region = new FormControl();
-    this.price = new FormControl(1, [Validators.min(0)]);
-    this.currentPrice = new FormControl(null, [Validators.min(0)]);
-    this.principalAmount = new FormControl(null, [Validators.min(0)]);
-    this.maturityDate = new FormControl();
-    this.couponRate = new FormControl(0);
-    this.previousInterestPaymentDate = new FormControl();
-    this.withholdInterestTax = new FormControl();
-    this.interestTaxRate = new FormControl();
-    this.fee = new FormControl(0);
-    this.transactionDate = new FormControl(new Date());
-    this.amount = new FormControl(defaultAmount);
-    this.updateCashAssetBalance = new FormControl(this.data.assetType !== AssetType.Forex);
-    this.exchange = new FormControl();
-    this.stockType = new FormControl();
+    this.cashAsset = new UntypedFormControl(defaultCashAsset);
+    this.symbol = new UntypedFormControl();
+    this.description = new UntypedFormControl();
+    this.region = new UntypedFormControl();
+    this.price = new UntypedFormControl(1, [Validators.min(0)]);
+    this.currentPrice = new UntypedFormControl(null, [Validators.min(0)]);
+    this.principalAmount = new UntypedFormControl(null, [Validators.min(0)]);
+    this.maturityDate = new UntypedFormControl();
+    this.couponRate = new UntypedFormControl(0);
+    this.previousInterestPaymentDate = new UntypedFormControl();
+    this.withholdInterestTax = new UntypedFormControl();
+    this.interestTaxRate = new UntypedFormControl();
+    this.fee = new UntypedFormControl(0);
+    this.transactionDate = new UntypedFormControl(new Date());
+    this.amount = new UntypedFormControl(defaultAmount);
+    this.updateCashAssetBalance = new UntypedFormControl(this.data.assetType !== AssetType.Forex);
+    this.exchange = new UntypedFormControl();
+    this.stockType = new UntypedFormControl();
     this.stockType.valueChanges.pipe(takeUntil(this.componentDestroyed$)).subscribe((value) => {
       this.isMutualFund = TradeableAsset.isMutualFund(value);
     });
@@ -263,7 +263,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    this.assetForm = new FormGroup({
+    this.assetForm = new UntypedFormGroup({
       cashAsset: this.cashAsset,
       symbol: this.symbol,
       description: this.description,

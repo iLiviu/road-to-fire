@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Location } from '@angular/common';
-import { FormGroup, FormControl, FormArray, Validators, ValidatorFn, ValidationErrors } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, UntypedFormArray, Validators, ValidatorFn, ValidationErrors } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { EventsService } from 'src/app/core/services/events.service';
@@ -24,7 +24,7 @@ import { LocaleIDs } from 'src/app/core/services/locale-service';
 /**
  * Validates if the sum of percentages of all asset types equals 100
  */
-const portfolioAllocationValidator: ValidatorFn = (control: FormGroup): ValidationErrors | null => {
+const portfolioAllocationValidator: ValidatorFn = (control: UntypedFormGroup): ValidationErrors | null => {
   let totalAllocation = 0;
   for (const fieldId of Object.keys(control.controls)) {
     const childControl = control.get(fieldId);
@@ -33,8 +33,8 @@ const portfolioAllocationValidator: ValidatorFn = (control: FormGroup): Validati
   return totalAllocation !== 100 ? { 'invalidAllocation': true } : null;
 };
 
-const valueMatchesControlValidator = (secondCtrl: FormControl) => {
-  return (control: FormControl): ValidationErrors | null => {
+const valueMatchesControlValidator = (secondCtrl: UntypedFormControl) => {
+  return (control: UntypedFormControl): ValidationErrors | null => {
     return control.value !== secondCtrl.value ? { 'different': true } : null;
   };
 };
@@ -48,26 +48,26 @@ const valueMatchesControlValidator = (secondCtrl: FormControl) => {
 export class SettingsComponent extends PortfolioPageComponent implements OnInit {
 
   appConfig: AppConfig;
-  baseCurrencyCtl: FormControl;
-  configPassword: FormControl;
-  configPasswordConfirm: FormControl;
+  baseCurrencyCtl: UntypedFormControl;
+  configPassword: UntypedFormControl;
+  configPasswordConfirm: UntypedFormControl;
   dataLoaded = false;
-  dateAndCurrencyFormat: FormControl;
-  debtToValueRatio: FormControl;
-  enable2FA: FormControl;
+  dateAndCurrencyFormat: UntypedFormControl;
+  debtToValueRatio: UntypedFormControl;
+  enable2FA: UntypedFormControl;
   encryptionEnabled: boolean;
   formSubmitted = false;
-  goals: FormArray;
+  goals: UntypedFormArray;
   invalidAllocation = false;
   isPasswordStored: boolean;
-  passwordProtect: FormControl;
-  portfolioAllocation: FormGroup;
-  saveOnCloud: FormControl;
+  passwordProtect: UntypedFormControl;
+  portfolioAllocation: UntypedFormGroup;
+  saveOnCloud: UntypedFormControl;
   settingsSaved = false;
-  settingsForm: FormGroup;
-  theme: FormControl;
+  settingsForm: UntypedFormGroup;
+  theme: UntypedFormControl;
   twoFactorAvailable: boolean;
-  withdrawalRate: FormControl;
+  withdrawalRate: UntypedFormControl;
 
   readonly ALL_ASSETS = [
     AssetType.Cash,
@@ -362,7 +362,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
   private updateGoals() {
     this.goals.controls.splice(0, this.goals.controls.length);
     for (const goal of this.portfolioConfig.goals) {
-      this.goals.push(new FormControl(goal.value, [Validators.min(0), Validators.pattern(/^\d*\.?\d*$/)]));
+      this.goals.push(new UntypedFormControl(goal.value, [Validators.min(0), Validators.pattern(/^\d*\.?\d*$/)]));
     }
     this.onGoalsUpdated();
   }
@@ -372,32 +372,32 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
    */
   private loadComplete() {
     this.encryptionEnabled = this.storageService.isEncryptionEnabled();
-    this.goals = new FormArray([]);
+    this.goals = new UntypedFormArray([]);
     this.updateGoals();
 
-    this.portfolioAllocation = new FormGroup({}, [portfolioAllocationValidator]);
+    this.portfolioAllocation = new UntypedFormGroup({}, [portfolioAllocationValidator]);
     for (const assetType of this.ALL_ASSETS) {
-      this.portfolioAllocation.addControl(assetType.toString(), new FormControl('0', [Validators.min(0), Validators.max(100)]));
+      this.portfolioAllocation.addControl(assetType.toString(), new UntypedFormControl('0', [Validators.min(0), Validators.max(100)]));
     }
     for (const asset of this.portfolioConfig.portfolioAllocation) {
       if (this.portfolioAllocation.controls[asset.assetType]) {
         this.portfolioAllocation.controls[asset.assetType].setValue(FloatingMath.fixRoundingError(asset.allocation * 100));
       }
     }
-    this.dateAndCurrencyFormat = new FormControl(this.appConfig.dateAndCurrencyFormat || LocaleIDs.EN_US);
-    this.debtToValueRatio = new FormControl(FloatingMath.fixRoundingError(this.portfolioConfig.loanToValueRatio * 100),
+    this.dateAndCurrencyFormat = new UntypedFormControl(this.appConfig.dateAndCurrencyFormat || LocaleIDs.EN_US);
+    this.debtToValueRatio = new UntypedFormControl(FloatingMath.fixRoundingError(this.portfolioConfig.loanToValueRatio * 100),
       [Validators.min(0), Validators.max(100)]);
-    this.enable2FA = new FormControl(this.authService.is2FAEnabled());
-    this.baseCurrencyCtl = new FormControl(this.portfolioConfig.baseCurrency);
-    this.withdrawalRate = new FormControl(FloatingMath.fixRoundingError(this.portfolioConfig.withdrawalRate * 100),
+    this.enable2FA = new UntypedFormControl(this.authService.is2FAEnabled());
+    this.baseCurrencyCtl = new UntypedFormControl(this.portfolioConfig.baseCurrency);
+    this.withdrawalRate = new UntypedFormControl(FloatingMath.fixRoundingError(this.portfolioConfig.withdrawalRate * 100),
       [Validators.min(0), Validators.max(100)]);
-    this.saveOnCloud = new FormControl(this.appConfig.saveOnCloud);
-    this.passwordProtect = new FormControl(this.encryptionEnabled);
-    this.configPassword = new FormControl('');
-    this.configPasswordConfirm = new FormControl('');
-    this.theme = new FormControl(this.configService.getStoredTheme());
+    this.saveOnCloud = new UntypedFormControl(this.appConfig.saveOnCloud);
+    this.passwordProtect = new UntypedFormControl(this.encryptionEnabled);
+    this.configPassword = new UntypedFormControl('');
+    this.configPasswordConfirm = new UntypedFormControl('');
+    this.theme = new UntypedFormControl(this.configService.getStoredTheme());
 
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       baseCurrencyCtl: this.baseCurrencyCtl,
       dateAndCurrencyFormat: this.dateAndCurrencyFormat,
       debtToValueRatio: this.debtToValueRatio,

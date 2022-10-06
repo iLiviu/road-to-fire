@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { SelectionModel } from '@angular/cdk/collections';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
@@ -64,9 +64,9 @@ export class TransactionsFilterEditComponent implements OnInit {
 
   checklistSelection: SelectionModel<FilterNode>;
   dataSource: MatTreeNestedDataSource<FilterNode>;
-  filterForm: FormGroup;
-  minDate: FormControl;
-  maxDate: FormControl;
+  filterForm: UntypedFormGroup;
+  minDate: UntypedFormControl;
+  maxDate: UntypedFormControl;
   todayDate: Date;
   treeControl: NestedTreeControl<FilterNode>;
 
@@ -82,9 +82,9 @@ export class TransactionsFilterEditComponent implements OnInit {
   ngOnInit() {
     this.checklistSelection = new SelectionModel<FilterNode>(true);
     this.todayDate = new Date();
-    this.minDate = new FormControl(this.filters.minDate);
-    this.maxDate = new FormControl(this.filters.maxDate);
-    this.filterForm = new FormGroup({
+    this.minDate = new UntypedFormControl(this.filters.minDate);
+    this.maxDate = new UntypedFormControl(this.filters.maxDate);
+    this.filterForm = new UntypedFormGroup({
       minDate: this.minDate,
       maxDate: this.maxDate,
     });

@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, ViewChild, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators, ValidationErrors } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -34,8 +34,8 @@ export interface CashFundResponse {
  * @param cashAsset cash asset
  * @param feeCtrl fee form control
  */
-const cashAmountValidator = (cashAsset: Asset, feeCtrl: FormControl) => {
-  return (amountCtrl: FormControl): ValidationErrors | null => {
+const cashAmountValidator = (cashAsset: Asset, feeCtrl: UntypedFormControl) => {
+  return (amountCtrl: UntypedFormControl): ValidationErrors | null => {
     const amount = amountCtrl.value;
     return amount <= 0 || (amount > FloatingMath.fixRoundingError(Math.abs(cashAsset.amount - feeCtrl.value))) ?
       { 'invalidRange': true } : null;
@@ -54,14 +54,14 @@ const cashAmountValidator = (cashAsset: Asset, feeCtrl: FormControl) => {
 })
 export class CashFundComponent implements OnInit, OnDestroy {
 
-  assetForm: FormGroup;
-  amount: FormControl;
-  description: FormControl;
-  enableRecurringTransaction: FormControl;
-  fee: FormControl;
+  assetForm: UntypedFormGroup;
+  amount: UntypedFormControl;
+  description: UntypedFormControl;
+  enableRecurringTransaction: UntypedFormControl;
+  fee: UntypedFormControl;
   isScheduledTx = false;
   isCreditTx = false;
-  transactionDate: FormControl;
+  transactionDate: UntypedFormControl;
   todayDate: Date;
   @ViewChild('recurringTransaction') private readonly recurringTransaction: RecurringTransactionInputComponent;
 
@@ -75,8 +75,8 @@ export class CashFundComponent implements OnInit, OnDestroy {
     this.todayDate.setHours(0, 0, 0, 0);
     this.isCreditTx = Transaction.isCredit(this.data.transactionType);
 
-    this.amount = new FormControl(0);
-    this.fee = new FormControl(0, [Validators.min(0)]);
+    this.amount = new UntypedFormControl(0);
+    this.fee = new UntypedFormControl(0, [Validators.min(0)]);
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => this.amount.updateValueAndValidity());
@@ -96,11 +96,11 @@ export class CashFundComponent implements OnInit, OnDestroy {
     }
 
     const defDesc = (this.isCreditTx ? 'Credit ' : 'Debit ') + this.data.asset.description;
-    this.description = new FormControl(defDesc);
-    this.enableRecurringTransaction = new FormControl();
-    this.transactionDate = new FormControl(new Date());
+    this.description = new UntypedFormControl(defDesc);
+    this.enableRecurringTransaction = new UntypedFormControl();
+    this.transactionDate = new UntypedFormControl(new Date());
 
-    this.assetForm = new FormGroup({
+    this.assetForm = new UntypedFormGroup({
       amount: this.amount,
       description: this.description,
       enableRecurringTransaction: this.enableRecurringTransaction,

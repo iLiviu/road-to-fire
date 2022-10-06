@@ -2,7 +2,7 @@ import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/cor
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators } from '@angular/forms';
 import { getDateAsISOString, FloatingMath, DateUtils } from 'src/app/shared/util';
 import { BondAsset } from '../../models/bond-asset';
 
@@ -35,16 +35,16 @@ export interface PrincipalTxEditResponse {
 export class PrincipalTransactionEditComponent implements OnInit {
 
   assetCurrency: string;
-  assetForm: FormGroup;
-  principalPayment: FormControl;
+  assetForm: UntypedFormGroup;
+  principalPayment: UntypedFormControl;
   account: PortfolioAccount;
   cashAssets: Asset[];
-  cashAsset: FormControl;
-  fee: FormControl;
+  cashAsset: UntypedFormControl;
+  fee: UntypedFormControl;
   isScheduledTx = false;
-  transactionDate: FormControl;
+  transactionDate: UntypedFormControl;
   todayDate: Date;
-  updateCashAssetBalance: FormControl;
+  updateCashAssetBalance: UntypedFormControl;
 
 
   constructor(public dialogRef: MatDialogRef<PrincipalTransactionEditComponent>,
@@ -52,19 +52,19 @@ export class PrincipalTransactionEditComponent implements OnInit {
 
   ngOnInit() {
     this.account = this.data.account;
-    this.cashAsset = new FormControl();
+    this.cashAsset = new UntypedFormControl();
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
-    this.principalPayment = new FormControl(this.data.asset.principalAmount,
+    this.principalPayment = new UntypedFormControl(this.data.asset.principalAmount,
       [
         Validators.min(Number.EPSILON),
         Validators.max(this.data.asset.principalAmount)
       ]);
-    this.fee = new FormControl(0, [Validators.min(0)]);
+    this.fee = new UntypedFormControl(0, [Validators.min(0)]);
     this.assetCurrency = this.data.asset.currency;
-    this.transactionDate = new FormControl(new Date());
-    this.updateCashAssetBalance = new FormControl(true);
-    this.assetForm = new FormGroup({
+    this.transactionDate = new UntypedFormControl(new Date());
+    this.updateCashAssetBalance = new UntypedFormControl(true);
+    this.assetForm = new UntypedFormGroup({
       principalPayment: this.principalPayment,
       cashAsset: this.cashAsset,
       fee: this.fee,

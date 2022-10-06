@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { APP_CONSTS } from 'src/app/config/app.constants';
@@ -25,11 +25,11 @@ export interface CashEditResponse {
 })
 export class CashEditComponent implements OnInit {
 
-  assetForm: FormGroup;
-  amount: FormControl;
-  currency: FormControl;
-  description: FormControl;
-  transactionDate: FormControl;
+  assetForm: UntypedFormGroup;
+  amount: UntypedFormControl;
+  currency: UntypedFormControl;
+  description: UntypedFormControl;
+  transactionDate: UntypedFormControl;
   todayDate: Date;
 
   readonly currencyCodes = APP_CONSTS.CURRENCY_CODES;
@@ -42,14 +42,14 @@ export class CashEditComponent implements OnInit {
   ngOnInit() {
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
-    this.description = new FormControl(this.asset.description);
-    this.amount = new FormControl(this.asset.amount || 0);
+    this.description = new UntypedFormControl(this.asset.description);
+    this.amount = new UntypedFormControl(this.asset.amount || 0);
     if (this.asset.isDebt()) {
       this.amount.setValidators(Validators.max(0));
     }
-    this.currency = new FormControl(this.asset.currency || 'USD');
-    this.transactionDate = new FormControl(new Date());
-    this.assetForm = new FormGroup({
+    this.currency = new UntypedFormControl(this.asset.currency || 'USD');
+    this.transactionDate = new UntypedFormControl(new Date());
+    this.assetForm = new UntypedFormGroup({
       description: this.description,
       amount: this.amount,
       currency: this.currency,

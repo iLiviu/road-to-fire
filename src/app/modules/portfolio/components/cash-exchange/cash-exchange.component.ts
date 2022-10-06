@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Subscription, Subject } from 'rxjs';
 
@@ -38,8 +38,8 @@ export interface CashExchangeResponse {
  * @param cashAsset cash/debt asset to validate
  * @param feeControl fee form control object
  */
-const cashAmountValidator = (cashAsset: Asset, feeControl: FormControl) => {
-  return (control: FormControl): ValidationErrors | null => {
+const cashAmountValidator = (cashAsset: Asset, feeControl: UntypedFormControl) => {
+  return (control: UntypedFormControl): ValidationErrors | null => {
     const amount = control.value;
     let invalidRange: boolean;
     if (cashAsset.amount < 0) {
@@ -62,19 +62,19 @@ const cashAmountValidator = (cashAsset: Asset, feeControl: FormControl) => {
 })
 export class CashExchangeComponent implements OnInit, OnDestroy {
 
-  addForexPosition: FormControl;
-  amount: FormControl;
-  assetForm: FormGroup;
+  addForexPosition: UntypedFormControl;
+  amount: UntypedFormControl;
+  assetForm: UntypedFormGroup;
   cashAssets: Asset[];
   debtFlag: number;
-  description: FormControl;
-  destinationAsset: FormControl;
-  fee: FormControl;
-  rate: FormControl;
-  sourceAsset: FormControl;
-  transactionDate: FormControl;
+  description: UntypedFormControl;
+  destinationAsset: UntypedFormControl;
+  fee: UntypedFormControl;
+  rate: UntypedFormControl;
+  sourceAsset: UntypedFormControl;
+  transactionDate: UntypedFormControl;
   todayDate: Date;
-  updateCashBalances: FormControl;
+  updateCashBalances: UntypedFormControl;
 
   private componentDestroyed$ = new Subject();
 
@@ -89,19 +89,19 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
     this.todayDate.setHours(0, 0, 0, 0);
     this.debtFlag = (this.data.sourceAsset.amount < 0) ? 1 : 0;
 
-    this.fee = new FormControl(0, [Validators.min(0)]);
+    this.fee = new UntypedFormControl(0, [Validators.min(0)]);
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => this.amount.updateValueAndValidity());
-    this.amount = new FormControl(0);
-    this.sourceAsset = new FormControl(this.data.sourceAsset);
-    this.destinationAsset = new FormControl();
-    this.rate = new FormControl(1, [Validators.min(0)]);
-    this.transactionDate = new FormControl(new Date());
-    this.description = new FormControl('');
-    this.addForexPosition = new FormControl(false);
-    this.updateCashBalances = new FormControl(true);
-    this.assetForm = new FormGroup({
+    this.amount = new UntypedFormControl(0);
+    this.sourceAsset = new UntypedFormControl(this.data.sourceAsset);
+    this.destinationAsset = new UntypedFormControl();
+    this.rate = new UntypedFormControl(1, [Validators.min(0)]);
+    this.transactionDate = new UntypedFormControl(new Date());
+    this.description = new UntypedFormControl('');
+    this.addForexPosition = new UntypedFormControl(false);
+    this.updateCashBalances = new UntypedFormControl(true);
+    this.assetForm = new UntypedFormGroup({
       sourceAsset: this.sourceAsset,
       destinationAsset: this.destinationAsset,
       amount: this.amount,

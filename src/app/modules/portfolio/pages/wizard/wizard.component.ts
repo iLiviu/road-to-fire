@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators, ValidationErrors } from '@angular/forms';
 
 import { APP_CONSTS } from 'src/app/config/app.constants';
 import { StorageService } from 'src/app/core/services/storage.service';
@@ -13,8 +13,8 @@ import { EventsService } from 'src/app/core/services/events.service';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 import { LocaleIDs } from 'src/app/core/services/locale-service';
 
-const valueMatchesControlValidator = (secondCtrl: FormControl) => {
-  return (control: FormControl): ValidationErrors | null => {
+const valueMatchesControlValidator = (secondCtrl: UntypedFormControl) => {
+  return (control: UntypedFormControl): ValidationErrors | null => {
     return control.value !== secondCtrl.value ? { 'different': true } : null;
   };
 };
@@ -33,20 +33,20 @@ const valueMatchesControlValidator = (secondCtrl: FormControl) => {
 export class WizardComponent implements OnInit {
 
   appConfig: AppConfig;
-  baseCurrencyForm: FormGroup;
-  baseCurrency: FormControl;
-  configPassword: FormControl;
-  configPasswordConfirm: FormControl;
-  cloudSyncForm: FormGroup;
-  dateAndCurrencyFormat: FormControl;
-  displayFormatForm: FormGroup;
-  encryptionForm: FormGroup;
-  fireForm: FormGroup;
-  fireNumber: FormControl;
-  passwordProtect: FormControl;
+  baseCurrencyForm: UntypedFormGroup;
+  baseCurrency: UntypedFormControl;
+  configPassword: UntypedFormControl;
+  configPasswordConfirm: UntypedFormControl;
+  cloudSyncForm: UntypedFormGroup;
+  dateAndCurrencyFormat: UntypedFormControl;
+  displayFormatForm: UntypedFormGroup;
+  encryptionForm: UntypedFormGroup;
+  fireForm: UntypedFormGroup;
+  fireNumber: UntypedFormControl;
+  passwordProtect: UntypedFormControl;
   portfolioConfig: PortfolioConfig;
-  saveOnCloud: FormControl;
-  swr: FormControl;
+  saveOnCloud: UntypedFormControl;
+  swr: UntypedFormControl;
   wizardDone = false;
 
   readonly APP_CONSTS = APP_CONSTS;
@@ -60,35 +60,35 @@ export class WizardComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.dateAndCurrencyFormat = new FormControl(LocaleIDs.EN_US);
-    this.saveOnCloud = new FormControl(false);
-    this.passwordProtect = new FormControl(false);
-    this.configPassword = new FormControl('');
-    this.configPasswordConfirm = new FormControl('');
-    this.baseCurrency = new FormControl();
-    this.fireNumber = new FormControl(1000000);
-    this.swr = new FormControl(4);
+    this.dateAndCurrencyFormat = new UntypedFormControl(LocaleIDs.EN_US);
+    this.saveOnCloud = new UntypedFormControl(false);
+    this.passwordProtect = new UntypedFormControl(false);
+    this.configPassword = new UntypedFormControl('');
+    this.configPasswordConfirm = new UntypedFormControl('');
+    this.baseCurrency = new UntypedFormControl();
+    this.fireNumber = new UntypedFormControl(1000000);
+    this.swr = new UntypedFormControl(4);
 
-    this.cloudSyncForm = new FormGroup({
+    this.cloudSyncForm = new UntypedFormGroup({
       saveOnCloud: this.saveOnCloud,
       passwordProtect: this.passwordProtect,
     });
 
-    this.displayFormatForm = new FormGroup({
+    this.displayFormatForm = new UntypedFormGroup({
       dateAndCurrencyFormat: this.dateAndCurrencyFormat,
     });
 
-    this.encryptionForm = new FormGroup({
+    this.encryptionForm = new UntypedFormGroup({
       passwordProtect: this.passwordProtect,
       configPassword: this.configPassword,
       configPasswordConfirm: this.configPasswordConfirm,
     });
 
-    this.baseCurrencyForm = new FormGroup({
+    this.baseCurrencyForm = new UntypedFormGroup({
       baseCurrency: this.baseCurrency,
     });
 
-    this.fireForm = new FormGroup({
+    this.fireForm = new UntypedFormGroup({
       fireNumber: this.fireNumber,
       swr: this.swr,
     });

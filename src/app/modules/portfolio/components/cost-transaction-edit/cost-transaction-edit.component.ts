@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, ViewChild, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators, ValidationErrors } from '@angular/forms';
 
 import { Asset, AssetType } from '../../models/asset';
 import { TransactionType } from '../../models/transaction';
@@ -37,8 +37,8 @@ export interface CostTransactionEditResponse {
  * @param cashAsset cash asset
  * @param feeCtrl fee form control
  */
-const cashAmountValidator = (cashAssetCtrl: FormControl, feeCtrl: FormControl) => {
-  return (amountCtrl: FormControl): ValidationErrors | null => {
+const cashAmountValidator = (cashAssetCtrl: UntypedFormControl, feeCtrl: UntypedFormControl) => {
+  return (amountCtrl: UntypedFormControl): ValidationErrors | null => {
     const amount = amountCtrl.value;
     return amount < 0 || (cashAssetCtrl.value && amount > FloatingMath.fixRoundingError(cashAssetCtrl.value.amount - feeCtrl.value)) ?
       { 'invalidRange': true } : null;
@@ -56,17 +56,17 @@ const cashAmountValidator = (cashAssetCtrl: FormControl, feeCtrl: FormControl) =
 })
 export class CostTransactionEditComponent implements OnInit, OnDestroy {
 
-  assetForm: FormGroup;
-  amount: FormControl;
-  cashAsset: FormControl;
+  assetForm: UntypedFormGroup;
+  amount: UntypedFormControl;
+  cashAsset: UntypedFormControl;
   cashAssets: Asset[];
-  description: FormControl;
-  fee: FormControl;
-  enableRecurringTransaction: FormControl;
-  transactionDate: FormControl;
+  description: UntypedFormControl;
+  fee: UntypedFormControl;
+  enableRecurringTransaction: UntypedFormControl;
+  transactionDate: UntypedFormControl;
   todayDate: Date;
   isScheduledTx = false;
-  updateCashAssetBalance: FormControl;
+  updateCashAssetBalance: UntypedFormControl;
 
   readonly TransactionType = TransactionType;
 
@@ -84,19 +84,19 @@ export class CostTransactionEditComponent implements OnInit, OnDestroy {
       defaultCashAsset = this.data.account.getAssetById(this.data.asset.cashAssetId);
     }
 
-    this.cashAsset = new FormControl(defaultCashAsset);
-    this.amount = new FormControl();
-    this.fee = new FormControl(0, [Validators.min(0)]);
+    this.cashAsset = new UntypedFormControl(defaultCashAsset);
+    this.amount = new UntypedFormControl();
+    this.fee = new UntypedFormControl(0, [Validators.min(0)]);
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => this.amount.updateValueAndValidity());
 
-    this.description = new FormControl('Cost for ' + this.data.asset.description);
-    this.enableRecurringTransaction = new FormControl();
-    this.transactionDate = new FormControl(new Date());
-    this.updateCashAssetBalance = new FormControl(true);
+    this.description = new UntypedFormControl('Cost for ' + this.data.asset.description);
+    this.enableRecurringTransaction = new UntypedFormControl();
+    this.transactionDate = new UntypedFormControl(new Date());
+    this.updateCashAssetBalance = new UntypedFormControl(true);
 
-    this.assetForm = new FormGroup({
+    this.assetForm = new UntypedFormGroup({
       amount: this.amount,
       cashAsset: this.cashAsset,
       description: this.description,

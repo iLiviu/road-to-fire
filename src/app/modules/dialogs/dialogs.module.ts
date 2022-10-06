@@ -18,36 +18,28 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { TextareaDialogComponent } from './components/textarea-dialog/textarea-dialog.component';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatProgressSpinnerModule,
-    FlexLayoutModule,
-  ],
-  exports: [
-  ],
-  declarations: [
-    ConfirmDialogComponent,
-    InputDialogComponent,
-    MessageDialogComponent,
-    LoadingScreenDialogComponent,
-    TextareaDialogComponent,
-  ],
-  providers: [
-    DialogsService,
-  ],
-  entryComponents: [
-    ConfirmDialogComponent,
-    InputDialogComponent,
-    MessageDialogComponent,
-    LoadingScreenDialogComponent,
-    TextareaDialogComponent
-  ],
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatIconModule,
+        MatButtonModule,
+        MatCheckboxModule,
+        MatProgressSpinnerModule,
+        FlexLayoutModule,
+    ],
+    exports: [],
+    declarations: [
+        ConfirmDialogComponent,
+        InputDialogComponent,
+        MessageDialogComponent,
+        LoadingScreenDialogComponent,
+        TextareaDialogComponent,
+    ],
+    providers: [
+        DialogsService,
+    ]
 })
 export class DialogsModule { }

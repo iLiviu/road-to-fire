@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormControl, FormGroup, FormArray } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, UntypedFormArray } from '@angular/forms';
 import { AssetType } from '../../models/asset';
 import { binarySearch, FloatingMath, DateUtils } from 'src/app/shared/util';
 import { PortfolioHistoryEntry, PortfolioAssetValue, PortfolioHistoryDataField } from '../../models/portfolio-history';
@@ -20,9 +20,9 @@ export interface PortfolioHistoryAddComponentInput {
 export class PortfolioHistoryAddComponent implements OnInit {
 
   todayDate: Date;
-  portfolioDate: FormControl;
-  historyForm: FormGroup;
-  assets: FormArray;
+  portfolioDate: UntypedFormControl;
+  historyForm: UntypedFormGroup;
+  assets: UntypedFormArray;
   selectedEntry: PortfolioHistoryEntry;
 
   readonly AssetType = AssetType;
@@ -35,17 +35,17 @@ export class PortfolioHistoryAddComponent implements OnInit {
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
 
-    this.portfolioDate = new FormControl();
+    this.portfolioDate = new UntypedFormControl();
 
-    this.historyForm = new FormGroup({
-      [AssetType.Cash]: new FormControl(),
-      [AssetType.Bond]: new FormControl(),
-      [AssetType.Commodity]: new FormControl(),
-      [AssetType.Cryptocurrency]: new FormControl(),
-      [AssetType.Debt]: new FormControl(),
-      [AssetType.P2P]: new FormControl(),
-      [AssetType.RealEstate]: new FormControl(),
-      [AssetType.Stock]: new FormControl(),
+    this.historyForm = new UntypedFormGroup({
+      [AssetType.Cash]: new UntypedFormControl(),
+      [AssetType.Bond]: new UntypedFormControl(),
+      [AssetType.Commodity]: new UntypedFormControl(),
+      [AssetType.Cryptocurrency]: new UntypedFormControl(),
+      [AssetType.Debt]: new UntypedFormControl(),
+      [AssetType.P2P]: new UntypedFormControl(),
+      [AssetType.RealEstate]: new UntypedFormControl(),
+      [AssetType.Stock]: new UntypedFormControl(),
       portfolioDate: this.portfolioDate,
     });
   }

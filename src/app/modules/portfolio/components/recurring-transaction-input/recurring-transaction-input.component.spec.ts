@@ -10,7 +10,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ReactiveFormsModule, FormsModule, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, UntypedFormGroup } from '@angular/forms';
 import { RecurringTransaction, RecurringTransactionType, RecurringTransactionData } from '../../models/recurring-transaction';
 import { Transaction, TransactionType, TransactionData } from '../../models/transaction';
 import { SAMPLE_ASSETS, SAMPLE_ACCOUNTS } from '../../mocks/sample-accounts.mock';
@@ -68,7 +68,7 @@ describe('RecurringTransactionInputComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(RecurringTransactionInputComponent);
     component = fixture.componentInstance;
-    component.parentForm = new FormGroup({});
+    component.parentForm = new UntypedFormGroup({});
     component.recTx = recTx;
     fixture.detectChanges();
   });

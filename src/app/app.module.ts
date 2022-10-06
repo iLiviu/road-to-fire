@@ -51,63 +51,61 @@ export function localeInitializer(localeService: LocaleService) {
 
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    PageNotFoundComponent,
-    LoginComponent,
-    RStorageWidgetCloseButtonComponent,
-  ],
-  imports: [
-    HttpClientModule,
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    LayoutModule,
-    FlexLayoutModule,
-    MatSnackBarModule,
-    MatInputModule,
-    MatCheckboxModule,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MatToolbarModule,
-    MatTooltipModule,
-    FormsModule,
-    AboutModule,
-    DialogsModule,
-    HammerModule,
-    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
-  ],
-  exports: [
-  ],
-  entryComponents: [],
-  providers: [
-    AuthService,
-    EventsService,
-    ConfigService,
-    UpdateService,
-    { provide: StorageService, useClass: RemoteStorageService },
-    { provide: AppStorageService, useClass: RSAppStorageService },
-    { provide: LoggerService, useClass: EventDrivenLoggerService },
-    { provide: HAMMER_GESTURE_CONFIG, useClass: HammerGestureConfig },
-    {
-      provide: LOCALE_ID,
-      deps: [LocaleService],
-      useFactory: localeFactory
-    },
-    {
-      provide: MAT_DATE_LOCALE,
-      deps: [LocaleService],
-      useFactory: momentLocaleFactory
-    },
-    {
-      provide: APP_INITIALIZER,
-      multi: true,
-      useFactory: localeInitializer,
-      deps: [LocaleService]
-    }
-  ],
-  bootstrap: [AppComponent, RStorageWidgetCloseButtonComponent]
+    declarations: [
+        AppComponent,
+        PageNotFoundComponent,
+        LoginComponent,
+        RStorageWidgetCloseButtonComponent,
+    ],
+    imports: [
+        HttpClientModule,
+        BrowserModule,
+        BrowserAnimationsModule,
+        AppRoutingModule,
+        LayoutModule,
+        FlexLayoutModule,
+        MatSnackBarModule,
+        MatInputModule,
+        MatCheckboxModule,
+        MatButtonModule,
+        MatCardModule,
+        MatIconModule,
+        MatToolbarModule,
+        MatTooltipModule,
+        FormsModule,
+        AboutModule,
+        DialogsModule,
+        HammerModule,
+        ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
+    ],
+    exports: [],
+    providers: [
+        AuthService,
+        EventsService,
+        ConfigService,
+        UpdateService,
+        { provide: StorageService, useClass: RemoteStorageService },
+        { provide: AppStorageService, useClass: RSAppStorageService },
+        { provide: LoggerService, useClass: EventDrivenLoggerService },
+        { provide: HAMMER_GESTURE_CONFIG, useClass: HammerGestureConfig },
+        {
+            provide: LOCALE_ID,
+            deps: [LocaleService],
+            useFactory: localeFactory
+        },
+        {
+            provide: MAT_DATE_LOCALE,
+            deps: [LocaleService],
+            useFactory: momentLocaleFactory
+        },
+        {
+            provide: APP_INITIALIZER,
+            multi: true,
+            useFactory: localeInitializer,
+            deps: [LocaleService]
+        }
+    ],
+    bootstrap: [AppComponent, RStorageWidgetCloseButtonComponent]
 })
 export class AppModule {
   constructor() {

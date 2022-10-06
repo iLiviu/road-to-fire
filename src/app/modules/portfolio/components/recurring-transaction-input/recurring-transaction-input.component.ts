@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { RecurringTransactionType, RecurringTransaction } from '../../models/recurring-transaction';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -16,13 +16,13 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class RecurringTransactionInputComponent implements OnInit, OnDestroy {
 
-  @Input('form') parentForm: FormGroup;
+  @Input('form') parentForm: UntypedFormGroup;
   @Input('recurringTransaction') recTx: RecurringTransaction;
-  autoApproveRecurring: FormControl;
-  enableRecurringTransaction: FormControl;
-  recurringPeriod: FormControl;
-  recurringTransactionsLeft: FormControl;
-  recurringType: FormControl;
+  autoApproveRecurring: UntypedFormControl;
+  enableRecurringTransaction: UntypedFormControl;
+  recurringPeriod: UntypedFormControl;
+  recurringTransactionsLeft: UntypedFormControl;
+  recurringType: UntypedFormControl;
 
   readonly RecurringTransactionType = RecurringTransactionType;
 
@@ -34,10 +34,10 @@ export class RecurringTransactionInputComponent implements OnInit, OnDestroy {
     if (!this.recTx) {
       this.recTx = new RecurringTransaction();
     }
-    this.autoApproveRecurring = new FormControl(this.recTx.autoApprove);
-    this.recurringTransactionsLeft = new FormControl(this.recTx.transactionsLeft < 0 ? null : this.recTx.transactionsLeft);
-    this.recurringPeriod = new FormControl(this.recTx.period);
-    this.recurringType = new FormControl(this.recTx.type);
+    this.autoApproveRecurring = new UntypedFormControl(this.recTx.autoApprove);
+    this.recurringTransactionsLeft = new UntypedFormControl(this.recTx.transactionsLeft < 0 ? null : this.recTx.transactionsLeft);
+    this.recurringPeriod = new UntypedFormControl(this.recTx.period);
+    this.recurringType = new UntypedFormControl(this.recTx.type);
     this.recurringType.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe((newValue: RecurringTransactionType) => {
@@ -50,7 +50,7 @@ export class RecurringTransactionInputComponent implements OnInit, OnDestroy {
     this.parentForm.addControl('recurringPeriod', this.recurringPeriod);
     this.parentForm.addControl('recurringTransactionsLeft', this.recurringTransactionsLeft);
     this.parentForm.addControl('recurringType', this.recurringType);
-    this.enableRecurringTransaction = <FormControl>this.parentForm.get('enableRecurringTransaction');
+    this.enableRecurringTransaction = <UntypedFormControl>this.parentForm.get('enableRecurringTransaction');
     if (this.enableRecurringTransaction) {
       this.enableRecurringTransaction.valueChanges
         .pipe(takeUntil(this.componentDestroyed$))

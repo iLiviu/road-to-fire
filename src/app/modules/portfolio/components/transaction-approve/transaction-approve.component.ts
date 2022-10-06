@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators } from '@angular/forms';
 
 import {
   TransactionType,
@@ -33,13 +33,13 @@ export class TransactionApproveComponent implements OnInit {
   exchangeTx: ExchangeTransaction;
   isCredit: boolean;
   isDebit: boolean;
-  mainAsset: FormControl;
-  otherAsset: FormControl;
+  mainAsset: UntypedFormControl;
+  otherAsset: UntypedFormControl;
   transferTx: TransferTransaction;
   tradeTx: TradeTransaction;
   twoWayTx: TwoWayTransaction;
   tx: Transaction;
-  txForm: FormGroup;
+  txForm: UntypedFormGroup;
 
   readonly TransactionType = TransactionType;
 
@@ -68,17 +68,17 @@ export class TransactionApproveComponent implements OnInit {
   }
 
   async init() {
-    this.txForm = new FormGroup({});
+    this.txForm = new UntypedFormGroup({});
 
     let cashAssetsNeeded = false;
     if (!this.tx.asset.id) {
-      this.mainAsset = new FormControl(null, [Validators.required]);
+      this.mainAsset = new UntypedFormControl(null, [Validators.required]);
       this.txForm.addControl('mainAsset', this.mainAsset);
       cashAssetsNeeded = true;
     }
 
     if ((this.twoWayTx && !this.twoWayTx.otherAsset.id)) {
-      this.otherAsset = new FormControl(null, [Validators.required]);
+      this.otherAsset = new UntypedFormControl(null, [Validators.required]);
       this.txForm.addControl('otherAsset', this.otherAsset);
       cashAssetsNeeded = true;
     }

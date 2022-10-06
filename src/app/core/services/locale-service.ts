@@ -55,8 +55,8 @@ export class LocaleService {
     // en-US is default for framework so no need to load it
     if (currentLocale !== 'en-US') {
       const module = await import(
-        /* webpackInclude: /en-(GB|BE)\.js$/ */
-        `@angular/common/locales/${currentLocale}.js`
+        /* webpackInclude: /en-(GB|BE)\.mjs$/ */
+        `/node_modules/@angular/common/locales/${currentLocale}.mjs`
       );
 
       registerLocaleData(module.default, currentLocale);

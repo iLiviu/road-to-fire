@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { RecurringTransactionType } from '../../models/recurring-transaction';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { DateUtils } from 'src/app/shared/util';
 
 export enum PaymentAmountType {
@@ -36,11 +36,11 @@ export interface PaymentDateAddResponse {
 })
 export class PaymentDateAddComponent implements OnInit {
 
-  paymentFormGroup: FormGroup;
-  paymentAmount: FormControl;
-  paymentRepeatType: FormControl;
-  paymentRepeatPeriod: FormControl;
-  paymentDate: FormControl;
+  paymentFormGroup: UntypedFormGroup;
+  paymentAmount: UntypedFormControl;
+  paymentRepeatType: UntypedFormControl;
+  paymentRepeatPeriod: UntypedFormControl;
+  paymentDate: UntypedFormControl;
 
   RecurringTransactionType = RecurringTransactionType;
   PaymentAmountType = PaymentAmountType;
@@ -49,11 +49,11 @@ export class PaymentDateAddComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: PaymentDateAddData) { }
 
   ngOnInit() {
-    this.paymentDate = new FormControl();
-    this.paymentAmount = new FormControl(this.data.defaultAmount);
-    this.paymentRepeatType = new FormControl();
-    this.paymentRepeatPeriod = new FormControl();
-    this.paymentFormGroup = new FormGroup({
+    this.paymentDate = new UntypedFormControl();
+    this.paymentAmount = new UntypedFormControl(this.data.defaultAmount);
+    this.paymentRepeatType = new UntypedFormControl();
+    this.paymentRepeatPeriod = new UntypedFormControl();
+    this.paymentFormGroup = new UntypedFormGroup({
       paymentDate: this.paymentDate,
       paymentAmount: this.paymentAmount,
       paymentRepeatType: this.paymentRepeatType,

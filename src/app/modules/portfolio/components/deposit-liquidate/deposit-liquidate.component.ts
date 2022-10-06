@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 
 import { AssetType, Asset } from '../../models/asset';
 import { PortfolioAccount } from '../../models/portfolio-account';
@@ -35,11 +35,11 @@ export interface DepositLiquidateResponse {
 })
 export class DepositLiquidateComponent implements OnInit {
 
-  assetForm: FormGroup;
-  cashAsset: FormControl;
+  assetForm: UntypedFormGroup;
+  cashAsset: UntypedFormControl;
   cashAssets: Asset[];
-  creditInterest: FormControl;
-  transactionDate: FormControl;
+  creditInterest: UntypedFormControl;
+  transactionDate: UntypedFormControl;
   todayDate: Date;
 
   constructor(public dialogRef: MatDialogRef<DepositLiquidateComponent>,
@@ -51,10 +51,10 @@ export class DepositLiquidateComponent implements OnInit {
     this.cashAssets = this.data.account.assets
       .filter(asset => asset.type === AssetType.Cash && asset.currency === this.data.deposit.currency);
 
-    this.cashAsset = new FormControl();
-    this.transactionDate = new FormControl(new Date());
-    this.creditInterest = new FormControl(true);
-    this.assetForm = new FormGroup({
+    this.cashAsset = new UntypedFormControl();
+    this.transactionDate = new UntypedFormControl(new Date());
+    this.creditInterest = new UntypedFormControl(true);
+    this.assetForm = new UntypedFormGroup({
       cashAsset: this.cashAsset,
       transactionDate: this.transactionDate,
       creditInterest: this.creditInterest,

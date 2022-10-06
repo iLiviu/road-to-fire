@@ -8,7 +8,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 import { MockDialogsService } from 'src/app/modules/dialogs/mocks/dialogs.service.mock';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 
 describe('EditDialogComponent', () => {
   let component: EditDialogComponent;
@@ -37,7 +37,7 @@ describe('EditDialogComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(EditDialogComponent);
     component = fixture.componentInstance;
-    component.editForm = new FormGroup({});
+    component.editForm = new UntypedFormGroup({});
     fixture.detectChanges();
   });
 

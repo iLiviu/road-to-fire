@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 import { Subscription } from 'rxjs';
@@ -18,7 +18,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 export class EditDialogComponent implements OnInit, OnDestroy {
 
   // tslint:disable-next-line:no-input-rename
-  @Input('form') editForm: FormGroup;
+  @Input('form') editForm: UntypedFormGroup;
   @Input() title: string;
   @Output() close = new EventEmitter<boolean>();
   isHandset: boolean;

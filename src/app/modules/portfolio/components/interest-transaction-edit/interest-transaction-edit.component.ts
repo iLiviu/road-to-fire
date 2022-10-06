@@ -2,7 +2,7 @@ import { Component, OnInit, Inject, ChangeDetectionStrategy, ChangeDetectorRef }
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators, ValidationErrors } from '@angular/forms';
 import { PortfolioService } from '../../services/portfolio.service';
 import { getDateAsISOString, FloatingMath, DateUtils } from 'src/app/shared/util';
 import { InterestTransaction } from '../../models/interest-transaction';
@@ -33,20 +33,20 @@ export interface InterestTxEditResponse {
 export class InterestTransactionEditComponent implements OnInit {
 
   assetCurrency: string;
-  assetForm: FormGroup;
-  amount: FormControl;
+  assetForm: UntypedFormGroup;
+  amount: UntypedFormControl;
   asset: Asset;
   account: PortfolioAccount;
   cashAssets: Asset[];
-  cashAsset: FormControl;
-  fee: FormControl;
+  cashAsset: UntypedFormControl;
+  fee: UntypedFormControl;
   isScheduledTx = false;
-  taxRate: FormControl;
-  transactionDate: FormControl;
+  taxRate: UntypedFormControl;
+  transactionDate: UntypedFormControl;
   todayDate: Date;
   tx: InterestTransaction;
-  updateCashAssetBalance: FormControl;
-  withholdTax: FormControl;
+  updateCashAssetBalance: UntypedFormControl;
+  withholdTax: UntypedFormControl;
 
 
   constructor(public dialogRef: MatDialogRef<InterestTransactionEditComponent>,
@@ -60,11 +60,11 @@ export class InterestTransactionEditComponent implements OnInit {
       defaultCashAsset = this.data.account.getAssetById(this.data.tx.asset.id);
     }
 
-    this.cashAsset = new FormControl(defaultCashAsset);
+    this.cashAsset = new UntypedFormControl(defaultCashAsset);
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
-    this.amount = new FormControl(this.tx.value, [Validators.min(Number.EPSILON)]);
-    this.fee = new FormControl(this.tx.fee || 0, [Validators.min(0)]);
+    this.amount = new UntypedFormControl(this.tx.value, [Validators.min(Number.EPSILON)]);
+    this.fee = new UntypedFormControl(this.tx.fee || 0, [Validators.min(0)]);
     let txDate: Date;
     if (this.tx.date) {
       txDate = new Date(this.tx.date);
@@ -72,15 +72,15 @@ export class InterestTransactionEditComponent implements OnInit {
       txDate = new Date();
     }
     this.assetCurrency = this.tx.payerAsset.currency;
-    this.transactionDate = new FormControl(txDate);
-    this.withholdTax = new FormControl(this.tx.withholdingTax > 0);
+    this.transactionDate = new UntypedFormControl(txDate);
+    this.withholdTax = new UntypedFormControl(this.tx.withholdingTax > 0);
     let calculatedTaxRate = 0;
     if (this.tx.value) {
       calculatedTaxRate = this.tx.withholdingTax / this.tx.value;
     }
-    this.taxRate = new FormControl(FloatingMath.fixRoundingError(calculatedTaxRate * 100), [Validators.min(0), Validators.max(100)]);
-    this.updateCashAssetBalance = new FormControl(true);
-    this.assetForm = new FormGroup({
+    this.taxRate = new UntypedFormControl(FloatingMath.fixRoundingError(calculatedTaxRate * 100), [Validators.min(0), Validators.max(100)]);
+    this.updateCashAssetBalance = new UntypedFormControl(true);
+    this.assetForm = new UntypedFormGroup({
       amount: this.amount,
       cashAsset: this.cashAsset,
       fee: this.fee,

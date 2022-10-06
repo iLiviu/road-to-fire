@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
@@ -30,8 +30,8 @@ export interface DepositEditResponse {
  * Validate if the input is positive and does not exceed the balance of the cash asset
  * @param cashAssetControl cash asset form control
  */
-const depositAmountValidator = (cashAssetControl: FormControl) => {
-  return (control: FormControl): ValidationErrors | null => {
+const depositAmountValidator = (cashAssetControl: UntypedFormControl) => {
+  return (control: UntypedFormControl): ValidationErrors | null => {
     const amount = control.value;
     return amount < 0 || amount > (<Asset>cashAssetControl.value).amount ? { 'invalidRange': true } : null;
   };
@@ -49,20 +49,20 @@ const depositAmountValidator = (cashAssetControl: FormControl) => {
 })
 export class DepositEditComponent implements OnInit, OnDestroy {
 
-  assetForm: FormGroup;
-  amount: FormControl;
-  description: FormControl;
-  autoRenew: FormControl;
-  cashAsset: FormControl;
+  assetForm: UntypedFormGroup;
+  amount: UntypedFormControl;
+  description: UntypedFormControl;
+  autoRenew: UntypedFormControl;
+  cashAsset: UntypedFormControl;
   cashAssets: Asset[];
-  capitalize: FormControl;
-  creationDate: FormControl;
-  debitAccount: FormControl;
-  interestRate: FormControl;
-  interestTaxRate: FormControl;
-  maturityDate: FormControl;
+  capitalize: UntypedFormControl;
+  creationDate: UntypedFormControl;
+  debitAccount: UntypedFormControl;
+  interestRate: UntypedFormControl;
+  interestTaxRate: UntypedFormControl;
+  maturityDate: UntypedFormControl;
   todayDate: Date;
-  withholdInterestTax: FormControl;
+  withholdInterestTax: UntypedFormControl;
 
   private componentDestroyed$ = new Subject();
 
@@ -75,23 +75,23 @@ export class DepositEditComponent implements OnInit, OnDestroy {
     this.todayDate.setHours(0, 0, 0, 0);
     this.cashAssets = this.data.account.assets.filter(asset => asset.type === AssetType.Cash);
 
-    this.description = new FormControl(this.data.asset.description);
-    this.autoRenew = new FormControl(this.data.asset.autoRenew);
-    this.interestRate = new FormControl(FloatingMath.fixRoundingError(this.data.asset.interestRate * 100) || 0);
-    this.capitalize = new FormControl(this.data.asset.capitalize);
-    this.creationDate = new FormControl(this.data.asset.creationDate || new Date());
-    this.maturityDate = new FormControl(this.data.asset.maturityDate || new Date());
-    this.debitAccount = new FormControl(true);
-    this.amount = new FormControl(this.data.asset.amount || 0);
-    this.cashAsset = new FormControl(this.cashAssets.length > 0 ? this.cashAssets[0] : null);
+    this.description = new UntypedFormControl(this.data.asset.description);
+    this.autoRenew = new UntypedFormControl(this.data.asset.autoRenew);
+    this.interestRate = new UntypedFormControl(FloatingMath.fixRoundingError(this.data.asset.interestRate * 100) || 0);
+    this.capitalize = new UntypedFormControl(this.data.asset.capitalize);
+    this.creationDate = new UntypedFormControl(this.data.asset.creationDate || new Date());
+    this.maturityDate = new UntypedFormControl(this.data.asset.maturityDate || new Date());
+    this.debitAccount = new UntypedFormControl(true);
+    this.amount = new UntypedFormControl(this.data.asset.amount || 0);
+    this.cashAsset = new UntypedFormControl(this.cashAssets.length > 0 ? this.cashAssets[0] : null);
     this.cashAsset.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => this.amount.updateValueAndValidity()); // need to recheck amount validation
     this.updateAmountValidators();
-    this.interestTaxRate = new FormControl(FloatingMath.fixRoundingError(this.data.asset.interestTaxRate * 100) || 0,
+    this.interestTaxRate = new UntypedFormControl(FloatingMath.fixRoundingError(this.data.asset.interestTaxRate * 100) || 0,
       [Validators.min(0), Validators.max(100)]);
-    this.withholdInterestTax = new FormControl(this.data.asset.withholdInterestTax);
-    this.assetForm = new FormGroup({
+    this.withholdInterestTax = new UntypedFormControl(this.data.asset.withholdInterestTax);
+    this.assetForm = new UntypedFormGroup({
       amount: this.amount,
       description: this.description,
       autoRenew: this.autoRenew,

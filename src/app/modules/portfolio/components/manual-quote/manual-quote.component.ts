@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormArray, UntypedFormControl, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { PortfolioAccount } from '../../models/portfolio-account';
@@ -9,7 +9,7 @@ import { AccountAsset } from '../../models/account-asset';
 interface AssetData {
   account: PortfolioAccount;
   asset: TradeableAsset;
-  formCtrl: FormControl;
+  formCtrl: UntypedFormControl;
 }
 
 /**
@@ -25,8 +25,8 @@ interface AssetData {
 })
 export class ManualQuoteComponent implements OnInit {
 
-  quotesForm: FormGroup;
-  quotesFormAssets: FormArray;
+  quotesForm: UntypedFormGroup;
+  quotesFormAssets: UntypedFormArray;
   assets: AssetData[];
 
   constructor(public dialogRef: MatDialogRef<ManualQuoteComponent>,
@@ -34,8 +34,8 @@ export class ManualQuoteComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.quotesFormAssets = new FormArray([]);
-    this.quotesForm = new FormGroup({
+    this.quotesFormAssets = new UntypedFormArray([]);
+    this.quotesForm = new UntypedFormGroup({
       quotesFormAssets: this.quotesFormAssets,
     });
     this.loadData();
@@ -50,7 +50,7 @@ export class ManualQuoteComponent implements OnInit {
 
     for (const accAsset of this.accountAssets) {
       const tradeableAsset = <TradeableAsset>accAsset.asset;
-      const ctrl = new FormControl(tradeableAsset.currentPrice, [Validators.min(0.00001), Validators.pattern(/^[0-9]+(\.[0-9]+)?$/)]);
+      const ctrl = new UntypedFormControl(tradeableAsset.currentPrice, [Validators.min(0.00001), Validators.pattern(/^[0-9]+(\.[0-9]+)?$/)]);
       this.quotesFormAssets.push(ctrl);
       this.assets.push({
         account: accAsset.account,
