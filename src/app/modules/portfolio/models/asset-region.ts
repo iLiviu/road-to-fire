@@ -73,37 +73,36 @@ export interface AssetRegionWeight {
  */
 export const ASSET_INDEX_REGION_ALLOCATIONS: Dictionary<AssetRegionWeight[]> = {
   [AssetRegion.MSCIEmergingMarkets]: [
-    { region: AssetRegion.EmergingAsia, weight: 0.6887 },
-    { region: AssetRegion.EmergingSouthAmerica, weight: 0.0988 },
-    { region: AssetRegion.EmergingAfrica, weight: 0.0589 },
-    { region: AssetRegion.EmergingEurope, weight: 0.0377 },
-    { region: AssetRegion.Emerging, weight: 0.1159 }, // other
+    { region: AssetRegion.EmergingAsia, weight: 0.84 },
+    { region: AssetRegion.EmergingSouthAmerica, weight: 0.083 },
+    { region: AssetRegion.EmergingAfrica, weight: 0.0343 },
+    { region: AssetRegion.Emerging, weight: 0.0427 }, // other
   ],
-  [AssetRegion.MSCIACWI]: [
-    { region: AssetRegion.USA, weight: 0.5364 },
-    { region: AssetRegion.Canada, weight: 0.0308 },
-    { region: AssetRegion.DevelopedEurope, weight: 0.2009 },
-    { region: AssetRegion.DevelopedPacific, weight: 0.0916 },
 
-    { region: AssetRegion.Developed, weight: 0.0243 }, // other
-    // emerging (11.6%)
-    { region: AssetRegion.EmergingAsia, weight: 0.6887 * 0.116 },
-    { region: AssetRegion.EmergingSouthAmerica, weight: 0.0988 * 0.116 },
-    { region: AssetRegion.EmergingAfrica, weight: 0.0589 * 0.116 },
-    { region: AssetRegion.EmergingEurope, weight: 0.0377 * 0.116 },
-    { region: AssetRegion.Emerging, weight: 0.1159 * 0.116 },
+  [AssetRegion.MSCIACWI]: [
+    { region: AssetRegion.USA, weight: 0.603 },
+    { region: AssetRegion.Canada, weight: 0.032 },
+    { region: AssetRegion.DevelopedEurope, weight: 0.1582 },
+    { region: AssetRegion.DevelopedPacific, weight: 0.091 },
+    { region: AssetRegion.Developed, weight: 0.0038 }, // other
+    // emerging (11.2%)
+    { region: AssetRegion.EmergingAsia, weight: 0.84 * 0.112 },
+    { region: AssetRegion.EmergingSouthAmerica, weight: 0.083 * 0.112 },
+    { region: AssetRegion.EmergingAfrica, weight: 0.0343 * 0.112 },
+    { region: AssetRegion.Emerging, weight: 0.0427 * 0.112 },
   ],
+
   [AssetRegion.MSCIWorld]: [
-    { region: AssetRegion.USA, weight: 0.6251 },
-    { region: AssetRegion.Japan, weight: 0.0827 },
-    { region: AssetRegion.UnitedKingdom, weight: 0.0539 },
-    { region: AssetRegion.France, weight: 0.0382 },
-    { region: AssetRegion.Canada, weight: 0.0342 },
-    { region: AssetRegion.Switzerland, weight: 0.0342 },
-    { region: AssetRegion.Germany, weight: 0.0342 },
-    { region: AssetRegion.Australia, weight: 0.0342 },
-    { region: AssetRegion.Netherlands, weight: 0.0342 },
-    { region: AssetRegion.Developed, weight: 0.0573 }, // other
+    { region: AssetRegion.USA, weight: 0.6985 },
+    { region: AssetRegion.Japan, weight: 0.060 },
+    { region: AssetRegion.UnitedKingdom, weight: 0.0406 },
+    { region: AssetRegion.France, weight: 0.0299 },
+    { region: AssetRegion.Canada, weight: 0.035 },
+    { region: AssetRegion.Switzerland, weight: 0.0277 },
+    { region: AssetRegion.Germany, weight: 0.0198 },
+    { region: AssetRegion.Australia, weight: 0.0213 },
+    { region: AssetRegion.Netherlands, weight: 0.0111 },
+    { region: AssetRegion.Developed, weight: 0.0561 }, // other
   ],
 };
 
