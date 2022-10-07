@@ -31,6 +31,10 @@ import { APP_THEMES, ConfigService } from 'src/app/core/services/config.service'
 const MULTI_COL_GRID_ROW_HEIGHT = '2:1.6';
 const SINGLE_COL_GRID_ROW_HEIGHT = '1:1.1';
 
+const LOCALE_NUMBER_OPTIONS = {
+  maximumFractionDigits: 2
+};
+
 /**
  * The order in which to place the assets in the portfolio history chart. We need
  * to place debt and cash first as these can have negative values.
@@ -179,7 +183,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         if (data.labels[tooltipItem.index]) {
           label += data.labels[tooltipItem.index] + ': ';
         }
-        label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toLocaleString(this.locale) + '%';
+        label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS) + '%';
         return label;
       }
     }
@@ -198,7 +202,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
           if (data.labels[tooltipItem.index]) {
             label += data.labels[tooltipItem.index] + ': ';
           }
-          label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toLocaleString(this.locale) + '%';
+          label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS) + '%';
           return label;
         }
       }
@@ -226,7 +230,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
             label += ': ';
           }
           const value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-          label += this.baseCurrencySymbol + value.toLocaleString(this.locale);
+          label += this.baseCurrencySymbol + value.toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS);
           return label;
         },
         footer: (tooltipItems: any, data: any) => {
@@ -234,7 +238,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
           for (const tooltipItem of tooltipItems) {
             totalValue += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
           }
-          return 'Total: ' + this.baseCurrencySymbol + totalValue.toLocaleString(this.locale);
+          return 'Total: ' + this.baseCurrencySymbol + totalValue.toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS);
         }
       }
     },
@@ -254,7 +258,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         stacked: true,
         ticks: {
           callback: (value: any, index: any, values: any) => {
-            return this.baseCurrencySymbol + value.toLocaleString(this.locale);
+            return this.baseCurrencySymbol + value.toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS);
           }
         }
       }]
