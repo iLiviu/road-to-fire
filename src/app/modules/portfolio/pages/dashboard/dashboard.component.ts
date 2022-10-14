@@ -27,6 +27,8 @@ import * as moment from 'moment';
 import { ThemeService } from 'ng2-charts';
 import { ChartOptions } from 'chart.js';
 import { APP_THEMES, ConfigService } from 'src/app/core/services/config.service';
+import { TransactionType } from '../../models/transaction';
+import * as IRR from 'node-irr';
 
 const MULTI_COL_GRID_ROW_HEIGHT = '2:1.6';
 const SINGLE_COL_GRID_ROW_HEIGHT = '1:1.1';
@@ -165,6 +167,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   stockGeoAllocationChart: ChartContext = { data: [], labels: [] };
   portfolioHistoryChart: MultiDatasetChartContext = { data: [{ label: '', data: [] }], labels: [] };
   unrealizedPLHistoryChart: MultiDatasetChartContext = { data: [{ label: '', data: [] }], labels: [] };
+  timeFrameIRR: number;
+  inaccurateIRR: boolean;
 
   readonly assetTypeLabels = { ...ASSET_TYPE_LABELS };
   readonly goalChartColors: Array<any> = ['rgb(51, 160, 223)', 'rgba(214, 214, 214, 0.897)'];
@@ -848,8 +852,106 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   /**
    * Update the portfolio history chart data
    */
-  private displayPortfolioHistory() {
+  private async displayPortfolioHistory() {
     this.updateHistoryChart(this.allPortfolioHistory, this.phTimeFrame, this.portfolioHistoryChart, PortfolioHistoryDataField.Assets);
+    this.timeFrameIRR = await this.computeIRR(this.phTimeFrame);
+  }
+
+  /**
+   * Compute IRR of the portfolio for a given time frame
+   * @param timeFrame time frame to calculate IRR for
+   * @return promise with computed IRR
+   */
+  private async computeIRR(timeFrame: string) {
+    const minDate = this.getStartDateFromTimeFrame(timeFrame);
+    const data = [];
+    let startDate = new Date();
+    let startValue = 0;
+    let endDate = new Date(0, 0, 0);
+    let endValue = 0;
+
+    // find first and last day for which we have data during given time frame
+    for (const entry of this.allPortfolioHistory.entries) {
+      const entryDate = new Date(entry.date);
+      const assets = entry.assets;
+      // skip dates not in our time frame or without any data
+      if (assets && assets.length > 0 && (!minDate || minDate.getTime() <= entryDate.getTime())) {
+        let portfolioValue = 0;
+        for (const asset of assets) {
+          portfolioValue += asset.value;
+        }
+        if (entryDate.getTime() <= startDate.getTime()) {
+          startDate = entryDate;
+          startValue = portfolioValue;
+        }
+        if (entryDate.getTime() > endDate.getTime()) {
+          endDate = entryDate;
+          endValue = portfolioValue;
+        }
+      }
+    }
+
+    // initial portfolio value
+    data.push({ amount: -startValue, date: startDate });
+
+    // search for cash debits/credits through all transaction history
+    const transactions = await this.portfolioService.getTransactions();
+    for (const tx of transactions) {
+      const txDate = new Date(tx.date);
+      if (!minDate || minDate.getTime() <= txDate.getTime()) {
+        if (tx.type === TransactionType.CreditCash) {
+          const fxRate = this.getCurrencyRate(tx.asset.currency);
+          data.push({ amount: -tx.value * fxRate, date: txDate });
+          if (tx.asset.currency !== this.baseCurrency) {
+            this.inaccurateIRR = true;
+          }
+        } else if (tx.type === TransactionType.DebitCash) {
+          const fxRate = this.getCurrencyRate(tx.asset.currency);
+          data.push({ amount: tx.value * fxRate, date: txDate });
+          if (tx.asset.currency !== this.baseCurrency) {
+            this.inaccurateIRR = true;
+          }
+        }
+      }
+    }
+
+    // final portfolio value
+    data.push({ amount: endValue, date: endDate });
+
+    const rate = IRR.xirr(data);
+    const irr = IRR.convertRate(rate.rate, IRR.RateInterval.Year);
+    return irr;
+  }
+
+  /**
+   * Get the start date for a given time frame
+   * @param timeFrame a string representing the time frame
+   * @returns the start date for the given time frame
+   */
+  private getStartDateFromTimeFrame(timeFrame: string) {
+    let minDate: Date;
+    switch (timeFrame) {
+      case 'YTD':
+        minDate = new Date();
+        minDate.setMonth(0, 1);
+        break;
+      case '1Y':
+        minDate = new Date();
+        minDate.setFullYear(minDate.getFullYear() - 1);
+        break;
+      case '5Y':
+        minDate = new Date();
+        minDate.setFullYear(minDate.getFullYear() - 5);
+        break;
+      case '10Y':
+        minDate = new Date();
+        minDate.setFullYear(minDate.getFullYear() - 10);
+        break;
+    }
+    if (minDate) {
+      minDate.setHours(0, 0, 0, 0);
+    }
+    return minDate;
   }
 
   /**
@@ -880,28 +982,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       };
     }
 
-    let minDate: Date;
-    switch (timeFrame) {
-      case 'YTD':
-        minDate = new Date();
-        minDate.setMonth(0, 1);
-        break;
-      case '1Y':
-        minDate = new Date();
-        minDate.setFullYear(minDate.getFullYear() - 1);
-        break;
-      case '5Y':
-        minDate = new Date();
-        minDate.setFullYear(minDate.getFullYear() - 5);
-        break;
-      case '10Y':
-        minDate = new Date();
-        minDate.setFullYear(minDate.getFullYear() - 10);
-        break;
-    }
-    if (minDate) {
-      minDate.setHours(0, 0, 0, 0);
-    }
+    const minDate = this.getStartDateFromTimeFrame(timeFrame);
 
     for (const entry of history.entries) {
       const entryDate = new Date(entry.date);

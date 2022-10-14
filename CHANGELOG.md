@@ -3,6 +3,7 @@
 ### Features
 * Add support for virtual forex assets
 * Added charts for top bond, p2p & stock holdings
+* Display portfolio's IRR in Portfolio History chart
 
 ### Bug fixes
 * Group capital gains correctly by asset description

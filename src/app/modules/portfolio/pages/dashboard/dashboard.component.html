@@ -33,7 +33,7 @@
               <span [ngClass]="(portfolioUnrealizedPL < 0)? 'negative':'positive'">
                 {{ portfolioUnrealizedPL | currency:baseCurrency}}
                 <ng-container *ngIf="portfolioValue > 0">
-                  ({{ portfolioUnrealizedPL / portfolioValue  | percent:'1.02'}})
+                  ({{ portfolioUnrealizedPL / portfolioValue | percent:'1.02'}})
                 </ng-container>
               </span>
             </div>
@@ -96,6 +96,15 @@
               <mat-icon aria-label="Manually add history data">add_circle_outline</mat-icon>
             </button>
           </mat-card-title>
+          <mat-card-subtitle *ngIf="timeFrameIRR" fxLayoutAlign="start center">
+            <span>
+              Time frame IRR: {{timeFrameIRR | percent:'1.02'}}
+            </span>
+            <mat-icon *ngIf="inaccurateIRR" color="accent"
+              matTooltip="Note: IRR is not accurate because you have non-base currency cash credits/debits, and the app uses the current FX rate for conversion, not the one on the actual transaction date">
+              error_outline
+            </mat-icon>
+          </mat-card-subtitle>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas *ngIf="portfolioHistoryChart.data.length > 0" baseChart [datasets]="portfolioHistoryChart.data"
@@ -257,7 +266,7 @@
               [options]="pieChartOptions" chartType="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>      
+      </mat-grid-tile>
 
       <mat-grid-tile *ngIf="gridVisibility[GridTiles.P2PGeoAllocation] && p2pGeoAllocationChart.data.length > 0">
         <mat-card class="grid-card">
@@ -317,7 +326,7 @@
             <ol *ngIf="rebalancingSetup">
               <li *ngFor="let step of rebalancingSteps">
                 <span *ngIf="step.percentage < 0" class="negative">Sell {{step.value * -1 |
-                currency:this.baseCurrency}} ({{ step.percentage | percent:'1.0-2'}}) of {{step.assetName}} </span>
+                  currency:this.baseCurrency}} ({{ step.percentage | percent:'1.0-2'}}) of {{step.assetName}} </span>
                 <span *ngIf="step.percentage > 0" class="positive">Buy {{step.value | currency:this.baseCurrency}} of
                   {{step.assetName}} </span>
               </li>
