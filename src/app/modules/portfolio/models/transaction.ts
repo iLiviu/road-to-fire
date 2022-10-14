@@ -139,8 +139,8 @@ export class Transaction implements TransactionData {
    * Returns a new instance of the transaction, deep copying all of its properties
    */
   clone() {
-    const obj = <Transaction>Object.create(Object.getPrototypeOf(this));
-    obj.constructor(this);
+    const classCtr = Object.getPrototypeOf(this).constructor;
+    const obj = new classCtr(this);
     return obj;
   }
 

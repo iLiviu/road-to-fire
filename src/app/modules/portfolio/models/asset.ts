@@ -151,8 +151,8 @@ export class Asset implements AssetData {
    * Returns a new instance of the asset, shallow copying all it's properties.
    */
   clone() {
-    const obj = Object.create(Object.getPrototypeOf(this));
-    obj.constructor(this);
+    const classCtr = Object.getPrototypeOf(this).constructor;
+    const obj = new classCtr(this);
     return obj;
   }
 
