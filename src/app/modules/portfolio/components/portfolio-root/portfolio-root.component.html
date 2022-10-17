@@ -2,7 +2,7 @@
 
 
   <mat-sidenav #drawer role="navigation" class="sidenav" fixedInViewport="true" [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-    [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="!(isHandset$ | async)" [autoFocus]="false">
+    [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false" [autoFocus]="false">
     <div fxLayout="column" fxFlexFill>
       <mat-nav-list fxFlex>
         <app-menu-list-item *ngFor="let item of navItems" [item]="item"></app-menu-list-item>

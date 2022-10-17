@@ -1,4 +1,4 @@
-import { OnInit, OnDestroy, Injectable } from '@angular/core';
+import { OnInit, OnDestroy, Directive } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -14,7 +14,7 @@ import { StorageService } from 'src/app/core/services/storage.service';
  * Base component inherited by components that display an entire page
  *
  */
-@Injectable()
+@Directive()
 export class PortfolioPageComponent implements OnInit, OnDestroy {
 
   baseCurrency: string;

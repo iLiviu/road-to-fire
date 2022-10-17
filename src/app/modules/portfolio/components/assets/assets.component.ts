@@ -1,6 +1,5 @@
-import { OnInit, ChangeDetectorRef } from '@angular/core';
+import { OnInit, ChangeDetectorRef, Directive } from '@angular/core';
 import { Router } from '@angular/router';
-import { Injectable } from '@angular/core';
 
 import { AssetType, Asset } from '../../models/asset';
 import { PortfolioService } from '../../services/portfolio.service';
@@ -14,12 +13,11 @@ import { ViewAsset } from '../../models/view-asset';
 import { Dictionary } from 'src/app/shared/models/dictionary';
 import { StorageService } from 'src/app/core/services/storage.service';
 import { TradeableAsset } from '../../models/tradeable-asset';
-import { BondAsset } from '../../models/bond-asset';
 
 /**
  * Base Component for a UI that displays information about a group of assets
  */
-@Injectable()
+@Directive()
 export abstract class AssetsComponent extends PortfolioPageComponent implements OnInit {
 
   assetsLoaded = false;
@@ -39,7 +37,6 @@ export abstract class AssetsComponent extends PortfolioPageComponent implements 
     protected logger: LoggerService, protected dialogService: DialogsService, protected router: Router,
     protected storageService: StorageService, protected cdr: ChangeDetectorRef) {
     super(logger, portfolioService, dialogService, eventsService, router, storageService);
-
   }
 
   ngOnInit() {

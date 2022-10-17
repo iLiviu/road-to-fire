@@ -10,13 +10,11 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
   styleUrls: ['./textarea-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TextareaDialogComponent implements OnInit {
+export class TextareaDialogComponent {
 
   constructor(public dialogRef: MatDialogRef<TextareaDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: string) { }
 
-  ngOnInit() {
-  }
 
   copyToClipboard(inputElement: HTMLInputElement) {
     inputElement.select();

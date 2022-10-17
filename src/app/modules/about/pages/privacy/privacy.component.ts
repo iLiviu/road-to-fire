@@ -7,12 +7,10 @@ import { Location } from '@angular/common';
   styleUrls: ['./privacy.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PrivacyComponent implements OnInit {
+export class PrivacyComponent {
 
   constructor(private location: Location) { }
 
-  ngOnInit() {
-  }
 
   goBack() {
     this.location.back();

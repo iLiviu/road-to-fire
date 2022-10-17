@@ -10,15 +10,13 @@ import { RecurringTransaction } from '../../models/recurring-transaction';
   styleUrls: ['./recurring-transactions-list.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RecurringTransactionsListComponent implements OnInit, OnChanges {
+export class RecurringTransactionsListComponent implements OnChanges {
 
   @Input() transactions: RecurringTransaction[];
   @Input() dataLoaded = false;
 
   constructor() { }
 
-  ngOnInit() {
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.transactions && this.transactions) {

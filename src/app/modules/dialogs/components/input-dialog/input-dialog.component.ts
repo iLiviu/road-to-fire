@@ -23,7 +23,7 @@ export interface InputDialogData {
   styleUrls: ['./input-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class InputDialogComponent implements OnInit {
+export class InputDialogComponent {
 
   inputType: string;
 
@@ -37,9 +37,6 @@ export class InputDialogComponent implements OnInit {
       default: this.inputType = 'text';
     }
 
-  }
-
-  ngOnInit() {
   }
 
 }

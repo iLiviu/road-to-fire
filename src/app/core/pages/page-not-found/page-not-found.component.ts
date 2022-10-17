@@ -9,11 +9,7 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
   styleUrls: ['./page-not-found.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PageNotFoundComponent implements OnInit {
+export class PageNotFoundComponent {
 
   constructor() { }
-
-  ngOnInit() {
-  }
-
 }

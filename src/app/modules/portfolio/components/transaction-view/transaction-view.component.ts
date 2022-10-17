@@ -18,7 +18,7 @@ import { TwoWayTransaction } from '../../models/two-way-transaction';
   styleUrls: ['./transaction-view.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TransactionViewComponent implements OnInit {
+export class TransactionViewComponent {
 
   exchangeTx: ExchangeTransaction;
   isCredit: boolean;
@@ -45,10 +45,6 @@ export class TransactionViewComponent implements OnInit {
     this.isCredit = tx.isCredit();
     this.isDebit = tx.isDebit();
     this.includesCash = tx.includesCash();
-  }
-
-
-  ngOnInit() {
   }
 
 }

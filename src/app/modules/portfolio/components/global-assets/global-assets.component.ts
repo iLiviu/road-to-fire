@@ -12,16 +12,13 @@ import { OnInit } from '@angular/core';
  * This includes a summary of different statistics and the list of assets
  */
 @Injectable()
-export class GlobalAssetsComponent extends AssetsComponent implements OnInit {
+export class GlobalAssetsComponent extends AssetsComponent {
 
   pageTitle: string;
 
   private accounts: PortfolioAccount[];
   private refreshTimer: any;
 
-  ngOnInit() {
-    super.ngOnInit();
-  }
 
   protected handleEvents(event: AppEvent) {
     switch (event.type) {

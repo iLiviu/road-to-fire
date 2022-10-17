@@ -12,14 +12,11 @@ import { EventsService } from 'src/app/core/services/events.service';
   styleUrls: ['./top-toolbar.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopToolbarComponent implements OnInit {
+export class TopToolbarComponent {
 
   @Input() pageTitle: string;
 
   constructor(private eventsService: EventsService) { }
-
-  ngOnInit() {
-  }
 
   toggleSideNav() {
     this.eventsService.toggleSideNav();

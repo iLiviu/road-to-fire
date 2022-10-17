@@ -24,7 +24,7 @@ export interface MessageDialogData {
   styleUrls: ['./message-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MessageDialogComponent implements OnInit {
+export class MessageDialogComponent {
 
   icon: string;
   dontShowAgain: boolean;
@@ -40,9 +40,6 @@ export class MessageDialogComponent implements OnInit {
         this.icon = '';
     }
 
-  }
-
-  ngOnInit() {
   }
 
 }

@@ -20,7 +20,7 @@ import { TwoWayTransaction } from '../../models/two-way-transaction';
   styleUrls: ['./recurring-transaction-view.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RecurringTransactionViewComponent implements OnInit {
+export class RecurringTransactionViewComponent {
 
   exchangeTx: ExchangeTransaction;
   isCredit: boolean;
@@ -52,8 +52,5 @@ export class RecurringTransactionViewComponent implements OnInit {
     this.isDebit = recTx.tx.isDebit();
 
     this.txOccurrence = this.recTx.getOccurrenceString();
-  }
-
-  ngOnInit() {
   }
 }

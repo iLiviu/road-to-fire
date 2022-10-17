@@ -16,14 +16,12 @@ export interface LoadingScreenDialogData {
   styleUrls: ['./loading-screen-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LoadingScreenDialogComponent implements OnInit {
+export class LoadingScreenDialogComponent {
 
   constructor(public dialogRef: MatDialogRef<LoadingScreenDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: LoadingScreenDialogData) {
 
   }
 
-  ngOnInit() {
-  }
 
 }

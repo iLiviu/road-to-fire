@@ -16,7 +16,7 @@ import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
   styleUrls: ['./rstoragewidget-close-button.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RStorageWidgetCloseButtonComponent implements OnInit, OnDestroy {
+export class RStorageWidgetCloseButtonComponent implements OnDestroy {
 
   visible: boolean;
 
@@ -28,9 +28,6 @@ export class RStorageWidgetCloseButtonComponent implements OnInit, OnDestroy {
     this.eventsService.events$
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(event => this.handleEvents(event));
-  }
-
-  ngOnInit() {
   }
 
   ngOnDestroy() {

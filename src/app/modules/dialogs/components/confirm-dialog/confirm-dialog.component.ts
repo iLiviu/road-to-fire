@@ -15,13 +15,10 @@ export interface ConfirmDialogData {
   styleUrls: ['./confirm-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ConfirmDialogComponent implements OnInit {
+export class ConfirmDialogComponent {
 
   constructor(public dialogRef: MatDialogRef<ConfirmDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData) { }
-
-  ngOnInit() {
-  }
 
 }
 

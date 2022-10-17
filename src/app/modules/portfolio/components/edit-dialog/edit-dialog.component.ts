@@ -20,6 +20,7 @@ export class EditDialogComponent implements OnInit, OnDestroy {
   // eslint-disable-next-line @angular-eslint/no-input-rename
   @Input('form') editForm: UntypedFormGroup;
   @Input() title: string;
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() close = new EventEmitter<boolean>();
   isHandset: boolean;
 

@@ -17,7 +17,7 @@ import { LoggerService } from 'src/app/core/services/logger.service';
   styleUrls: ['./transactions-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TransactionsListComponent implements OnChanges, OnInit {
+export class TransactionsListComponent implements OnChanges {
 
   @Input() transactions: Transaction[];
   @Input() dataLoaded = false;
@@ -34,12 +34,6 @@ export class TransactionsListComponent implements OnChanges, OnInit {
   constructor(private portfolioService: PortfolioService, private logger: LoggerService, protected cdr: ChangeDetectorRef) {
 
   }
-
-
-  ngOnInit(): void {
-  }
-
-
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.transactions && this.transactions) {

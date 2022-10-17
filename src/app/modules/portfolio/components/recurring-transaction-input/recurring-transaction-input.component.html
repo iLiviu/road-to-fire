@@ -20,7 +20,7 @@
     <input matInput type="number" placeholder="Period" formControlName="recurringPeriod" required>
   </mat-form-field>
 
-  <mat-form-field *ngIf="recurringType.value != RecurringTransactionType.AfterGivenDays">
+  <mat-form-field *ngIf="recurringType.value !== RecurringTransactionType.AfterGivenDays">
     <input matInput type="number" placeholder="Transactions left" formControlName="recurringTransactionsLeft"
       matTooltip="Leave blank if transactions continue forever">
   </mat-form-field>

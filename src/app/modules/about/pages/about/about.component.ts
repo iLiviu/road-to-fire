@@ -12,15 +12,12 @@ import { Location } from '@angular/common';
   styleUrls: ['./about.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AboutComponent implements OnInit {
+export class AboutComponent {
 
   APP_CONSTS = APP_CONSTS;
 
 
   constructor(private location: Location) { }
-
-  ngOnInit() {
-  }
 
   goBack() {
     this.location.back();
