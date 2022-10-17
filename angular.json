@@ -91,7 +91,6 @@
             "development": {
               "browserTarget": "RoadToFIRE:build:development"
             }
-
           }
         },
         "extract-i18n": {
@@ -116,6 +115,15 @@
               "src/manifest.json"
             ]
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
+          }
         }
       }
     },
@@ -137,5 +145,10 @@
         }
       }
     }
+  },
+  "cli": {
+    "schematicCollections": [
+      "@angular-eslint/schematics"
+    ]
   }
 }

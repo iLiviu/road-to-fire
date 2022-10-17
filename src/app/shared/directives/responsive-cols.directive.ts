@@ -13,7 +13,7 @@ export interface IResponsiveColumnsMap {
 
 // Usage: <mat-grid-list [responsiveCols]="{xs: 2, sm: 2, md: 4, lg: 6, xl: 8}">
 @Directive({
-  // tslint:disable-next-line: directive-selector
+  // eslint-disable-next-line @angular-eslint/directive-selector
   selector: '[responsiveCols]'
 })
 export class ResponsiveColsDirective implements OnInit {

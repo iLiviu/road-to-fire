@@ -19,7 +19,7 @@ interface SwipeTabsConfig {
  *         is present and opens with a swipe gesture.
  */
 @Directive({
-  /* tslint:disable-next-line:directive-selector */
+  /* eslint-disable-next-line @angular-eslint/directive-selector */
   selector: '[swipeTabs]'
 })
 export class SwipeTabsDirective implements AfterViewInit {

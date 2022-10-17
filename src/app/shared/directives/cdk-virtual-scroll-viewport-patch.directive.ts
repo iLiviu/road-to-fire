@@ -7,7 +7,7 @@ import { debounceTime, takeUntil } from 'rxjs/operators';
  * Directive that patches CdkVirtualScrollViewport so it adjusts it's size properly when window is resized.
  */
 @Directive({
-  /* tslint:disable-next-line:directive-selector */
+  /* eslint-disable-next-line @angular-eslint/directive-selector */
   selector: 'cdk-virtual-scroll-viewport',
 })
 export class CdkVirtualScrollViewportPatchDirective implements OnInit, OnDestroy {

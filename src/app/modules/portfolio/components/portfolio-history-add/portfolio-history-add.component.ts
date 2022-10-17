@@ -76,7 +76,7 @@ export class PortfolioHistoryAddComponent implements OnInit {
       const assetsToEdit: PortfolioAssetValue[] = [];
       let assetsValue = 0;
 
-      // tslint:disable-next-line: forin
+      // eslint-disable-next-line guard-for-in
       for (const assetType in AssetType) {
         const ctrl = this.historyForm.controls[assetType];
         if (ctrl && ctrl.value) {
@@ -126,7 +126,7 @@ export class PortfolioHistoryAddComponent implements OnInit {
       this.selectedEntry = this.data.portfolioHistoryEntries[idx];
       // clear all fields
       for (const assetType in AssetType) {
-        // tslint:disable-next-line: forin
+        // eslint-disable-next-line guard-for-in
         const ctrl = this.historyForm.controls[assetType];
         if (ctrl) {
           ctrl.setValue(0);

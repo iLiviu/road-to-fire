@@ -25,7 +25,7 @@ export class EventDrivenLoggerService implements LoggerService {
       message: msg
     });
     if (isDebugMode) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.info(msg);
     }
   }
@@ -36,7 +36,7 @@ export class EventDrivenLoggerService implements LoggerService {
       message: msg
     });
     if (isDebugMode) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.warn(msg);
     }
   }
@@ -48,10 +48,10 @@ export class EventDrivenLoggerService implements LoggerService {
       error: error
     });
     if (isDebugMode) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.error(msg);
       if (error) {
-        // tslint:disable-next-line:no-console
+        // eslint-disable-next-line no-console
         console.error(error);
       }
     }

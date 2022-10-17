@@ -17,7 +17,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 })
 export class EditDialogComponent implements OnInit, OnDestroy {
 
-  // tslint:disable-next-line:no-input-rename
+  // eslint-disable-next-line @angular-eslint/no-input-rename
   @Input('form') editForm: UntypedFormGroup;
   @Input() title: string;
   @Output() close = new EventEmitter<boolean>();
