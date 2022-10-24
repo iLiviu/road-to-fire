@@ -27,7 +27,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { ChartsModule } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatTreeModule } from '@angular/material/tree';
 
@@ -199,7 +199,7 @@ import { TransactionsFilterEditComponent } from './components/transactions-filte
         MatTableModule,
         MatExpansionModule,
         FlexLayoutModule,
-        ChartsModule,
+        NgChartsModule,
         EcoFabSpeedDialModule,
         PortfolioRoutingModule,
         AboutModule,

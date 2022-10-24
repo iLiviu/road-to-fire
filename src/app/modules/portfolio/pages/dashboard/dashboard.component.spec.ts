@@ -32,7 +32,7 @@ import { EventsService } from 'src/app/core/services/events.service';
 import { AssetManagementService } from '../../services/asset-management.service';
 import { MockAssetManagementService } from 'src/app/modules/dialogs/mocks/asset-management.service.mock';
 import { ResponsiveColsDirective } from 'src/app/shared/directives/responsive-cols.directive';
-import { ChartsModule } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -57,7 +57,7 @@ describe('DashboardComponent', () => {
         ReactiveFormsModule,
         MatMenuModule,
         MatGridListModule,
-        ChartsModule,
+        NgChartsModule,
       ],
       declarations: [
         DashboardComponent,

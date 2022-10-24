@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, Inject, LOCALE_ID } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import 'chartjs-adapter-moment';
 
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
 import { PortfolioService } from '../../services/portfolio.service';
@@ -25,7 +26,7 @@ import { FloatingMath, binarySearch, DateUtils } from 'src/app/shared/util';
 import { ASSET_REGION_LABELS, AssetRegionHelper } from '../../models/asset-region';
 import * as moment from 'moment';
 import { ThemeService } from 'ng2-charts';
-import { ChartOptions } from 'chart.js';
+import { ChartOptions, TooltipItem } from 'chart.js';
 import { APP_THEMES, ConfigService } from 'src/app/core/services/config.service';
 import { TransactionType } from '../../models/transaction';
 import * as IRR from 'node-irr';
@@ -52,8 +53,8 @@ const HISTORY_ASSET_ORDER = [
   AssetType.Stock,
   AssetType.Forex];
 
-interface ChartDataSets {
-  label: string;
+interface ChartDataSet {
+  label?: string;
   data: number[];
   backgroundColor?: any;
   borderColor?: any;
@@ -62,12 +63,7 @@ interface ChartDataSets {
 
 interface ChartContext {
   labels: string[];
-  data: number[];
-}
-
-interface MultiDatasetChartContext {
-  labels: string[];
-  data: ChartDataSets[];
+  datasets: ChartDataSet[];
 }
 
 interface RebalanceStep {
@@ -139,8 +135,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   debtAllocationPercentage: number;
   debtToAcquire: number;
   hasDebt: boolean;
-  goals: ChartDataSets[] = [];
-  goalsDatasets: ChartDataSets[] = [{ label: '1', data: [90, 10] }, { label: '2', data: [50, 50] }, { label: '2', data: [10, 90] }];
+  goals: ChartDataSet[] = [];
+  goalsDatasets: ChartDataSet[] = [];
   gridVisibility: Dictionary<boolean>;
   mainGridRowHeight = MULTI_COL_GRID_ROW_HEIGHT;
   monthlySpendLimit: number;
@@ -150,23 +146,23 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   portfolioValue: number;
   rebalancingSetup: boolean;
   rebalancingSteps: RebalanceStep[] = [];
-  assetAllocationChart: ChartContext = { data: [], labels: [] };
-  bondAllocationChart: ChartContext = { data: [], labels: [] };
-  bondCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
-  bondGeoAllocationChart: ChartContext = { data: [], labels: [] };
-  cashAllocationChart: ChartContext = { data: [], labels: [] };
-  commodityAllocationChart: ChartContext = { data: [], labels: [] };
-  cryptoAllocationChart: ChartContext = { data: [], labels: [] };
-  currencyAllocationChart: ChartContext = { data: [], labels: [] };
-  debtAllocationChart: ChartContext = { data: [], labels: [] };
-  p2pAllocationChart: ChartContext = { data: [], labels: [] };
-  p2pCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
-  p2pGeoAllocationChart: ChartContext = { data: [], labels: [] };
-  stockAllocationChart: ChartContext = { data: [], labels: [] };
-  stockCurrencyAllocationChart: ChartContext = { data: [], labels: [] };
-  stockGeoAllocationChart: ChartContext = { data: [], labels: [] };
-  portfolioHistoryChart: MultiDatasetChartContext = { data: [{ label: '', data: [] }], labels: [] };
-  unrealizedPLHistoryChart: MultiDatasetChartContext = { data: [{ label: '', data: [] }], labels: [] };
+  assetAllocationChart: ChartContext = { datasets: [], labels: [] };
+  bondAllocationChart: ChartContext = { datasets: [], labels: [] };
+  bondCurrencyAllocationChart: ChartContext = { datasets: [], labels: [] };
+  bondGeoAllocationChart: ChartContext = { datasets: [], labels: [] };
+  cashAllocationChart: ChartContext = { datasets: [], labels: [] };
+  commodityAllocationChart: ChartContext = { datasets: [], labels: [] };
+  cryptoAllocationChart: ChartContext = { datasets: [], labels: [] };
+  currencyAllocationChart: ChartContext = { datasets: [], labels: [] };
+  debtAllocationChart: ChartContext = { datasets: [], labels: [] };
+  p2pAllocationChart: ChartContext = { datasets: [], labels: [] };
+  p2pCurrencyAllocationChart: ChartContext = { datasets: [], labels: [] };
+  p2pGeoAllocationChart: ChartContext = { datasets: [], labels: [] };
+  stockAllocationChart: ChartContext = { datasets: [], labels: [] };
+  stockCurrencyAllocationChart: ChartContext = { datasets: [], labels: [] };
+  stockGeoAllocationChart: ChartContext = { datasets: [], labels: [] };
+  portfolioHistoryChart: ChartContext = { datasets: [{ label: '', data: [] }], labels: [] };
+  unrealizedPLHistoryChart: ChartContext = { datasets: [{ label: '', data: [] }], labels: [] };
   timeFrameIRR: number;
   inaccurateIRR: boolean;
 
@@ -182,90 +178,129 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   };
   readonly PERCENT_TOOLTIPS = {
     callbacks: {
-      label: (tooltipItem: any, data: any) => {
+      label: (tooltipItem: TooltipItem<any>) => {
         let label = '';
-        if (data.labels[tooltipItem.index]) {
-          label += data.labels[tooltipItem.index] + ': ';
+        if (tooltipItem.label) {
+          label += tooltipItem.label + ': ';
         }
-        label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS) + '%';
+        label += (<number>tooltipItem.raw).toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS) + '%';
         return label;
       }
     }
   };
-  readonly goalChartOptions = {
-    legend: {
-      display: false
-    },
-    tooltips: {
-      callbacks: {
-        label: (tooltipItem: any, data: any) => {
-          let label = '';
-          if (data.datasets[tooltipItem.datasetIndex].label) {
-            label += data.datasets[tooltipItem.datasetIndex].label + ' ';
+  readonly goalChartOptions: ChartOptions<'doughnut'> = {
+    aspectRatio: 2,
+    circumference: 180,
+    rotation: -90,
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          label: (tooltipItem: TooltipItem<any>) => {
+            let label = '';
+            if (tooltipItem.dataset.label) {
+              label += tooltipItem.dataset.label + ' ';
+            }
+            if (tooltipItem.label) {
+              label += tooltipItem.label + ': ';
+            }
+            label += (<number>tooltipItem.raw).toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS) + '%';
+            return label;
           }
-          if (data.labels[tooltipItem.index]) {
-            label += data.labels[tooltipItem.index] + ': ';
-          }
-          label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS) + '%';
-          return label;
         }
-      }
+      },
     },
-
-    circumference: Math.PI,
-    rotation: -Math.PI
+    scales: {
+      x: {
+        display: false,
+        grid: { display: false },
+      },
+      y: {
+        display: false,
+        grid: { display: false },
+      },
+    },
   };
-  pieChartOptions = {
-    tooltips: this.PERCENT_TOOLTIPS,
-    legend: this.legendOptions,
+  pieChartOptions: ChartOptions = {
+    plugins: {
+      tooltip: this.PERCENT_TOOLTIPS,
+      legend: this.legendOptions,
+    },
+    scales: {
+      x: {
+        display: false,
+        grid: { display: false },
+      },
+      y: {
+        display: false,
+        grid: { display: false },
+      },
+    },
     maintainAspectRatio: false,
   };
-  readonly portfolioHistoryChartOptions = {
+  readonly portfolioHistoryChartOptions: ChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    legend: this.legendOptions,
-    tooltips: {
-      mode: 'index',
-      intersect: false,
-      callbacks: {
-        label: (tooltipItem: any, data: any) => {
-          let label = data.datasets[tooltipItem.datasetIndex].label || '';
-          if (label) {
-            label += ': ';
+    animation: false,
+    plugins: {
+      decimation: {
+        enabled: true,
+        algorithm: 'min-max',
+      },
+      legend: this.legendOptions,
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          label: (tooltipItem: TooltipItem<any>) => {
+            let label = tooltipItem.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+
+            label += this.baseCurrencySymbol + (<number>tooltipItem.raw).toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS);
+            return label;
+          },
+          footer: (tooltipItems: TooltipItem<any>[]) => {
+            let totalValue = 0;
+            for (const tooltipItem of tooltipItems) {
+              totalValue += <number>tooltipItem.raw;
+            }
+            return 'Total: ' + this.baseCurrencySymbol + totalValue.toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS);
           }
-          const value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-          label += this.baseCurrencySymbol + value.toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS);
-          return label;
-        },
-        footer: (tooltipItems: any, data: any) => {
-          let totalValue = 0;
-          for (const tooltipItem of tooltipItems) {
-            totalValue += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-          }
-          return 'Total: ' + this.baseCurrencySymbol + totalValue.toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS);
         }
+      },
+    },
+    elements: {
+      point: {
+        radius: 0,
+      },
+      line: {
+        fill: true,
       }
     },
     hover: {
-      mode: 'index',
+      mode: 'index',      
       intersect: false,
     },
     scales: {
-      xAxes: [{
+      x: {
         type: 'time',
-        distribution: 'linear',
         time: {
           tooltipFormat: moment.localeData().longDateFormat('LL'),
         }
-      }],
-      yAxes: [{
+      },
+      y: {
         stacked: true,
         ticks: {
           callback: (value: any, index: any, values: any) => {
             return this.baseCurrencySymbol + value.toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS);
           }
         }
-      }]
+      }
     },
   };
 
@@ -466,7 +501,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * Build the chart data for the allocation percentage of each asset type out of the total assets value
    */
   private computeAssetAllocationData() {
-    this.assetAllocationChart.data = [];
+    this.assetAllocationChart.datasets = [{ data: [] }];
     this.assetAllocationChart.labels = [];
     let assetsTotalValue = this.assetsTotalValue;
 
@@ -480,7 +515,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
 
     for (const [assetType, value] of assetAllocations) {
       this.assetAllocationChart.labels.push(this.assetTypeLabels[assetType]);
-      this.assetAllocationChart.data.push(this.toPercentage(value, this.assetsValue));
+      this.assetAllocationChart.datasets[0].data.push(this.toPercentage(value, this.assetsValue));
     }
   }
 
@@ -488,14 +523,14 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * Build the chart data for the allocation percentage of each currency out of the total portfolio value
    */
   private computeCurrenciesAllocationData() {
-    this.currencyAllocationChart.data = [];
+    this.currencyAllocationChart.datasets = [{ data: [] }];
     this.currencyAllocationChart.labels = [];
     const currencyAllocations = this.sortNumDict(this.currenciesTotalValue);
     // we need the absolute portfolio value to better represent negative constituents
     const absPortfolioValue = this.getAbsTotalAllocationValue(currencyAllocations);
     for (const [currency, value] of currencyAllocations) {
       this.currencyAllocationChart.labels.push(currency);
-      this.currencyAllocationChart.data.push(this.toPercentage(Math.abs(value), absPortfolioValue));
+      this.currencyAllocationChart.datasets[0].data.push(this.toPercentage(Math.abs(value), absPortfolioValue));
     }
   }
 
@@ -505,7 +540,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * @param assetType asset type
    */
   private computeAssetCurrencyAllocationData(chart: ChartContext, assetType: AssetType) {
-    chart.data = [];
+    chart.datasets = [{ data: [] }];
     chart.labels = [];
 
     const assetCurrenciesValue = this.assetCurrenciesValue[assetType];
@@ -516,7 +551,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
 
       for (const [currency, value] of currencyAllocations) {
         chart.labels.push(currency);
-        chart.data.push(this.toPercentage(Math.abs(value), totalValue));
+        chart.datasets[0].data.push(this.toPercentage(Math.abs(value), totalValue));
       }
     }
   }
@@ -528,7 +563,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * @param maxItems if provided, the max number of items to include in the chart
    */
   private computeAssetTypeAllocationData(chart: ChartContext, assetType: AssetType, maxItems: number = 0) {
-    chart.data = [];
+    chart.datasets = [{ data: [] }];
     chart.labels = [];
     if (this.assetTypeAllocationMap[assetType]) {
       const allocation = this.sortNumDict(this.assetTypeAllocationMap[assetType]);
@@ -539,15 +574,15 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       for (const [assetId, value] of allocation) {
         includedValue += value;
         chart.labels.push(this.assetDescriptions[assetId]);
-        chart.data.push(this.toPercentage(Math.abs(value), totalValue));
-        if (maxItems && chart.data.length >= maxItems) {
+        chart.datasets[0].data.push(this.toPercentage(Math.abs(value), totalValue));
+        if (maxItems && chart.datasets[0].data.length >= maxItems) {
           break;
         }
       }
 
       // if we don't include all the items, add an "Other" item with the rest of the allocation as value
-      if (chart.data.length < allocation.length) {
-        chart.data.push(this.toPercentage(Math.abs(totalValue) - Math.abs(includedValue), totalValue));
+      if (chart.datasets[0].data.length < allocation.length) {
+        chart.datasets[0].data.push(this.toPercentage(Math.abs(totalValue) - Math.abs(includedValue), totalValue));
         chart.labels.push('Other');
       }
     }
@@ -559,14 +594,14 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * @param assetType asset type
    */
   private computeAssetGeoAllocationData(chart: ChartContext, assetType: AssetType) {
-    chart.data = [];
+    chart.datasets = [{ data: [] }];
     chart.labels = [];
     const regionsValues = this.assetRegions[assetType];
     if (regionsValues) {
       const regionArr = this.sortNumDict(regionsValues);
       for (const [regionId, value] of regionArr) {
         chart.labels.push(ASSET_REGION_LABELS[regionId]);
-        chart.data.push(this.toPercentage(value, this.assetsTotalValue[assetType]));
+        chart.datasets[0].data.push(this.toPercentage(value, this.assetsTotalValue[assetType]));
       }
     }
   }
@@ -969,11 +1004,11 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * @param timeFrame time frame to display data for
    * @param chart chart to update data for
    */
-  private updateHistoryChart(history: PortfolioHistory, timeFrame: string, chart: MultiDatasetChartContext,
+  private updateHistoryChart(history: PortfolioHistory, timeFrame: string, chart: ChartContext,
     dataField: PortfolioHistoryDataField) {
 
     const chartLabels: string[] = [];
-    chart.data = [];
+    chart.datasets = [];
     const dataSets: NumKeyDictionary<DatasetEntries> = {};
     for (const assetType of Object.keys(this.assetTypeLabels)) {
       dataSets[assetType] = {
@@ -1009,7 +1044,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
 
     for (const assetType of HISTORY_ASSET_ORDER) {
       if (!dataSets[assetType].empty) {
-        chart.data.push({
+        chart.datasets.push({
           data: dataSets[assetType].data,
           label: this.assetTypeLabels[assetType],
           lineTension: 0,
@@ -1076,18 +1111,20 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     let overrides: ChartOptions;
     if (newTheme === APP_THEMES.DARK) {
       overrides = {
-        legend: {
-          labels: { fontColor: 'white' }
+        plugins: {
+          legend: {
+            labels: { color: 'white' },
+          },
         },
         scales: {
-          xAxes: [{
-            ticks: { fontColor: 'white' },
-            gridLines: { color: 'rgba(255,255,255,0.1)' }
-          }],
-          yAxes: [{
-            ticks: { fontColor: 'white' },
-            gridLines: { color: 'rgba(255,255,255,0.1)' }
-          }]
+          x: {
+            ticks: { color: 'white' },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          },
+          y: {
+            ticks: { color: 'white' },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          }
         }
       };
     } else {

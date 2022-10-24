@@ -5,6 +5,9 @@
 * Added charts for top bond, p2p & stock holdings
 * Display portfolio's IRR in Portfolio History chart
 
+### UI Changes
+* Improve charts performance
+
 ### Bug fixes
 * Group capital gains correctly by asset description
 * Correctly set transaction date for pending recurring transactions
