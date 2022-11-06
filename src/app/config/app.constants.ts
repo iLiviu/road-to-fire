@@ -11,12 +11,22 @@ export interface SymbolDetails {
 
 export const APP_CONSTS = {
   TITLE: 'Road To FIRE',
-  VERSION: '1.3.0',
+  VERSION: '1.4.0',
   // text to show when user first loads the current new version
-  WHATS_NEW_TITLE: `What's new in version 1.3.0`,
+  WHATS_NEW_TITLE: `What's new in version 1.4.0`,
   WHATS_NEW:
-    `Features:
-* Added support for dark theme`,
+    `Features
+* Add support for virtual forex assets
+* Added charts for top bond, P2P & stock holdings
+* Display portfolio's IRR in Portfolio History chart
+
+UI Changes
+* Improve charts performance
+
+Bug fixes
+* Group capital gains correctly by asset description
+* Correctly set transaction date for pending recurring transactions
+`,
   REPOSITORY_URL: 'https://github.com/iLiviu/road-to-fire',
   STORAGE_API_KEYS: {
     DROPBOX: 'kbwh5504okeu3b9',

@@ -1,4 +1,4 @@
-## Master
+## 1.4.0
 
 ### Features
 * Add support for virtual forex assets
