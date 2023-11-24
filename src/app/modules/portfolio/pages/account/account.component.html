@@ -142,7 +142,7 @@
       </mat-tab>
 
       <mat-tab label="Money Market" *ngIf="mmAssets.assets.length > 0">
-        <app-tradeable-asset-list [assets]="mmAssets.assets"></app-tradeable-asset-list>
+        <app-tradeable-asset-list [assets]="mmAssets.assets" [assetTypes]="AssetType.MoneyMarket"></app-tradeable-asset-list>
 
         <div class="bottom-space"></div>
 
@@ -167,7 +167,7 @@
       </mat-tab>
 
       <mat-tab label="Bonds & Bond ETFs" *ngIf="bonds.assets.length > 0">
-        <app-tradeable-asset-list [assets]="bonds.assets"></app-tradeable-asset-list>
+        <app-tradeable-asset-list [assets]="bonds.assets" [assetTypes]="AssetType.Bond"></app-tradeable-asset-list>
 
         <div class="bottom-space"></div>
 
@@ -180,7 +180,7 @@
       </mat-tab>
 
       <mat-tab label="Commodities" *ngIf="commodities.assets.length > 0">
-        <app-tradeable-asset-list [assets]="commodities.assets"></app-tradeable-asset-list>
+        <app-tradeable-asset-list [assets]="commodities.assets" [assetTypes]="AssetType.Commodity"></app-tradeable-asset-list>
 
         <div class="bottom-space"></div>
 
@@ -193,7 +193,7 @@
       </mat-tab>
 
       <mat-tab label="Cryptocurrencies" *ngIf="cryptocurrencies.assets.length > 0">
-        <app-tradeable-asset-list [assets]="cryptocurrencies.assets"></app-tradeable-asset-list>
+        <app-tradeable-asset-list [assets]="cryptocurrencies.assets" [assetTypes]="AssetType.Cryptocurrency"></app-tradeable-asset-list>
 
         <div class="bottom-space"></div>
 
@@ -206,7 +206,7 @@
       </mat-tab>
 
       <mat-tab label="P2P Loans" *ngIf="p2p.assets.length > 0">
-        <app-tradeable-asset-list [assets]="p2p.assets"></app-tradeable-asset-list>
+        <app-tradeable-asset-list [assets]="p2p.assets" [assetTypes]="AssetType.P2P"></app-tradeable-asset-list>
 
         <div class="bottom-space"></div>
 
@@ -219,7 +219,7 @@
       </mat-tab>
 
       <mat-tab label="Real Estate" *ngIf="realEstate.assets.length > 0">
-        <app-tradeable-asset-list [assets]="realEstate.assets"></app-tradeable-asset-list>
+        <app-tradeable-asset-list [assets]="realEstate.assets" [assetTypes]="AssetType.RealEstate"></app-tradeable-asset-list>
 
         <div class="bottom-space"></div>
 
@@ -232,7 +232,7 @@
       </mat-tab>
 
       <mat-tab label="Stocks" *ngIf="stocks.assets.length > 0">
-        <app-tradeable-asset-list [assets]="stocks.assets"></app-tradeable-asset-list>
+        <app-tradeable-asset-list [assets]="stocks.assets" [assetTypes]="AssetType.Stock"></app-tradeable-asset-list>
 
         <div class="bottom-space"></div>
 
@@ -245,7 +245,7 @@
       </mat-tab>
 
       <mat-tab label="Forex" *ngIf="forex.assets.length > 0">
-        <app-tradeable-asset-list [assets]="forex.assets"></app-tradeable-asset-list>
+        <app-tradeable-asset-list [assets]="forex.assets" [assetTypes]="AssetType.Forex"></app-tradeable-asset-list>
       </mat-tab>
 
     </mat-tab-group>

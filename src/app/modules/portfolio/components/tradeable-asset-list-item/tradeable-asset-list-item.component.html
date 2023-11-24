@@ -29,7 +29,8 @@
         ({{viewAsset.profitLossPercent | percent:'1.0-2'}})</span>
     </h6>
     <h6 mat-line>
-      <span fxFlex>{{viewAsset.account.description}} </span>
+      <span fxFlex>{{viewAsset.account.description}}</span>
+      <span *ngIf="hasYTM">YTM {{ viewAsset.asset.ytm | percent:'1.0-2' }}</span>
     </h6>
   </mat-list-item>
   <div *ngIf="expanded">
@@ -80,7 +81,8 @@
       </span>
     </h6>
     <h6 *ngIf="!depth" mat-line>
-      <span fxFlex>{{viewAsset.account.description}} </span>
+      <span fxFlex>{{viewAsset.account.description}}</span>
+      <span *ngIf="hasYTM">YTM {{ viewAsset.asset.ytm | percent:'1.0-2' }}</span>
     </h6>
 
   </mat-list-item>

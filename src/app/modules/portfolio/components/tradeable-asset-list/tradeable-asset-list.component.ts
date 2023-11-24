@@ -2,6 +2,8 @@ import { Component, Input, ViewChild, OnChanges, SimpleChanges, ChangeDetectionS
 import { MatSort } from '@angular/material/sort';
 
 import { ViewAsset } from '../../models/view-asset';
+import { BondAsset } from '../../models/bond-asset';
+import { AssetType } from '../../models/asset';
 
 /**
  * Component to display a list of tradeable assets.
@@ -16,11 +18,14 @@ import { ViewAsset } from '../../models/view-asset';
 export class TradeableAssetListComponent implements OnChanges {
 
   @Input() assets: ViewAsset[];
+  @Input() assetTypes: AssetType;
   @Input() dataLoaded = true;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
+  hasYTM: boolean;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.assets) {
+      this.hasYTM = this.assetTypes === AssetType.Bond || this.assetTypes === AssetType.P2P;
       this.sortData();
     }
   }
@@ -43,6 +48,7 @@ export class TradeableAssetListComponent implements OnChanges {
       switch (this.sort.active) {
         case 'account': return compare(a.account.description, b.account.description, isAsc);
         case 'description': return compare(a.asset[this.sort.active], b.asset[this.sort.active], isAsc);
+        case 'ytm': return compare((<BondAsset>a.asset).ytm || 0, (<BondAsset>b.asset).ytm || 0, isAsc);
         default: return compare(a[this.sort.active], b[this.sort.active], isAsc);
       }
     });

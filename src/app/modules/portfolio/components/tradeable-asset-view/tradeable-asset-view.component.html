@@ -26,6 +26,13 @@
       <mat-divider></mat-divider>
 
       <div>
+        <span fxFlex>Yield to Maturity: </span>
+        <span>{{bondAsset.ytm | percent:'1.0-2'}}</span>
+      </div>
+
+      <mat-divider></mat-divider>      
+
+      <div>
         <span fxFlex>Principal amount: </span>
         <span>{{bondAsset.principalAmount | currency:bondAsset.currency}}</span>
       </div>

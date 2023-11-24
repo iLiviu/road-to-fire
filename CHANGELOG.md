@@ -1,3 +1,8 @@
+## Master
+
+### Features
+* Display Yield to Maturity (YTM) for bonds
+
 ## 1.4.0
 
 ### Features

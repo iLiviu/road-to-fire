@@ -7,10 +7,11 @@
       </div>
       <div>
         <span fxFlex mat-sort-header="initialValue">Initial Value /</span>
-        <span mat-sort-header="profitLossPercent" arrowPosition="before">P/L</span>
+        <span mat-sort-header="profitLossPercent" arrowPosition="before">P/L /</span>
       </div>
       <div>
-        <span mat-sort-header="account">Account</span>
+        <span fxFlex mat-sort-header="account">Account</span>
+        <span *ngIf="hasYTM" mat-sort-header="ytm" arrowPosition="before">YTM</span>
       </div>
     </div>
 

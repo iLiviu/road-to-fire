@@ -1,6 +1,7 @@
 import { TradeableAsset, TradeableAssetData } from './tradeable-asset';
 import { AssetData } from './asset';
 import { DateUtils } from 'src/app/shared/util';
+import { BondPricing } from 'src/app/shared/bond-pricing';
 
 
 export interface BondPrincipalPaymentEvent {
@@ -33,6 +34,7 @@ export class BondAsset extends TradeableAsset implements BondAssetData {
   principalPaymentSchedule: BondPrincipalPaymentEvent[];
   withholdInterestTax: boolean;
   interestTaxRate: number;
+  ytm: number;
 
   constructor(source?: AssetData) {
     super(source);
@@ -42,6 +44,7 @@ export class BondAsset extends TradeableAsset implements BondAssetData {
     if (!this.principalPaymentSchedule) {
       this.principalPaymentSchedule = [];
     }
+    this.calculateYTM();
   }
 
   /**
@@ -89,6 +92,11 @@ export class BondAsset extends TradeableAsset implements BondAssetData {
 
   getCurrentValue() {
     return super.getCurrentValue() + this.getFullAccruedInterest();
+  }
+
+  updateStats() {
+    super.updateStats();
+    this.calculateYTM();
   }
 
   /**
@@ -176,4 +184,21 @@ export class BondAsset extends TradeableAsset implements BondAssetData {
     }
   }
 
+  /**
+   * Calculates the yield to maturity for the bond
+   */
+  private calculateYTM() {
+    
+    const mDate = new Date(this.maturityDate);
+    const now = new Date();
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    let paymentsPerYear = 1;
+    if (this.interestPaymentSchedule && this.interestPaymentSchedule.length > 1) {
+      const daysDiff = (new Date(this.interestPaymentSchedule[1].paymentDate).getTime() - new Date(this.interestPaymentSchedule[0].paymentDate).getTime()) / oneDay;
+      paymentsPerYear  = Math.round( 365 / daysDiff);
+    }
+
+    this.ytm = BondPricing.calculateYTM(now,mDate,paymentsPerYear,this.currentPrice,this.principalAmount,this.couponRate);
+  }
 }
