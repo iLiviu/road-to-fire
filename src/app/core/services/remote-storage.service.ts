@@ -167,7 +167,7 @@ export class RemoteStorageService extends StorageService implements StorageSeria
    * @param salt the salt to be used for the hash
    */
   private generatePasswordHash(password: string, salt: any) {
-    const hash = CryptoJS.PBKDF2(password, salt, { keySize: 512 / 32, iterations: 512 });
+    const hash = CryptoJS.PBKDF2(password, salt, { keySize: 512 / 32, iterations: 512, hasher: CryptoJS.algo.SHA1 });
     return CryptoJS.enc.Hex.stringify(hash);
   }
 
