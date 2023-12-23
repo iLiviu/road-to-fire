@@ -2,6 +2,7 @@ import { Component, ViewChild, OnDestroy, OnInit, ChangeDetectorRef, ChangeDetec
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { MatTab, MatTabChangeEvent } from '@angular/material/tabs';
+import { debounce } from 'lodash-decorators';
 
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
 import { PortfolioAccount } from '../../models/portfolio-account';
@@ -68,7 +69,6 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
   readonly AssetType = AssetType;
 
   private currentAccountId: number;
-  private refreshTimer: any;
   @ViewChild('transactionsList') private readonly transactionsList: TransactionsListComponent;
   @ViewChild('transactionsTab') private readonly transactionsTab: MatTab;
 
@@ -256,18 +256,16 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
     );
   }
 
+  @debounce(100)
   private onTransactionsUpdated() {
     if (this.account) {
       this.updateTransactionsList(this.account.id);
     }
   }
 
+  @debounce(100)
   private onDataUpdated() {
-    clearTimeout(this.refreshTimer);
-    this.refreshTimer = setTimeout(() => {
-      this.getAccountData(this.account.id, false);
-    }, 100);
-
+    this.getAccountData(this.account.id, false);
   }
 
 

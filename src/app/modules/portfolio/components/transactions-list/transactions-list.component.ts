@@ -112,11 +112,14 @@ export class TransactionsListComponent implements OnChanges {
    */
   async deleteSelectedTransactions() {
     try {
+      const promises: Promise<void>[] = [];
       for (const tx of this.transactions) {
         if (this.txSelectionStates[tx.id]) {
-          await this.portfolioService.removeTransaction(tx);
+          const promise = this.portfolioService.removeTransaction(tx);
+          promises.push(promise);
         }
       }
+      await Promise.all(promises);
       this.logger.info('Transaction(s) deleted!');
     } catch (err) {
       this.logger.error('An error occurred while deleting transactions!', err);

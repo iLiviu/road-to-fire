@@ -7,6 +7,7 @@ import { map, filter, withLatestFrom, takeUntil } from 'rxjs/operators';
 import { Router, NavigationEnd } from '@angular/router';
 import { MatSidenav } from '@angular/material/sidenav';
 import * as Hammer from 'hammerjs';
+import { debounce } from 'lodash-decorators';
 
 import * as WebAPK from 'src/web-apk';
 import { EventsService, AppEventType, AppEvent } from 'src/app/core/services/events.service';
@@ -129,7 +130,7 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
       case AppEventType.ACCOUNT_ADDED:
       case AppEventType.ACCOUNT_REMOVED:
       case AppEventType.ACCOUNT_UPDATED:
-        this.refreshAccountsList();
+        this.onAccountsUpdated();
         break;
       case AppEventType.MENU_TOGGLE: this.drawer.toggle();
         break;
@@ -186,5 +187,10 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
 
     this.eventsService.menuUpdated();
     this.cdr.markForCheck();
+  }
+
+  @debounce(100)
+  private onAccountsUpdated() {
+    this.refreshAccountsList();
   }
 }

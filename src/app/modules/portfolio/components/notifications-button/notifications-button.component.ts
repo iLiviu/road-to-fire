@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { debounce } from 'lodash-decorators';
 
 import { AppNotification, AppNotificationType } from '../../models/notification';
 import { PortfolioService } from '../../services/portfolio.service';
@@ -28,7 +29,6 @@ export class NotificationsButtonComponent implements OnInit, OnDestroy {
   notifications: AppNotificationEx[] = [];
   unreadNotificationsCount = 0;
 
-  private notificationsTimer: any;
   private eventSubscription: Subscription;
 
 
@@ -83,6 +83,7 @@ export class NotificationsButtonComponent implements OnInit, OnDestroy {
     this.onNotificationsUpdated();
   }
 
+  @debounce(100)
   onNotificationsUpdated() {
     this.updateNotifications();
   }
