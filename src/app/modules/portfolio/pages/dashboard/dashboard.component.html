@@ -96,20 +96,24 @@
               <mat-icon aria-label="Manually add history data">add_circle_outline</mat-icon>
             </button>
           </mat-card-title>
-          <mat-card-subtitle *ngIf="timeFrameIRR" fxLayoutAlign="start center">
-            <span>
+          <mat-card-subtitle *ngIf="timeFrameIRR" fxLayoutAlign="start center" fxLayoutAlign="row">
+            <div fxLayoutAlign="start center">
               Time frame IRR: {{timeFrameIRR | percent:'1.02'}}
-            </span>
+            </div>
             <mat-icon *ngIf="inaccurateIRR" color="accent"
               matTooltip="Note: IRR is not accurate because you have non-base currency cash credits/debits, and the app uses the current FX rate for conversion, not the one on the actual transaction date">
               error_outline
             </mat-icon>
+            <div fxFlex> </div>
+            <div fxLayoutAlign="start center">
+              Total Return: {{timeFrameTotalReturn | percent:'1.02'}}
+            </div>
           </mat-card-subtitle>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas *ngIf="portfolioHistoryChart.datasets.length > 0" baseChart [datasets]="portfolioHistoryChart.datasets"
-              [labels]="portfolioHistoryChart.labels" [options]="portfolioHistoryChartOptions"
-              type="line"></canvas>
+            <canvas *ngIf="portfolioHistoryChart.datasets.length > 0" baseChart
+              [datasets]="portfolioHistoryChart.datasets" [labels]="portfolioHistoryChart.labels"
+              [options]="portfolioHistoryChartOptions" type="line"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -145,46 +149,46 @@
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.PortfolioAllocation] && assetAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.PortfolioAllocation] && assetAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Portfolio Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="assetAllocationChart" 
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="assetAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.CurrencyAllocation] && currencyAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.CurrencyAllocation] && currencyAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Currency Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="currencyAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="currencyAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.StocksAllocation] && stockAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.StocksAllocation] && stockAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Top Stock Holdings</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="stockAllocationChart" 
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="stockAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.StocksGeoAllocation] && stockGeoAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.StocksGeoAllocation] && stockGeoAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Stocks Geo Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="stockGeoAllocationChart" 
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="stockGeoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -195,30 +199,30 @@
           <mat-card-title>Stock Currency Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="stockCurrencyAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="stockCurrencyAllocationChart" [options]="pieChartOptions"
+              type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.BondsAllocation] && bondAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.BondsAllocation] && bondAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Top Bond Holdings</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="bondAllocationChart" 
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="bondAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.BondsGeoAllocation] && bondGeoAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.BondsGeoAllocation] && bondGeoAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Bonds Geo Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="bondGeoAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="bondGeoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -229,30 +233,29 @@
           <mat-card-title>Bond Currency Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="bondCurrencyAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="bondCurrencyAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.CommodityAllocation] && commodityAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.CommodityAllocation] && commodityAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Commodity Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="commodityAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="commodityAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.CryptoAllocation] && cryptoAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.CryptoAllocation] && cryptoAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Cryptocurrency Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="cryptoAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="cryptoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -262,19 +265,18 @@
           <mat-card-title>Top P2P Holdings</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="p2pAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="p2pAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.P2PGeoAllocation] && p2pGeoAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.P2PGeoAllocation] && p2pGeoAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>P2P Geo Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="p2pGeoAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="p2pGeoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -285,30 +287,29 @@
           <mat-card-title>P2P Currency Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="p2pCurrencyAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="p2pCurrencyAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.CashAllocation] && cashAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.CashAllocation] && cashAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Cash Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="cashAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="cashAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.DebtAllocation] && debtAllocationChart.datasets[0].data.length > 0">
+      <mat-grid-tile
+        *ngIf="gridVisibility[GridTiles.DebtAllocation] && debtAllocationChart.datasets[0].data.length > 0">
         <mat-card class="grid-card">
           <mat-card-title>Debt Allocation</mat-card-title>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="debtAllocationChart"
-              [options]="pieChartOptions" type="doughnut"></canvas>
+            <canvas baseChart [data]="debtAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>

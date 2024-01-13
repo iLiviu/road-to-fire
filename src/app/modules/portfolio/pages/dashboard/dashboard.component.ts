@@ -164,6 +164,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   portfolioHistoryChart: ChartContext = { datasets: [{ label: '', data: [] }], labels: [] };
   unrealizedPLHistoryChart: ChartContext = { datasets: [{ label: '', data: [] }], labels: [] };
   timeFrameIRR: number;
+  timeFrameTotalReturn: number;
   inaccurateIRR: boolean;
 
   readonly assetTypeLabels = { ...ASSET_TYPE_LABELS };
@@ -283,7 +284,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       }
     },
     hover: {
-      mode: 'index',      
+      mode: 'index',
       intersect: false,
     },
     scales: {
@@ -889,15 +890,14 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    */
   private async displayPortfolioHistory() {
     this.updateHistoryChart(this.allPortfolioHistory, this.phTimeFrame, this.portfolioHistoryChart, PortfolioHistoryDataField.Assets);
-    this.timeFrameIRR = await this.computeIRR(this.phTimeFrame);
+    await this.computePortfolioPerformance(this.phTimeFrame);
   }
 
   /**
-   * Compute IRR of the portfolio for a given time frame
-   * @param timeFrame time frame to calculate IRR for
-   * @return promise with computed IRR
+   * Compute IRR and Total Return of the portfolio for a given time frame
+   * @param timeFrame time frame to calculate IRR & Total Return for
    */
-  private async computeIRR(timeFrame: string) {
+  private async computePortfolioPerformance(timeFrame: string) {
     const minDate = this.getStartDateFromTimeFrame(timeFrame);
     const data = [];
     let startDate = new Date();
@@ -928,34 +928,39 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
 
     // initial portfolio value
     data.push({ amount: -startValue, date: startDate });
-
     // search for cash debits/credits through all transaction history
     const transactions = await this.portfolioService.getTransactions();
+    let cashFlows = 0;
     for (const tx of transactions) {
       const txDate = new Date(tx.date);
       if (!minDate || minDate.getTime() <= txDate.getTime()) {
         if (tx.type === TransactionType.CreditCash) {
           const fxRate = this.getCurrencyRate(tx.asset.currency);
-          data.push({ amount: -tx.value * fxRate, date: txDate });
+          const txValue = tx.value * fxRate;
+          cashFlows += txValue;
+          data.push({ amount: -txValue, date: txDate });
           if (tx.asset.currency !== this.baseCurrency) {
             this.inaccurateIRR = true;
           }
         } else if (tx.type === TransactionType.DebitCash) {
           const fxRate = this.getCurrencyRate(tx.asset.currency);
-          data.push({ amount: tx.value * fxRate, date: txDate });
+          const txValue = tx.value * fxRate;
+          cashFlows -= txValue;
+          data.push({ amount: txValue, date: txDate });
           if (tx.asset.currency !== this.baseCurrency) {
             this.inaccurateIRR = true;
           }
         }
       }
     }
-
     // final portfolio value
     data.push({ amount: endValue, date: endDate });
 
     const rate = IRR.xirr(data);
     const irr = IRR.convertRate(rate.rate, IRR.RateInterval.Year);
-    return irr;
+    this.timeFrameIRR = irr;
+
+    this.timeFrameTotalReturn = (endValue - cashFlows - startValue) / (startValue);
   }
 
   /**

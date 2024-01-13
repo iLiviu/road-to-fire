@@ -2,6 +2,7 @@
 
 ### Features
 * Display Yield to Maturity (YTM) for bonds
+* Display Total Return in Portfolio History chart
 
 ## 1.4.0
 
