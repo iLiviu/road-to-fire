@@ -60,11 +60,18 @@ export class DialogsService {
    * @param title optional dialog title
    * @param defaultValue the value that will appear in the input when dialog opens
    * @param inputType the type of value that user has to input
+   * @param inputPattern optional regular expression pattern for input
    * @return promise that is fulfilled when the dialog closes with the value of the users's input
    */
-  input(prompt: string, title?: string, defaultValue?: string, inputType?: InputDialogType): Promise<string> {
+  input(prompt: string, title?: string, defaultValue?: string, inputType?: InputDialogType, inputPattern?: string): Promise<string> {
     const dialogRef = this.dialog.open(InputDialogComponent, {
-      data: { title: title, prompt: prompt, response: defaultValue || '', inputType: inputType }
+      data: {
+        title: title,
+        prompt: prompt,
+        response: defaultValue || '',
+        inputType: inputType,
+        regexPattern: inputPattern,
+      }
     });
 
     return dialogRef.afterClosed().toPromise();

@@ -1,11 +1,14 @@
 <h2 mat-dialog-title *ngIf="data.title">{{data.title}}</h2>
 <mat-dialog-content>
-  <p>{{data.prompt}}</p>
-  <mat-form-field>
-    <input matInput [type]="inputType" [(ngModel)]="data.response" cdkFocusInitial>
-  </mat-form-field>
+  <form [formGroup]="inputForm">
+    <p>{{data.prompt}}</p>
+    <mat-form-field>
+      <input matInput [type]="inputType" formControlName="inputField" [pattern]="data.regexPattern" cdkFocusInitial required>
+      <mat-error *ngIf="inputField.errors">Invalid input</mat-error>
+    </mat-form-field>
+  </form>
 </mat-dialog-content>
-<mat-dialog-actions  align="center">
+<mat-dialog-actions align="center">
   <button mat-button [mat-dialog-close]="">Cancel</button>
-  <button mat-button [mat-dialog-close]="data.response">OK</button>
+  <button mat-button [mat-dialog-close]="inputField.value" [disabled]="!inputForm.valid">OK</button>
 </mat-dialog-actions>

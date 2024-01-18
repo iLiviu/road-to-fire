@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { DialogsService } from './dialogs.service';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
@@ -21,6 +21,7 @@ import { TextareaDialogComponent } from './components/textarea-dialog/textarea-d
     imports: [
         CommonModule,
         FormsModule,
+        ReactiveFormsModule,
         MatDialogModule,
         MatFormFieldModule,
         MatInputModule,

@@ -1,4 +1,5 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { FormControl, UntypedFormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 export enum InputDialogType {
@@ -12,6 +13,7 @@ export interface InputDialogData {
   prompt: string;
   response: string;
   inputType?: InputDialogType;
+  regexPattern?: string;
 }
 
 /**
@@ -23,9 +25,11 @@ export interface InputDialogData {
   styleUrls: ['./input-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class InputDialogComponent {
+export class InputDialogComponent implements OnInit {
 
   inputType: string;
+  inputForm: UntypedFormGroup;
+  inputField: FormControl<string>;
 
   constructor(public dialogRef: MatDialogRef<InputDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: InputDialogData) {
@@ -36,7 +40,12 @@ export class InputDialogComponent {
       case InputDialogType.PASSWORD: this.inputType = 'password'; break;
       default: this.inputType = 'text';
     }
-
+  }
+  async ngOnInit() {
+    this.inputField = new FormControl<string>(this.data.response);
+    this.inputForm = new UntypedFormGroup({
+      inputField: this.inputField,
+    });
   }
 
 }
