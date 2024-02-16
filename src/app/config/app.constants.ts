@@ -33,7 +33,7 @@ Bug fixes
     GOOGLE_DRIVE: '801129580490-kbquipjice5v26b5jtpmhnncs31li7pv.apps.googleusercontent.com',
   },
   LONG_DATE_FORMAT: 'L',
-  QUOTE_CACHE_TIMEOUT: 60 * 60 * 3, // value in seconds. do not request updated quotes for assets until timeout
+  QUOTE_CACHE_TIMEOUT: 60 * 60 * 1, // value in seconds. do not request updated quotes for assets until timeout
   QUOTE_SERVICE_BASE_URL: 'https://roadtofire.iliviu.me:8443/',
   SUPPORTED_EXCHANGES: {
     EQUITY: <ExchangeDetails[]>[
