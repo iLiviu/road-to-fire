@@ -644,19 +644,24 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
             account.assets = accAssets;
           }
 
-          async getAllAccounts(): Promise<PortfolioAccount[]> {
-            const assets = await this.getAssets();
+          async getAllAccounts(loadAssets: boolean): Promise<PortfolioAccount[]> {
+            let assets: Dictionary<Asset>;
+            if (loadAssets) {
+              assets = await this.getAssets();
+              this._accountIds = {};
+            }
             const accts = await this.getAll(ACCOUNTS_PATH);
             const newAccounts = [];
-            this._accountIds = {};
             if (accts) {
               for (const path of Object.keys(accts)) {
                 const accData = <PortfolioAccountData>accts[path];
                 if (accData && accData.id) {
                   const acc = this.newAccountInstance(accData);
                   if (acc.id) {
-                    this.setAccountAssets(acc, assets);
-                    this._accountIds[acc.id] = acc;
+                    if (loadAssets) {
+                      this.setAccountAssets(acc, assets);
+                      this._accountIds[acc.id] = acc;
+                    }
                     newAccounts.push(acc);
                   }
                 }

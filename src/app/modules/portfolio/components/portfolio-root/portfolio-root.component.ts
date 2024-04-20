@@ -167,7 +167,7 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
 
   private async refreshAccountsList() {
     try {
-      const accounts = await this.portfolioService.getAccounts();
+      const accounts = await this.portfolioService.getAccounts(false);
       this.buildAccountMenuItems(accounts);
     } catch (err) {
       this.logger.error('Could not load accounts menu!', err);

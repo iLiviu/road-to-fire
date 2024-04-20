@@ -146,14 +146,17 @@ export class PortfolioService {
 
   /**
    * Get all accounts from storage
+   * @param loadAssets if false, shallow loads the accounts, without loading the assets
    * @return Promise that resolves with an array of all accounts.
    */
-  async getAccounts(): Promise<PortfolioAccount[]> {
+  async getAccounts(loadAssets: boolean = true): Promise<PortfolioAccount[]> {
     if (this.accountsCache) {
       return this.accountsCache;
     } else {
-      const accounts = await this.storage.getAllAccounts();
-      this.buildAccountsCache(accounts);
+      const accounts = await this.storage.getAllAccounts(loadAssets);
+      if (loadAssets) {
+        this.buildAccountsCache(accounts);
+      }
       return accounts;
     }
   }
@@ -835,7 +838,7 @@ export class PortfolioService {
           const newTx = new TransferTransaction(txData);
           const promise = this.updateTransaction(newTx);
           promises.push(promise);
-        } else if (tx.type ===  TransactionType.Transfer && tx.description.startsWith('Liquidated ')) {
+        } else if (tx.type === TransactionType.Transfer && tx.description.startsWith('Liquidated ')) {
           tx.type = TransactionType.CashTransfer;
           const promise = this.updateTransaction(tx);
           promises.push(promise);

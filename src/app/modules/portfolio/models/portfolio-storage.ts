@@ -12,7 +12,7 @@ import { TransactionsImportTemplate } from './transactions-import-template';
 export interface PortfolioStorage extends StorageModule {
   addAccount(account: PortfolioAccount): Promise<PortfolioAccount>;
   getAccount(id: number): Promise<PortfolioAccount>;
-  getAllAccounts(): Promise<PortfolioAccount[]>;
+  getAllAccounts(loadAssets: boolean): Promise<PortfolioAccount[]>;
   updateAccount(account: PortfolioAccount): Promise<PortfolioAccount>;
   removeAccount(account: PortfolioAccount): Promise<void>;
   addAsset(asset: Asset): Promise<Asset>;
