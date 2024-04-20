@@ -122,6 +122,11 @@ export class RemoteStorageService extends StorageService implements StorageSeria
       self.syncInProgress = false;
     });
 
+    this.remoteStorage.on('connecting', () => {
+      self.eventsService.cloudStorageConnecting();
+    });
+
+
     this.bypassServiceWorker();
 
     this.widget = new Widget(this.remoteStorage);

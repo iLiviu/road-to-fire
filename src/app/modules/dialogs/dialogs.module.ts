@@ -16,6 +16,7 @@ import { MessageDialogComponent } from './components/message-dialog/message-dial
 import { LoadingScreenDialogComponent } from './components/loading-screen-dialog/loading-screen-dialog.component';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { TextareaDialogComponent } from './components/textarea-dialog/textarea-dialog.component';
+import { LogDisplayDialogComponent } from './components/log-display-dialog/log-display-dialog.component';
 
 @NgModule({
     imports: [
@@ -38,6 +39,7 @@ import { TextareaDialogComponent } from './components/textarea-dialog/textarea-d
         MessageDialogComponent,
         LoadingScreenDialogComponent,
         TextareaDialogComponent,
+        LogDisplayDialogComponent,
     ],
     providers: [
         DialogsService,

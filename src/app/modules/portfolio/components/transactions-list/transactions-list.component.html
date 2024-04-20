@@ -5,7 +5,7 @@
     </div>
 
     <mat-nav-list dense class="transactions-list">
-      <div mat-subheader fxLayout="row">
+      <div *ngIf="showHeader" mat-subheader fxLayout="row">
         <div>Debit: {{ totalDebit | currency:baseCurrency }}</div>
         <div fxFlex></div>
         <div>Credit: {{ totalCredit | currency:baseCurrency }}</div>
@@ -13,7 +13,7 @@
       
       <cdk-virtual-scroll-viewport itemSize="76" class="list-viewport" #viewport>
         <app-transactions-list-item *cdkVirtualFor="let tx of transactions; trackBy: txIdTrackFn" [transaction]="tx"
-          [selected]="txSelectionStates[tx.id]" (selectStateChange)="itemSelectStateChanged($event, tx)">
+          [selected]="txSelectionStates[tx.id]" (selectStateChange)="itemSelectStateChanged($event, tx)" [readOnly]="readOnly">
         </app-transactions-list-item>
       </cdk-virtual-scroll-viewport>
     </mat-nav-list>

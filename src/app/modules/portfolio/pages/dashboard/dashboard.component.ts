@@ -430,7 +430,6 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         this.onDataUpdated();
         break;
       case AppEventType.THEME_CHANGED:
-        console.log(event.data);
         this.themeChanged(event.data);
         break;
       default:

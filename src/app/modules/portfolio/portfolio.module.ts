@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -105,6 +106,8 @@ import { AbsoluteValuePipe } from 'src/app/shared/pipes/absolute-value.pipe';
 import { PrincipalTransactionEditComponent } from './components/principal-transaction-edit/principal-transaction-edit.component';
 import { P2PComponent } from './pages/p2p/p2p.component';
 import { TransactionsFilterEditComponent } from './components/transactions-filter-edit/transactions-filter-edit.component';
+import { TransactionsImportComponent } from './components/transactions-import/transactions-import.component';
+import { TransactionsImportService } from './services/tx-import-service';
 
 @NgModule({
     declarations: [
@@ -169,6 +172,7 @@ import { TransactionsFilterEditComponent } from './components/transactions-filte
         PrincipalTransactionEditComponent,
         P2PComponent,
         TransactionsFilterEditComponent,
+        TransactionsImportComponent,
     ],
     imports: [
         CommonModule,
@@ -187,6 +191,7 @@ import { TransactionsFilterEditComponent } from './components/transactions-filte
         MatSelectModule,
         MatDatepickerModule,
         MatMomentDateModule,
+        MatRadioModule,
         MatSidenavModule,
         MatSlideToggleModule,
         MatTabsModule,
@@ -213,6 +218,7 @@ import { TransactionsFilterEditComponent } from './components/transactions-filte
         AssetsQuoteService,
         PeriodicChecksService,
         DialogsService,
+        TransactionsImportService,
         { provide: PortfolioStorageService, useClass: RSPortfolioStorageService },
     ]
 })

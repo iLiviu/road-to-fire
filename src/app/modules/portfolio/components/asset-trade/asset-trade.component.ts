@@ -18,49 +18,22 @@ import {
   PaymentDateAddComponent, PaymentDateAddData, PaymentDateAddResponse, PaymentAmountType
 } from '../payment-date-add/payment-date-add.component';
 import { AssetRegion, ASSET_REGION_LABELS } from '../../models/asset-region';
+import { AssetOperationAction, AssetOperationData } from '../../models/asset-operation-data';
 
 
-export enum AssetTradeAction {
-  BUY,
-  SELL,
-  EDIT
-}
+
 
 /**
  * Data passed to the `AssetTradeComponent` dialog
  */
-export interface AssetTradeData {
+export interface AssetTradeUserInputData {
   account: PortfolioAccount;
   assetType: AssetType;
-  action: AssetTradeAction;
+  action: AssetOperationAction;
   position?: TradePosition;
   asset?: TradeableAsset;
 }
 
-/**
- * Response sent back from the `AssetTradeComponent` dialog
- */
-export interface AssetTradeResponse {
-  assetType: number;
-  amount: number;
-  cashAsset: Asset;
-  couponRate: number;
-  currentPrice: number;
-  description: string;
-  interestPaymentSchedule: BondInterestPaymentEvent[];
-  interestTaxRate: number;
-  fee: number;
-  maturityDate: string;
-  previousInterestPaymentDate: string;
-  price: number;
-  principalAmount: number;
-  principalPaymentSchedule: BondPrincipalPaymentEvent[];
-  region: AssetRegion;
-  symbol: string;
-  transactionDate: string;
-  updateCashAssetBalance: boolean;
-  withholdInterestTax: boolean;
-}
 
 // TODO: add support for custom asset regions
 
@@ -129,7 +102,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
   withholdInterestTax: UntypedFormControl;
 
 
-  readonly AssetTradeAction = AssetTradeAction;
+  readonly AssetTradeAction = AssetOperationAction;
   readonly AssetType = AssetType;
   readonly AssetRegion = AssetRegion;
   readonly RecurringTransactionType = RecurringTransactionType;
@@ -139,7 +112,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   constructor(public dialogRef: MatDialogRef<AssetTradeComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: AssetTradeData, public dialogs: DialogsService, private cdr: ChangeDetectorRef) {
+    @Inject(MAT_DIALOG_DATA) public data: AssetTradeUserInputData, public dialogs: DialogsService, private cdr: ChangeDetectorRef) {
 
   }
 
@@ -154,7 +127,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.bondLikeAsset = this.data.assetType === AssetType.Bond || this.data.assetType === AssetType.P2P;
     this.exchangeTradedAsset = this.data.assetType !== AssetType.RealEstate && this.data.assetType !== AssetType.P2P &&
       this.data.assetType !== AssetType.Forex;
-    this.singleTabEdit = !this.bondLikeAsset || this.data.action === AssetTradeAction.SELL;
+    this.singleTabEdit = !this.bondLikeAsset || this.data.action === AssetOperationAction.SELL;
     this.stockLikeAsset = Asset.isStockLike(this.data.assetType);
 
     if (this.stockLikeAsset || this.data.assetType === AssetType.Bond) {
@@ -236,7 +209,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
       } else {
         this.symbol.setValue(this.data.asset.symbol);
       }
-      if (this.data.action === AssetTradeAction.EDIT) {
+      if (this.data.action === AssetOperationAction.EDIT) {
         this.currentPrice.setValue(this.data.asset.currentPrice);
       }
       this.description.setValue(this.data.asset.description);
@@ -244,7 +217,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.data.position) {
         this.amount.setValue(this.data.position.amount);
         this.price.setValue(this.data.position.buyPrice);
-        if (this.data.action === AssetTradeAction.EDIT) {
+        if (this.data.action === AssetOperationAction.EDIT) {
           this.transactionDate.setValue(this.data.position.buyDate);
         }
       }
@@ -291,7 +264,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     // if form is valid and we are not editing the asset, mark it as dirty to enable Save button
-    if (this.data.action !== AssetTradeAction.EDIT && this.assetForm.valid) {
+    if (this.data.action !== AssetOperationAction.EDIT && this.assetForm.valid) {
       this.assetForm.markAsDirty();
     }
   }
@@ -345,7 +318,8 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
       if (Asset.isStockLike(this.data.assetType)) {
         this.data.assetType = this.stockType.value;
       }
-      const data: AssetTradeResponse = {
+      const data: AssetOperationData = {
+        action: this.data.action,
         amount: this.amount.value,
         price: this.price.value,
         currentPrice: this.currentPrice.value,
@@ -398,13 +372,13 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
    * Set amount field validators depending on action being done (buy/sell/edit)
    */
   private updateAmountValidators() {
-    if (this.data.action === AssetTradeAction.BUY) {
+    if (this.data.action === AssetOperationAction.BUY) {
       const validators = [Validators.min(Number.EPSILON)];
       if (this.updateCashAssetBalance.value) {
         validators.push(transactionValueValidator(this.price, this.fee, this.cashAsset));
       }
       this.amount.setValidators(validators);
-    } else if (this.data.action === AssetTradeAction.SELL) {
+    } else if (this.data.action === AssetOperationAction.SELL) {
       this.amount.setValidators([Validators.min(Number.EPSILON), Validators.max(this.data.position.amount)]);
     } else {
       this.amount.setValidators([Validators.min(Number.EPSILON)]);

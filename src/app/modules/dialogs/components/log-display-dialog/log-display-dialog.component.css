@@ -1,0 +1,7 @@
+.textarea-container {
+  width: calc(80vw - 48px);
+}
+.textarea {
+  height: calc(65vh - 48px);
+  white-space: pre;
+}

@@ -50,6 +50,13 @@ export class Transaction implements TransactionData {
   withholdingTax?: number;
 
   /**
+   * Checks if a transaction is a cash transaction
+   */
+  static isCash(type: TransactionType) {
+    return (type & TransactionType.Cash) === TransactionType.Cash;
+  }
+
+  /**
    * Checks if a transaction is a credit transaction
    */
   static isCredit(type: TransactionType) {

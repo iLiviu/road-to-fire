@@ -26,7 +26,7 @@ import { PortfolioHistory } from '../models/portfolio-history';
 import { UserAppError } from 'src/app/shared/models/user-app-error';
 import { TransferTransaction, TransferTransactionData } from '../models/transfer-transaction';
 import { TransactionFactory } from '../models/transaction-factory';
-import { constants } from 'buffer';
+import { TransactionsImportTemplate } from '../models/transactions-import-template';
 
 
 const PORTFOLIO_VERSION = 2;
@@ -886,6 +886,26 @@ export class PortfolioService {
 
   saveConfig(cfg: PortfolioConfig): Promise<void> {
     return this.storage.saveConfig(cfg);
+  }
+
+  /**
+   * Get all Transactions Import Templates from storage
+   */
+  async getTransactionsImportTemplates(): Promise<TransactionsImportTemplate[]> {
+    const templates = await this.storage.getTransactionsImportTemplates();
+    return templates;
+  }
+
+  async addTransactionsImportTemplate(template: TransactionsImportTemplate) {
+    return this.storage.addTransactionsImportTemplate(template);
+  }
+
+  async updateTransactionsImportTemplate(template: TransactionsImportTemplate): Promise<TransactionsImportTemplate> {
+    return this.storage.updateTransactionsImportTemplate(template);
+  }
+
+  async removeTransactionsImportTemplate(template: TransactionsImportTemplate): Promise<void> {
+    return this.storage.removeTransactionsImportTemplate(template);
   }
 
   private invalidateAccountsCache() {

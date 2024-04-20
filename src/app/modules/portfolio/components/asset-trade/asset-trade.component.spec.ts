@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import { AssetTradeComponent, AssetTradeData, AssetTradeAction } from './asset-trade.component';
+import { AssetTradeComponent, AssetTradeUserInputData, AssetTradeAction } from './asset-trade.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,7 +25,7 @@ import { SAMPLE_ACCOUNTS } from '../../mocks/sample-accounts.mock';
 import { AssetType } from '../../models/asset';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-const dialogData: AssetTradeData = {
+const dialogData: AssetTradeUserInputData = {
   account: SAMPLE_ACCOUNTS.account1,
   assetType: AssetType.Stock,
   action: AssetTradeAction.BUY,

@@ -7,6 +7,7 @@ import { StoredQuotes } from './asset-quote';
 import { AppNotification } from './notification';
 import { RecurringTransaction } from './recurring-transaction';
 import { PortfolioHistory } from './portfolio-history';
+import { TransactionsImportTemplate } from './transactions-import-template';
 
 export interface PortfolioStorage extends StorageModule {
   addAccount(account: PortfolioAccount): Promise<PortfolioAccount>;
@@ -41,4 +42,8 @@ export interface PortfolioStorage extends StorageModule {
   storeForexRates(quotes: StoredQuotes): Promise<void>;
   getPortfolioHistory(): Promise<PortfolioHistory>;
   storePortfolioHistory(history: PortfolioHistory): Promise<void>;
+  getTransactionsImportTemplates(): Promise<TransactionsImportTemplate[]>;
+  addTransactionsImportTemplate(template: TransactionsImportTemplate): Promise<TransactionsImportTemplate>;
+  updateTransactionsImportTemplate(template: TransactionsImportTemplate): Promise<TransactionsImportTemplate>;
+  removeTransactionsImportTemplate(template: TransactionsImportTemplate): Promise<void>;
 }

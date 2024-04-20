@@ -105,14 +105,18 @@ export class TradeableAsset extends Asset implements TradeableAssetData {
    * Parses the asset's full symbol value, and returns the market identifier
    * and short symbol.
    */
-  parseSymbol(): SymbolParts {
-    const symbolParts = this.symbol.split(':');
+  static parseSymbol(symbol: string): SymbolParts {
+    const symbolParts = symbol.split(':');
     const marketId: string = (symbolParts.length > 1) ? symbolParts[0] : '';
-    const shortSymbol: string = (symbolParts.length > 1) ? symbolParts[1] : this.symbol;
+    const shortSymbol: string = (symbolParts.length > 1) ? symbolParts[1] : symbol;
     return {
       marketCode: marketId,
       shortSymbol: shortSymbol,
     };
+  }
+
+  parseSymbol(): SymbolParts {
+    return TradeableAsset.parseSymbol(this.symbol);
   }
 
   /**

@@ -44,6 +44,7 @@
     "chartjs-adapter-moment": "^1.0.0",
     "core-js": "^2.6.12",
     "crypto-js": "~4.2.0",
+    "csv-parse": "^5.5.3",
     "hammerjs": "^2.0.8",
     "lodash-decorators": "^6.0.1",
     "lodash-es": "^4.17.21",

@@ -1,6 +1,7 @@
 ## Master
 
 ### Features
+* Import account transactions from CSV file
 * Display Yield to Maturity (YTM) for bonds
 * Display Total Return in Portfolio History chart
 

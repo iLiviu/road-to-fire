@@ -19,6 +19,8 @@ export const RECURRING_TRANSACTIONS_PATH = 'recurring-txs/';
 export const RECURRING_TRANSACTION_ALIAS = 'recurring-tx';
 export const PORTFOLIO_HISTORY_PATH = 'portfolio_history';
 export const PORTFOLIO_HISTORY_ALIAS = 'portfolio-history';
+export const TX_IMPORT_TEMPLATES_PATH = 'import-templates/';
+export const TX_IMPORT_TEMPLATE_ALIAS = 'import-template';
 
 @Injectable()
 export abstract class PortfolioStorageService {

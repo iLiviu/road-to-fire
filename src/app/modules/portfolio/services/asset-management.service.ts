@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { LoggerService } from 'src/app/core/services/logger.service';
+import { LogLevel, LoggerService } from 'src/app/core/services/logger.service';
 import { PortfolioService } from 'src/app/modules/portfolio/services/portfolio.service';
 import {
   Transaction, TransactionType, TransactionData
@@ -23,7 +23,7 @@ import {
   DepositLiquidateComponent, DepositLiquidateData, DepositLiquidateResponse
 } from '../components/deposit-liquidate/deposit-liquidate.component';
 import {
-  AssetTradeComponent, AssetTradeData, AssetTradeResponse, AssetTradeAction
+  AssetTradeComponent, AssetTradeUserInputData
 } from '../components/asset-trade/asset-trade.component';
 import { ViewAsset } from '../models/view-asset';
 import { TransactionViewComponent } from '../components/transaction-view/transaction-view.component';
@@ -64,6 +64,10 @@ import { AssetRegion } from '../models/asset-region';
 import {
   PrincipalTxEditResponse, PrincipalTransactionEditComponent, PrincipalTxEditData
 } from '../components/principal-transaction-edit/principal-transaction-edit.component';
+import { TransactionsImportComponent, TransactionsImportData } from '../components/transactions-import/transactions-import.component';
+import { AssetOperationAction, AssetOperationData } from '../models/asset-operation-data';
+import { ParsedCSVTransaction } from './tx-import-service';
+import { LogDisplayDialogData } from '../../dialogs/components/log-display-dialog/log-display-dialog.component';
 
 interface PortfolioCSVRow {
   instrument: string;
@@ -490,7 +494,8 @@ export class AssetManagementService {
           }
 
           if (debitAmount > 0) {
-            const tradeData: AssetTradeResponse = {
+            const tradeData: AssetOperationData = {
+              action: AssetOperationAction.BUY,
               amount: FloatingMath.fixRoundingError(debitAmount * result.rate),
               price: 1 / result.rate,
               currentPrice: result.rate,
@@ -930,7 +935,7 @@ export class AssetManagementService {
    * @param account account that holds/will hold the asset
    * @param tradeData asset transaction data
    */
-  private async buy(account: PortfolioAccount, tradeData: AssetTradeResponse) {
+  private async buy(account: PortfolioAccount, tradeData: AssetOperationData) {
     const position: TradePosition = {
       amount: tradeData.amount,
       buyDate: tradeData.transactionDate,
@@ -950,6 +955,16 @@ export class AssetManagementService {
     } else {
       asset = null;
     }
+
+    const transactionValue = FloatingMath.fixRoundingError(tradeData.amount * tradeData.price + tradeData.fee);
+    if (tradeData.updateCashAssetBalance) {
+      if (tradeData.cashAsset.amount < transactionValue) {
+        throw new Error(`Not enough balance in cash account to buy ${tradeData.symbol}`);
+      }
+      tradeData.cashAsset.amount = FloatingMath.fixRoundingError(tradeData.cashAsset.amount - transactionValue);
+      await this.portfolioService.updateAsset(tradeData.cashAsset, account);
+    }
+
     let isNewAsset: boolean;
     if (asset) {
       isNewAsset = false;
@@ -976,16 +991,8 @@ export class AssetManagementService {
       Object.assign(asset, assetData);
       asset.cashAssetId = tradeData.cashAsset.id;
     }
-
     this.updateCommonTradeableAssetProperties(asset, tradeData);
-    const transactionValue = FloatingMath.fixRoundingError(tradeData.amount * tradeData.price + tradeData.fee);
-    if (tradeData.updateCashAssetBalance) {
-      if (tradeData.cashAsset.amount < transactionValue) {
-        throw new Error('Not enough balance in cash account');
-      }
-      tradeData.cashAsset.amount = FloatingMath.fixRoundingError(tradeData.cashAsset.amount - transactionValue);
-      await this.portfolioService.updateAsset(tradeData.cashAsset, account);
-    }
+
     let newAsset: Asset;
     if (isNewAsset) {
       newAsset = await this.portfolioService.addAsset(asset, account);
@@ -1017,48 +1024,51 @@ export class AssetManagementService {
       }
     }
 
-    const data: AssetTradeData = {
+    const data: AssetTradeUserInputData = {
       account: account,
       assetType: assetType,
-      action: AssetTradeAction.BUY,
+      action: AssetOperationAction.BUY,
       asset: asset,
     };
-    const response: AssetTradeResponse = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
+    const response: AssetOperationData = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
     if (response) {
       try {
         const newAsset = await this.buy(account, response);
         this.logger.info('Asset bought!');
-
-        const transactionValue = FloatingMath.fixRoundingError(response.amount * response.price + response.fee);
-        const txData: TradeTransactionData = {
-          asset: {
-            accountDescription: account.description,
-            accountId: account.id,
-            id: newAsset.id,
-            description: newAsset.description,
-            currency: newAsset.currency,
-          },
-          otherAsset: {
-            id: response.cashAsset.id,
-            currency: response.cashAsset.currency,
-            description: response.cashAsset.description,
-            accountDescription: account.description,
-            accountId: account.id,
-          },
-          value: transactionValue,
-          date: response.transactionDate,
-          description: `Buy ${response.amount} ${response.description} @ ${response.price} ${newAsset.currency}`,
-          type: TransactionType.Buy,
-          fee: response.fee,
-          amount: response.amount,
-          rate: response.price,
-        };
-        const tx = new TradeTransaction(txData);
-        this.addTransaction(tx);
+        this.addBuyTransaction(account, newAsset, response);
       } catch (err) {
         this.logger.error(`Could not buy ${ASSET_TYPE_LABELS[assetType]}`, err);
       }
     }
+  }
+
+  async addBuyTransaction(account: PortfolioAccount, newAsset: Asset, tradeData: AssetOperationData) {
+    const transactionValue = FloatingMath.fixRoundingError(tradeData.amount * tradeData.price + tradeData.fee);
+    const txData: TradeTransactionData = {
+      asset: {
+        accountDescription: account.description,
+        accountId: account.id,
+        id: newAsset.id,
+        description: newAsset.description,
+        currency: newAsset.currency,
+      },
+      otherAsset: {
+        id: tradeData.cashAsset.id,
+        currency: tradeData.cashAsset.currency,
+        description: tradeData.cashAsset.description,
+        accountDescription: account.description,
+        accountId: account.id,
+      },
+      value: transactionValue,
+      date: tradeData.transactionDate,
+      description: `Buy ${tradeData.amount} ${tradeData.description || tradeData.symbol} @ ${tradeData.price} ${newAsset.currency}`,
+      type: TransactionType.Buy,
+      fee: tradeData.fee,
+      amount: tradeData.amount,
+      rate: tradeData.price,
+    };
+    const tx = new TradeTransaction(txData);
+    await this.addTransaction(tx);
   }
 
   /**
@@ -1068,14 +1078,14 @@ export class AssetManagementService {
    * @param account account that holds the asset to edit
    */
   async editTradeableAsset(position: TradePosition, asset: TradeableAsset, account: PortfolioAccount) {
-    const data: AssetTradeData = {
+    const data: AssetTradeUserInputData = {
       account: account,
       asset: asset,
       assetType: asset.type,
-      action: AssetTradeAction.EDIT,
+      action: AssetOperationAction.EDIT,
       position: position,
     };
-    const response: AssetTradeResponse = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
+    const response: AssetOperationData = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
     if (response) {
       try {
         const newSymbol = response.symbol.trim().toUpperCase();
@@ -1128,54 +1138,58 @@ export class AssetManagementService {
       }
     }
 
-    const data: AssetTradeData = {
+    const data: AssetTradeUserInputData = {
       account: account,
       assetType: asset.type,
       asset: asset,
-      action: AssetTradeAction.SELL,
+      action: AssetOperationAction.SELL,
       position: position,
     };
-    const response: AssetTradeResponse = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
+    const response: AssetOperationData = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
     if (response) {
       try {
         const trAsset = <TradeableAsset>asset;
         await this.sell(position, trAsset, account, response.amount, response.price, response.fee,
           response.updateCashAssetBalance, response.cashAsset);
         this.logger.info('Asset sold!');
-        const txValue = FloatingMath.fixRoundingError(response.amount * response.price - response.fee);
-        const txData: SellTransactionData = {
-          asset: {
-            accountDescription: account.description,
-            accountId: account.id,
-            id: asset.id,
-            description: asset.description,
-            currency: asset.currency,
-          },
-          otherAsset: {
-            id: response.cashAsset.id,
-            currency: response.cashAsset.currency,
-            description: response.cashAsset.description,
-            accountDescription: account.description,
-            accountId: account.id,
-          },
-          value: txValue,
-          date: response.transactionDate,
-          description: `Sell ${response.amount} ${response.description} @ ${response.price} ${asset.currency}`,
-          type: TransactionType.Sell,
-          fee: response.fee,
-          amount: response.amount,
-          rate: response.price,
-          buyDate: position.buyDate,
-          buyPrice: position.buyPrice,
-          grossBuyPrice: position.grossBuyPrice,
-          positionId: position.id,
-        };
-        const tx = new SellTransaction(txData);
-        this.addTransaction(tx);
+        this.addSellTransaction(account, asset, position, response);
       } catch (e) {
         this.logger.error(`Could not sell ${ASSET_TYPE_LABELS[asset.type]}`, e);
       }
     }
+  }
+
+  async addSellTransaction(account: PortfolioAccount, asset: Asset, position: TradePosition, tradeData: AssetOperationData) {
+    const txValue = FloatingMath.fixRoundingError(tradeData.amount * tradeData.price - tradeData.fee);
+    const txData: SellTransactionData = {
+      asset: {
+        accountDescription: account.description,
+        accountId: account.id,
+        id: asset.id,
+        description: asset.description,
+        currency: asset.currency,
+      },
+      otherAsset: {
+        id: tradeData.cashAsset.id,
+        currency: tradeData.cashAsset.currency,
+        description: tradeData.cashAsset.description,
+        accountDescription: account.description,
+        accountId: account.id,
+      },
+      value: txValue,
+      date: tradeData.transactionDate,
+      description: `Sell ${tradeData.amount} ${tradeData.description || tradeData.symbol} @ ${tradeData.price} ${asset.currency}`,
+      type: TransactionType.Sell,
+      fee: tradeData.fee,
+      amount: tradeData.amount,
+      rate: tradeData.price,
+      buyDate: position.buyDate,
+      buyPrice: position.buyPrice,
+      grossBuyPrice: position.grossBuyPrice,
+      positionId: position.id,
+    };
+    const tx = new SellTransaction(txData);
+    await this.addTransaction(tx);
   }
 
   /**
@@ -1618,6 +1632,99 @@ export class AssetManagementService {
   }
 
   /**
+   * Import a list of transactions from a CSV file provided by the user
+   * 
+   * @param account account to import transactions to
+   */
+  async importTransactionsFromCSV(account: PortfolioAccount, baseCurrency: string) {
+
+    const cashAssetsCount = account.assets.reduce((acc, asset) => acc + (asset.type === AssetType.Cash ? 1 : 0), 0);
+    if (cashAssetsCount === 0) {
+      await this.dialogsService.error('There are no cash accounts available!\nPlease add one first.');
+      return;
+    }
+
+    const data: TransactionsImportData = {
+      account: account,
+      baseCurrency: baseCurrency,
+    }
+    let transactionsData: ParsedCSVTransaction[] = await this.dialogsService.showAdaptableScreenModal(TransactionsImportComponent, data);
+    if (transactionsData) {
+      const logDialogData: LogDisplayDialogData = {
+        allowClose: false,
+        capturedLogLevels: [LogLevel.Info, LogLevel.Warn, LogLevel.Error],
+      }
+      const dialog = this.dialogsService.logScreen(logDialogData);
+      // wait for log dialog to open so that all logs are captured
+      await dialog.afterOpened().toPromise();
+      this.logger.info("Import started!");
+
+      // we need transactions to be in chronological order
+      transactionsData = transactionsData.sort((a, b) => {
+        return (new Date(a.operationData.transactionDate)).getTime() - (new Date(b.operationData.transactionDate)).getTime();
+      });
+
+      for (let parsedTxData of transactionsData) {
+        const tradeData = parsedTxData.operationData;
+        try {
+          const symbolParts = TradeableAsset.parseSymbol(tradeData.symbol);
+          if (tradeData.action === AssetOperationAction.BUY || tradeData.action === AssetOperationAction.SELL) {
+            const existingAsset = <TradeableAsset>account.findAssetByShortSymbol(symbolParts.shortSymbol, null,
+              tradeData.cashAsset.currency);
+            if (existingAsset) {
+              //populate with existing asset data
+              tradeData.symbol = existingAsset.symbol;
+              tradeData.assetType = existingAsset.type;
+              tradeData.description = existingAsset.description;
+            }
+
+            if (tradeData.action === AssetOperationAction.BUY) {
+              if (existingAsset) {
+                //populate with existing asset data
+                tradeData.symbol = existingAsset.symbol;
+                tradeData.assetType = existingAsset.type;
+                tradeData.description = existingAsset.description;
+              } else if (tradeData.assetType === AssetType.Bond) {
+                throw new Error(`Can't import ${tradeData.symbol} buy transaction. Bond asset must already exist in account!`);
+              }
+              const newAsset = await this.buy(account, tradeData);
+              await this.addBuyTransaction(account, newAsset, tradeData);
+            } else if (tradeData.action === AssetOperationAction.SELL) {
+              if (existingAsset && existingAsset.positions && existingAsset.positions.length > 0) {
+                await this.mergePositions(existingAsset, account);
+                const position = existingAsset.positions[0];
+                await this.sell(position, existingAsset, account, tradeData.amount, tradeData.price, tradeData.fee, tradeData.updateCashAssetBalance,
+                  tradeData.cashAsset);
+                await this.addSellTransaction(account, existingAsset, position, tradeData);
+              } else {
+                throw new Error(`Asset with symbol "${symbolParts.shortSymbol}" not found to sell!`);
+              }
+            }
+          } else if (tradeData.action === AssetOperationAction.CREDIT || tradeData.action === AssetOperationAction.DEBIT) {
+            const sign = (tradeData.action === AssetOperationAction.CREDIT ? 1 : -1);
+            const amount = tradeData.amount * sign;
+
+            if (tradeData.updateCashAssetBalance) {
+              const newBalance = FloatingMath.fixRoundingError(tradeData.cashAsset.amount + amount - tradeData.fee);
+              if (newBalance < 0) {
+                throw new Error('Not enough balance to debit from cash account');
+              }
+              tradeData.cashAsset.amount = newBalance;
+              await this.portfolioService.updateAsset(tradeData.cashAsset, account);
+            }
+            const txDescription = ((tradeData.action === AssetOperationAction.CREDIT) ? "Credit" : "Debit") + ` ${tradeData.amount} ${tradeData.cashAsset.currency}`;
+            await this.addCashTransaction(tradeData.cashAsset, account, amount, txDescription, tradeData.transactionDate, tradeData.fee);
+          }
+        } catch (e) {
+          this.logger.error(`Row ${parsedTxData.rowNo}: ${e}`);
+        }
+      }
+      this.logger.info("Import finished!");
+      logDialogData.allowClose = true;
+    }
+  }
+
+  /**
    * Executes (or schedules) an interest payment transaction. If destination cash asset is not
    * specified, adds it as a pending transaction, and notifies user.
    * @param tx interest transaction to execute
@@ -1723,7 +1830,11 @@ export class AssetManagementService {
 
       try {
         if (!this.isFutureDate(result.transactionDate)) {
-          asset.amount = FloatingMath.fixRoundingError(asset.amount + amount - result.fee);
+          const newBalance = FloatingMath.fixRoundingError(asset.amount + amount - result.fee);
+          if (newBalance < 0) {
+            throw new Error('Not enough balance in cash account');
+          }
+          asset.amount = newBalance;
           await this.portfolioService.updateAsset(asset, account);
           this.logger.info('Account balance updated!');
 
@@ -2134,7 +2245,7 @@ export class AssetManagementService {
     updateCashAssetBalance: boolean, cashAsset: Asset) {
 
     if (position.amount < amount) {
-      throw new Error('Amount to sell exceeds position amount');
+      throw new Error(`Amount to sell exceeds position amount on ${asset.symbol}: ${amount}`);
     }
     position.amount = FloatingMath.fixRoundingError(position.amount - amount);
     if (FloatingMath.equal(position.amount, 0)) {
@@ -2154,19 +2265,30 @@ export class AssetManagementService {
    * @param asset asset to update
    * @param response updated user provided asset data
    */
-  private async updateCommonTradeableAssetProperties(asset: TradeableAsset, response: AssetTradeResponse) {
-    asset.description = response.description;
-    asset.region = response.region || AssetRegion.Unspecified;
-    if (asset.type === AssetType.Bond || asset.type === AssetType.P2P) {
-      const bond = <BondAsset>asset;
-      bond.maturityDate = response.maturityDate;
-      bond.principalAmount = response.principalAmount;
-      bond.couponRate = response.couponRate;
-      bond.interestPaymentSchedule = response.interestPaymentSchedule;
-      bond.principalPaymentSchedule = response.principalPaymentSchedule;
-      bond.previousInterestPaymentDate = response.previousInterestPaymentDate;
-      bond.interestTaxRate = response.interestTaxRate;
-      bond.withholdInterestTax = response.withholdInterestTax;
+  private async updateCommonTradeableAssetProperties(asset: TradeableAsset, response: AssetOperationData) {
+    if (response.description) {
+      asset.description = response.description;
     }
+    asset.region = response.region || AssetRegion.Unspecified;
+    if ((asset.type === AssetType.Bond || asset.type === AssetType.P2P)) {
+      const bond = <BondAsset>asset;
+      if (response.maturityDate) {
+        bond.maturityDate = response.maturityDate;
+        bond.principalAmount = response.principalAmount;
+        bond.couponRate = response.couponRate;
+        bond.interestPaymentSchedule = response.interestPaymentSchedule;
+        bond.principalPaymentSchedule = response.principalPaymentSchedule;
+        bond.previousInterestPaymentDate = response.previousInterestPaymentDate;
+        bond.interestTaxRate = response.interestTaxRate;
+        bond.withholdInterestTax = response.withholdInterestTax;
+      }
+      if (!bond.maturityDate) {
+        throw new Error("Invalid maturity date!");
+      }
+      if (!bond.principalAmount) {
+        throw new Error("Invalid bond principal amount!");
+      }
+    }
+
   }
 }

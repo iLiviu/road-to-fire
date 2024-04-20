@@ -1,0 +1,199 @@
+<ng-container *ngIf="isHandset">
+  <mat-toolbar color="primary" class="top-toolbar mat-elevation-z5">
+    <mat-toolbar-row fxLayout="row">
+      <div fxFlex fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px" class="title-container">
+        <button type="button" aria-label="Cancel" mat-icon-button (click)="cancel()" matTooltip="Cancel"
+          cdkFocusInitial>
+          <mat-icon aria-label="Cancel">close</mat-icon>
+        </button>
+        <span class="title">Import transactions</span>
+      </div>
+      <button *ngIf="currentForm" mat-stroked-button (click)="nextStep(stepper)"
+        [disabled]="!currentForm.dirty || !currentForm.valid">{{NEXT_BUTTON_CAPTIONS[stepper.selectedIndex]}}</button>
+    </mat-toolbar-row>
+  </mat-toolbar>
+</ng-container>
+
+<mat-dialog-content fxLayout="column" [ngClass]="isHandset? 'handset': 'desktop'">
+
+  <mat-horizontal-stepper #stepper fxLayout="column" fxFlex linear (selectionChange)="stepChanged($event)">
+    <mat-step label="Choose File" fxLayout="column" [stepControl]="fileForm">
+
+      <form [formGroup]="fileForm" fxLayout="column" fxFlexFill>
+        <div fxFlex fxLayout="column">
+          <p>
+            You can use this tool to import a list of transactions from a .CSV file that you exported from your
+            brokerage
+            account. Each entry must contain at least the
+            transaction date, amount traded, asset symbol/description and price per unit or total transaction value.
+          </p>
+          <p class="warning-box">
+            Warning: If there is a buy transaction, and the asset doesn't already exist in account, the new asset will
+            be considered to be a stock!
+          </p>
+          <div fxLayoutAlign="center center" fxFlex>
+            <button type="button" mat-raised-button (click)="fileInput.click()" color="primary">Choose CSV File</button>
+            <input hidden #fileInput type="file" id="file" (change)="importDataFromFile($event,stepper)" />
+            <input type="hidden" formControlName="fileLoaded" required />
+          </div>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step label="Map" fxLayout="column" [stepControl]="mapForm">
+      <form [formGroup]="mapForm" fxLayout="column" fxFlexFill>
+        <div fxLayoutAlign="row">
+          <mat-form-field>
+            <mat-select placeholder="Saved Templates" formControlName="template" (selectionChange)="applyTemplate()">
+              <mat-option *ngFor="let tpl of templates" [value]="tpl">{{tpl.name}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button type="button" mat-button (click)="saveTemplate()">Save As</button>
+          <button type="button" mat-button (click)="deleteTemplate()" [disabled]="!template.value">Delete</button>
+        </div>
+
+        <mat-divider></mat-divider>
+        <div [fxLayout]="isHandset? 'column':'row'">
+          <mat-form-field class="row-input">
+            <mat-select placeholder="CSV Field Separator" formControlName="fieldSeparator"
+              (selectionChange)="parseCSV()" required>
+              <mat-option value=",">Comma (,)</mat-option>
+              <mat-option value=";">Semicolon (;)</mat-option>
+              <mat-option value="&#9;">Tab</mat-option>
+              <mat-option value=" ">Space</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="row-input">
+            <mat-select placeholder="Decimal Separator" formControlName="decimalSeparator" required>
+              <mat-option value=",">Comma (,)</mat-option>
+              <mat-option value=".">Dot (.)</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div fxLayoutAlign="start center">
+            <mat-checkbox formControlName="includeFirstRow" (change)="updateCSVRows()">Include first CSV
+              row</mat-checkbox>
+          </div>
+        </div>
+
+        <div [fxLayout]="isHandset? 'column':'row'">
+          <mat-form-field>
+            <mat-select placeholder="Date Format" formControlName="dateFormat" required
+              matTooltip='Required for the "Date" column'>
+              <mat-option [value]="0">Autodetect</mat-option>
+              <mat-option [value]="1">Custom</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field *ngIf="dateFormat.value === 1">
+            <input matInput type="text" placeholder="Custom Date Format" formControlName="customDateFormat" required>
+          </mat-form-field>
+        </div>
+
+        <div [fxLayout]="isHandset? 'column':'row'">
+          <mat-form-field class="row-input">
+            <input matInput type="text" placeholder="Buy String" value="Buy" formControlName="buyString" required
+              matTooltip='Text that will be found in the "Buy/Sell" column on buy transactions'>
+          </mat-form-field>
+          <mat-form-field class="row-input">
+            <input matInput type="text" placeholder="Sell String" value="Sell" formControlName="sellString" required
+              matTooltip='Text that will be found in the "Buy/Sell" column on sell transactions'>
+          </mat-form-field>
+
+          <mat-form-field class="row-input">
+            <input matInput type="text" placeholder="Cash Credit String" value="In" formControlName="cashCreditString"
+              required
+              matTooltip='Text that will be found in the "Buy/Sell" column on cash credit transactions. You can use regular expressions here'>
+          </mat-form-field>
+          <mat-form-field class="row-input">
+            <input matInput type="text" placeholder="Cash Debit String" value="Out" formControlName="cashDebitString"
+              required
+              matTooltip='Text that will be found in the "Buy/Sell" column on cash debit transactions. You can use regular expressions here'>
+          </mat-form-field>
+        </div>
+
+        <div [fxLayout]="isHandset? 'column':'row'">
+          <mat-form-field>
+            <input type="text" placeholder="Default Exchange Code" matInput [formControl]="exchange"
+              [matAutocomplete]="exchangeCode"
+              matTooltip="The Securities Exchange Code will only be set for imported assets that didn't already exist in the account">
+            <mat-autocomplete #exchangeCode="matAutocomplete">
+              <mat-option *ngFor="let exchange of filteredSupportedExchanges | async" [value]="exchange.code">
+                {{exchange.code}} - {{exchange.name}}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+
+        <div [fxLayout]="isHandset? 'column':'row'">
+
+          <mat-form-field class="row-input">
+            <mat-select placeholder="Default Cash Account" formControlName="cashAsset" required
+              matTooltip="Will be used when a currency column is not specified">
+              <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                {{asset.description}} ({{asset.amount | currency:asset.currency}})
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div fxLayoutAlign="start center">
+            <mat-checkbox formControlName="updateCashAssetBalance"
+              matTooltip="Debits/Credits the appropriate transaction value from/to the selected cash account balance. If the starting balance is not setup correctly, the import may fail to complete successfully!">
+              Update cash balance
+            </mat-checkbox>
+          </div>
+        </div>
+
+        <div class="table-container" fxFlex>
+          <table *ngIf="parseComplete" mat-table [dataSource]="displayedCSVRows" class="mat-elevation-z8">
+            <ng-container *ngFor="let column of displayedColumns;index as i" [matColumnDef]="column">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-form-field formArrayName="columnIDs">
+                  <mat-select placeholder="{{column}}" [formControlName]="i" required>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.IGNORE">Ignore</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.DATE">Date</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.BUY_SELL">Buy/Sell</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.SYMBOL">Symbol</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.DESCRIPTION">Description</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.EXCHANGE_CODE">Exchange Code</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.AMOUNT">Amount</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.PRICE">Price</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.FEE">Fee</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.TAX">Tax</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.CURRENCY">Currency</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.GROSS_TX_VALUE">Gross Transaction Value</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.NET_TX_VALUE">Net Transaction Value</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </th>
+              <td mat-cell *matCellDef="let element"> {{element[i]}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+          <div *ngIf="!parseComplete" class="warning-box">
+            Could not parse CSV file!<br />
+            Please make sure that you selected a valid CSV file and that the correct CSV field separator si selected!
+          </div>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step label="Preview" fxLayout="column">
+      <app-transactions-list [transactions]="transactions" [readOnly]="true" [baseCurrency]="data.baseCurrency"
+        [dataLoaded]="transactionsLoaded" [showHeader]="false">
+      </app-transactions-list>
+    </mat-step>
+
+  </mat-horizontal-stepper>
+
+</mat-dialog-content>
+
+<ng-container *ngIf="!isHandset">
+
+  <div fxLayout="row">
+    <button type="button" mat-button mat-dialog-close>Cancel</button>
+    <div fxFlex></div>
+    <button type="button" *ngIf="currentForm" mat-button color="primary" (click)="nextStep(stepper)"
+      [disabled]="!currentForm.valid">{{NEXT_BUTTON_CAPTIONS[stepper.selectedIndex]}}</button>
+  </div>
+</ng-container>

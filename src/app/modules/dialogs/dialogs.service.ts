@@ -6,6 +6,7 @@ import { MessageDialogComponent, MessageDialogData, MessageDialogType } from './
 import { LoadingScreenDialogComponent } from './components/loading-screen-dialog/loading-screen-dialog.component';
 import { TextareaDialogComponent } from './components/textarea-dialog/textarea-dialog.component';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { LogDisplayDialogComponent, LogDisplayDialogData } from './components/log-display-dialog/log-display-dialog.component';
 
 /**
  * Service to open various informational and prompt dialogs
@@ -141,6 +142,18 @@ export class DialogsService {
       data: content
     });
   }
+
+  /**
+   * Displays a dialog that captures & displays application logs while it is open
+   * @param data data passed to the dialog
+   * @return reference to the opened dialog
+   */
+  logScreen(data: LogDisplayDialogData) {
+    return this.dialog.open(LogDisplayDialogComponent, {
+      data: data,
+      disableClose: true,
+    });
+  }  
 
   /**
    * Displays a component as a full screen dialog

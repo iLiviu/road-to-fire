@@ -43,7 +43,7 @@ export class PortfolioAccount implements PortfolioAccount {
     }
     symbol = symbol.toUpperCase();
     const asset = this.assets.find((curAsset) => {
-      if (type === curAsset.type && currency === curAsset.currency) {
+      if ((type === null || type === curAsset.type) && currency === curAsset.currency) {
         const trAsset = <TradeableAsset>curAsset;
         if (trAsset.symbol.toUpperCase() === symbol) {
           return true;
@@ -53,6 +53,27 @@ export class PortfolioAccount implements PortfolioAccount {
     });
     return asset;
   }
+
+  /**
+   * Find an asset in account that matches a given short symbol (without market Identifier) , type and currency.
+   * If no asset is found, return `undefined`.
+   * @param symbol symbol to match
+   * @param type type of asset to match
+   * @param currency currency of the asset to match
+   */
+  findAssetByShortSymbol(shortSymbol: string, type: AssetType, currency: string) {
+    shortSymbol = shortSymbol.toUpperCase();
+    const asset = this.assets.find((curAsset) => {
+      if (((type === null && curAsset.isTradeable()) || type === curAsset.type) && currency === curAsset.currency) {
+        const trAsset = <TradeableAsset>curAsset;
+        if (trAsset.parseSymbol().shortSymbol.toUpperCase() === shortSymbol) {
+          return true;
+        }
+      }
+      return false;
+    });
+    return asset;
+  }  
 
   /**
    * Find an asset in account that matches a given description (case-sensitive), type and currency.

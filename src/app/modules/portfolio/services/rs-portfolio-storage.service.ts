@@ -5,7 +5,9 @@ import {
   ACCOUNTS_PATH, TRANSACTIONS_PATH, NOTIFICATIONS_PATH, ASSETS_PATH, FOREXRATES_PATH, RECURRING_TRANSACTIONS_PATH,
   RECURRING_TRANSACTION_ALIAS,
   PORTFOLIO_HISTORY_ALIAS,
-  PORTFOLIO_HISTORY_PATH
+  PORTFOLIO_HISTORY_PATH,
+  TX_IMPORT_TEMPLATES_PATH,
+  TX_IMPORT_TEMPLATE_ALIAS
 } from './portfolio-storage.service';
 import { PortfolioStorage } from '../models/portfolio-storage';
 import { BaseRemoteStorageModule, RSModuleObjectType } from 'src/app/core/models/remotestorage-module';
@@ -23,6 +25,7 @@ import { RecurringTransaction, RecurringTransactionData } from '../models/recurr
 import { TransactionFactory } from '../models/transaction-factory';
 import { AssetFactory } from '../models/asset-factory';
 import { PortfolioHistory } from '../models/portfolio-history';
+import { TransactionsImportTemplate } from '../models/transactions-import-template';
 
 
 const RSMODULE_NAME = 'asset-portfolio';
@@ -420,6 +423,49 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
         }
       });
 
+      privateClient.declareType(TX_IMPORT_TEMPLATE_ALIAS, {
+        'type': 'object',
+        'properties': {
+          'customDateFormat': {
+            'type': 'string'
+          },
+          'decimalSeparator': {
+            'type': 'string'
+          },
+          'exchangeCode': {
+            'type': 'string'
+          },
+          'fieldSeparator': {
+            'type': 'string'
+          },
+          'name': {
+            'type': 'string'
+          },
+          'includeFirstRow': {
+            'type': 'boolean'
+          },
+          'useCustomDateFormat': {
+            'type': 'boolean'
+          },
+          'buyString': {
+            'type': 'string'
+          },
+          'sellString': {
+            'type': 'string'
+          },
+          'cashCreditString': {
+            'type': 'string'
+          },
+          'cashDebitString': {
+            'type': 'string'
+          },
+          'columns': {
+            'type': 'array',
+            'default': [],
+
+          },
+        }
+      });
 
       return {
         exports: new class extends BaseRemoteStorageModule implements PortfolioStorage {
@@ -889,6 +935,35 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
             return this.storeObject(PORTFOLIO_HISTORY_ALIAS, PORTFOLIO_HISTORY_PATH, history);
           }
 
+          async getTransactionsImportTemplates(): Promise<TransactionsImportTemplate[]> {
+            const paths = await this.getAll(TX_IMPORT_TEMPLATES_PATH);
+            const templates: TransactionsImportTemplate[] = [];
+            if (paths) {
+              for (const path of Object.keys(paths)) {
+                const tpl = <TransactionsImportTemplate>paths[path];
+                if (tpl) {
+                  templates.push(tpl);
+                }
+              }
+            }
+            return templates;
+          }
+          async addTransactionsImportTemplate(template: TransactionsImportTemplate): Promise<TransactionsImportTemplate> {
+            await this.updateTransactionsImportTemplate(template);
+            return template;
+          }
+
+          async updateTransactionsImportTemplate(template: TransactionsImportTemplate): Promise<TransactionsImportTemplate> {
+            const path = TX_IMPORT_TEMPLATES_PATH + template.name;
+            await this.storeObject(TX_IMPORT_TEMPLATE_ALIAS, path, template);
+            return template;
+          }
+
+          async removeTransactionsImportTemplate(template: TransactionsImportTemplate): Promise<void> {
+            const path = TX_IMPORT_TEMPLATES_PATH + template.name;
+            await privateClient.remove(path);
+          }
+
           getObjectTypes(): RSModuleObjectType[] {
             return this.getSerializableObjectTypes();
           }
@@ -903,6 +978,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
               { path: FOREXRATES_PATH, alias: FOREXRATES_ALIAS, collectionType: false },
               { path: NOTIFICATIONS_PATH, alias: NOTIFICATION_ALIAS, collectionType: true },
               { path: PORTFOLIO_HISTORY_PATH, alias: PORTFOLIO_HISTORY_ALIAS, collectionType: false },
+              { path: TX_IMPORT_TEMPLATES_PATH, alias: TX_IMPORT_TEMPLATE_ALIAS, collectionType: true },
             ];
           }
 

@@ -1,5 +1,5 @@
 <mat-list-item class="list-item" [ngClass]="{'positive':isCredit, 'negative':isDebit}" (click)="viewTransaction()">
-  <mat-checkbox class="item-checkbox" [(ngModel)]="selected" (click)="preventDefault($event)"
+  <mat-checkbox *ngIf="!readOnly" class="item-checkbox" [(ngModel)]="selected" (click)="preventDefault($event)"
     (change)="selectionChanged($event)">
   </mat-checkbox>
   <mat-icon mat-list-icon>{{TRANSACTION_ICONS[tx.type]}}</mat-icon>

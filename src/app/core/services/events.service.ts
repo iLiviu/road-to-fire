@@ -29,6 +29,7 @@ export enum AppEventType {
   PORTFOLIO_MODULE_LOADED,
   MENU_UPDATED,
   OFFLINE_MODE_TOGGLED,
+  CLOUD_STORAGE_CONNECTING,
   CLOUD_STORAGE_CONNECTED,
   CLOUD_STORAGE_NOT_CONNECTED,
   THEME_CHANGED,
@@ -356,6 +357,16 @@ export class EventsService {
       data: isOffline,
     });
   }
+
+  /**
+   * Fired when cloud storage is connecting
+   */
+  cloudStorageConnecting() {
+    this.triggerEvent({
+      type: AppEventType.CLOUD_STORAGE_CONNECTING,
+      data: null,
+    });
+  }  
 
   /**
    * Fired if cloud storage is active

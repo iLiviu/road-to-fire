@@ -1,0 +1,60 @@
+.box {
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 4px;
+}
+
+.radio-button {
+  margin: 5px;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  margin: 15px 0;
+  align-items: flex-start;
+}
+
+.table-container {
+  overflow: auto;
+  min-height: 160px;
+}
+
+.mat-dialog-content {
+  padding: 0 12px;
+  margin: 0 0px;
+}
+
+.mat-dialog-content.handset {
+  min-height: calc(100vh - 70px);
+}
+
+.mat-dialog-content.desktop {
+  min-height: calc(100vh - 100px);
+}
+
+:host ::ng-deep .mat-horizontal-content-container {
+  height: 100% !important;
+  padding: 0px;
+}
+
+:host ::ng-deep .mat-horizontal-stepper-content {
+  height: 100%;
+}
+
+:host ::ng-deep .mat-horizontal-stepper-wrapper {
+  height: 100%;
+}
+
+.full-form {
+  height: 100%;
+}
+
+.row-input {
+  padding-right: 5px;
+}
+
+.warning-box {
+  text-align: center;
+  color: rgba(255, 67, 67, 87%);
+  padding: 24px;
+}

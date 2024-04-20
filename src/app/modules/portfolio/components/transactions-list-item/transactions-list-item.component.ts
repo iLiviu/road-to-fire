@@ -22,6 +22,7 @@ export class TransactionsListItemComponent implements OnChanges {
   isTransfer: boolean;
   includesCash: boolean;
   @Input() selected: boolean;
+  @Input() readOnly: boolean = false;
   @Output() selectStateChange = new EventEmitter<boolean>();
 
   readonly TransactionType = TransactionType;

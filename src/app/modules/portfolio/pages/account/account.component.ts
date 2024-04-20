@@ -139,7 +139,6 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
       try {
         const account = await this.portfolioService.addAccount(this.account);
         this.logger.info('Account created');
-        this.eventsService.accountAdded(account.id);
         this.router.navigate(['../' + account.id], { relativeTo: this.route });
       } catch (err) {
         this.logger.error('Could not create new account: ', err);
@@ -160,7 +159,6 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
       try {
         await this.portfolioService.removeAccount(this.account);
         this.logger.info('Account removed!');
-        this.eventsService.accountRemoved(this.account.id);
         this.router.navigate(['../../'], { relativeTo: this.route });
       } catch (err) {
         this.logger.error('Could not remove account!', err);
@@ -174,12 +172,21 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
       try {
         this.account.description = newName;
         await this.portfolioService.updateAccount(this.account);
-        this.eventsService.accountUpdated(this.account.id);
         this.logger.info('Account name changed!');
       } catch (err) {
         this.logger.error('Could not edit account name!', err);
       }
     }
+  }
+
+  async importTransactions() {
+    this.assetsLoaded = false;
+    try {
+      await this.assetManagementService.importTransactionsFromCSV(this.account, this.baseCurrency);
+    } catch (err) {
+      this.dialogService.error(err, "Import error");
+    }
+    this.onDataUpdated();
   }
 
   addCashAsset() {
@@ -230,15 +237,19 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
         }
         break;
       case AppEventType.ACCOUNT_UPDATED:
-        if (event.data === this.account.id) {
+        if (this.assetsLoaded && event.data === this.account.id) {
           this.onDataUpdated();
         }
         break;
       case AppEventType.ASSET_UPDATED:
         // check if asset belongs to account
-        if (this.account.getAssetById(event.data)) {
+        if (this.assetsLoaded && this.account.getAssetById(event.data)) {
           this.onDataUpdated();
         }
+        break;
+      case AppEventType.CLOUD_STORAGE_CONNECTING:
+        // connect to cloud storage from home page to avoid OAuth origin errors.
+        this.router.navigate(['../../'], { relativeTo: this.route });
         break;
       default:
         super.handleEvents(event);
@@ -285,7 +296,6 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
    */
   private async getAccountData(id: number, loadTransactions: boolean = true) {
     this.currentAccountId = id;
-    this.account = new PortfolioAccount();
     try {
       const account = await this.portfolioService.getAccount(id);
       if (account) {
@@ -294,6 +304,7 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
           this.updateTransactionsList(account.id);
         }
       } else {
+        this.account = null;
         this.router.navigateByUrl('/404');
       }
     } catch (err) {
