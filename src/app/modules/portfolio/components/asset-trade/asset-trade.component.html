@@ -135,17 +135,17 @@
               <mat-error *ngIf="price.errors?.min">Price must be positive</mat-error>
             </mat-form-field>
 
+            <mat-form-field>
+              <input matInput type="number" placeholder="Fee" formControlName="fee">
+              <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
+              <mat-error>Fee must be positive</mat-error>
+            </mat-form-field>
+
             <mat-form-field *ngIf="data.action === AssetTradeAction.EDIT">
               <input matInput type="number" placeholder="Current price per unit" formControlName="currentPrice"
                 required>
               <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
               <mat-error *ngIf="currentPrice.errors?.min">Price must be positive</mat-error>
-            </mat-form-field>
-
-            <mat-form-field *ngIf="data.action !== AssetTradeAction.EDIT">
-              <input matInput type="number" placeholder="Fee" formControlName="fee">
-              <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
-              <mat-error>Fee must be positive</mat-error>
             </mat-form-field>
 
             <ng-container *ngIf="bondLikeAsset && data.action !== AssetTradeAction.SELL">

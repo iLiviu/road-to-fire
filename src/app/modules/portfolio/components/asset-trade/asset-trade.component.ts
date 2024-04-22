@@ -217,6 +217,9 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.data.position) {
         this.amount.setValue(this.data.position.amount);
         this.price.setValue(this.data.position.buyPrice);
+        const totalFees = FloatingMath.fixRoundingError(((this.data.position.grossBuyPrice || this.data.position.buyPrice) -
+          this.data.position.buyPrice) * this.data.position.amount);
+        this.fee.setValue(totalFees);
         if (this.data.action === AssetOperationAction.EDIT) {
           this.transactionDate.setValue(this.data.position.buyDate);
         }

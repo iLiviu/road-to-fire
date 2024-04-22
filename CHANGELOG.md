@@ -5,6 +5,9 @@
 * Display Yield to Maturity (YTM) for bonds
 * Display Total Return in Portfolio History chart
 
+### Bug fixes
+* Show fee field when editing tradeable asset positions
+
 ## 1.4.0
 
 ### Features

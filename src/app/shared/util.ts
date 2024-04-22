@@ -39,7 +39,7 @@ export namespace FloatingMath {
    * @param num number to fix
    */
   export function fixRoundingError(num: number) {
-    return parseFloat(parseFloat(num.toFixed(15)).toPrecision(15));
+    return precisionRound(num, 8);
   }
 
   /**
@@ -64,6 +64,17 @@ export namespace FloatingMath {
   export function round2Decimals(n: number): number {
     return Math.round(n * 100) / 100;
   }
+
+  /**
+   * Round a number to a given precision
+   * @param num number to round
+   * @param precision precision to round number to
+   */
+  export function precisionRound(number: number, precision: number) {
+  const factor = Math.pow(10, precision);
+  const n = precision < 0 ? number : 0.01 / factor + number;
+  return Math.round( n * factor) / factor;
+}
 }
 
 export namespace DateUtils {
