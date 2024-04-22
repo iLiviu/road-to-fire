@@ -12,6 +12,7 @@ import { DepositAsset } from '../../models/deposit-asset';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { AssetManagementService } from '../../services/asset-management.service';
 import { BondAsset } from '../../models/bond-asset';
+import { debounce } from 'lodash-decorators';
 
 /**
  * Component to display a page, allowing the user to manage the recurring transactions
@@ -244,11 +245,10 @@ export class RecurringTransactionsComponent extends PortfolioPageComponent imple
     this.cdr.markForCheck();
   }
 
+  @debounce(100)
   private onTransactionsUpdated() {
-    clearTimeout(this.loadTimer);
-    // delay load to avoid multiple refreshes when more transactions are updated at once
-    this.loadTimer = setTimeout(() => {
+    if (this.isConfigLoaded()) {
       this.loadTransactions();
-    }, 100);
+    }
   }
 }

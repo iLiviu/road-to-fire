@@ -71,6 +71,7 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
   readonly isHandset$: Observable<boolean>;
 
   private componentDestroyed$ = new Subject();
+  private accountsLoaded = false;
 
   constructor(private breakpointObserver: BreakpointObserver, private router: Router, private eventsService: EventsService,
     private portfolioService: PortfolioService, private logger: LoggerService, private elementRef: ElementRef,
@@ -120,9 +121,6 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
         event => {
           this.handleEvents(event);
         });
-
-    // populate accounts menu items on start
-    this.refreshAccountsList();
   }
 
   handleEvents(event: AppEvent) {
@@ -132,9 +130,16 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
       case AppEventType.ACCOUNT_UPDATED:
         this.onAccountsUpdated();
         break;
-      case AppEventType.MENU_TOGGLE: this.drawer.toggle();
+      case AppEventType.MENU_TOGGLE:
+        this.drawer.toggle();
         break;
-      case AppEventType.ENCRYPTION_TOGGLED: this.loggedIn = event.data;
+      case AppEventType.ENCRYPTION_TOGGLED:
+        this.loggedIn = event.data;
+        break;
+      case AppEventType.PORTFOLIO_MODULE_LOADED:
+        // populate accounts menu items on start
+        this.refreshAccountsList();
+        break;
     }
   }
 
@@ -172,6 +177,7 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
     } catch (err) {
       this.logger.error('Could not load accounts menu!', err);
     }
+    this.accountsLoaded = true;
   }
 
   /**
@@ -191,6 +197,8 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
 
   @debounce(100)
   private onAccountsUpdated() {
-    this.refreshAccountsList();
+    if (this.accountsLoaded) {
+      this.refreshAccountsList();
+    }
   }
 }

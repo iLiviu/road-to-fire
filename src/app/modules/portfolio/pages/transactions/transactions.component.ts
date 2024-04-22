@@ -12,6 +12,7 @@ import {
   TransactionsFilterEditComponent, TransactionFilters
 } from '../../components/transactions-filter-edit/transactions-filter-edit.component';
 import { DateUtils } from 'src/app/shared/util';
+import { debounce } from 'lodash-decorators';
 
 /**
  * Component to display a page where the user can see the list of all transactions and manage (delete) them
@@ -101,11 +102,10 @@ export class TransactionsComponent extends PortfolioPageComponent implements OnI
   }
 
 
+  @debounce(100)
   private onTransactionsUpdated() {
-    clearTimeout(this.loadTimer);
-    // delay load to avoid multiple refreshes when more transactions are updated at once
-    this.loadTimer = setTimeout(() => {
+    if (this.isConfigLoaded()) {
       this.loadTransactions();
-    }, 100);
+    }
   }
 }

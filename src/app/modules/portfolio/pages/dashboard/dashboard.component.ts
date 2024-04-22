@@ -30,6 +30,7 @@ import { ChartOptions, TooltipItem } from 'chart.js';
 import { APP_THEMES, ConfigService } from 'src/app/core/services/config.service';
 import { TransactionType } from '../../models/transaction';
 import * as IRR from 'node-irr';
+import { debounce } from 'lodash-decorators';
 
 const MULTI_COL_GRID_ROW_HEIGHT = '2:1.6';
 const SINGLE_COL_GRID_ROW_HEIGHT = '1:1.1';
@@ -440,12 +441,11 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   /**
    * Triggered when an update in an asset or account occurs, and data needs to be reloaded
    */
+  @debounce(1000)
   private onDataUpdated() {
-    // refresh data using a timer, so if multiple updates occur at once, only trigger reloading once
-    clearTimeout(this.refreshTimer);
-    this.refreshTimer = setTimeout(() => {
+    if (this.isConfigLoaded()) {
       this.loadData();
-    }, 1000);
+    }
   }
 
   /**

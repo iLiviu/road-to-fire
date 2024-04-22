@@ -276,7 +276,9 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
 
   @debounce(100)
   private onDataUpdated() {
-    this.getAccountData(this.account.id, false);
+    if (this.isConfigLoaded()) {
+      this.getAccountData(this.account.id, false);
+    }
   }
 
 

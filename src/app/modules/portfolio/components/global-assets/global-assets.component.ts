@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
+import { debounce } from 'lodash-decorators';
 
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { AssetsComponent } from '../assets/assets.component';
 import { AppEventType, AppEvent } from 'src/app/core/services/events.service';
 import { ViewAsset } from '../../models/view-asset';
-import { OnInit } from '@angular/core';
 
 
 /**
@@ -38,13 +38,11 @@ export class GlobalAssetsComponent extends AssetsComponent {
   /**
    * Called when an asset or account has been added/modified/removed
    */
+  @debounce(100)
   onDataUpdated() {
-    clearTimeout(this.refreshTimer);
-    this.refreshTimer = setTimeout(() => {
+    if (this.isConfigLoaded()) {
       this.updateAccountsList();
-    }, 100);
-
-
+    }
   }
 
   protected onConfigLoaded() {
