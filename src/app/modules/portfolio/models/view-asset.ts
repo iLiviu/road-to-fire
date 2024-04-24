@@ -66,7 +66,7 @@ export class ViewAsset {
   updateAssetData(rate: number) {
     if (this.asset.isTradeable()) {
       const tradeableAsset = <TradeableAsset>this.asset;
-      this.initialValue = this.position.amount * this.position.buyPrice;
+      this.initialValue = this.position.amount * this.position.grossBuyPrice;
       this.currentValue = this.position.amount * tradeableAsset.currentPrice;
       if (tradeableAsset.type === AssetType.Bond || tradeableAsset.type === AssetType.P2P) {
         // we need to add position accrued interest to current value for bonds

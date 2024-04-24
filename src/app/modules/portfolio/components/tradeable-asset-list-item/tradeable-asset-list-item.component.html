@@ -21,7 +21,7 @@
       <span>{{viewAsset.currentValue | currency:viewAsset.asset.currency}}</span>
     </h4>
     <h6 mat-line class="mat-h4">
-      <span fxFlex>{{viewAsset.asset.amount | number}} @ {{viewAsset.asset.buyPrice | currency:viewAsset.asset.currency}}
+      <span fxFlex>{{viewAsset.asset.amount | number}} @ {{viewAsset.asset.grossBuyPrice | currency:viewAsset.asset.currency}}
         ({{viewAsset.initialValue | currency:viewAsset.asset.currency}})
       </span>
       <span [ngClass]="(viewAsset.profitLoss<0)? 'negative':'positive'">{{viewAsset.profitLoss |
@@ -69,7 +69,7 @@
     </h4>
     <h6 mat-line class="mat-h4">
       <span class="truncate-overflow" fxFlex *ngIf="hasAmount">
-        {{viewAsset.position.amount | number}} @ {{viewAsset.position.buyPrice | currency:viewAsset.asset.currency}}
+        {{viewAsset.position.amount | number}} @ {{viewAsset.position.grossBuyPrice | currency:viewAsset.asset.currency}}
         ({{viewAsset.initialValue | currency:viewAsset.asset.currency}})
       </span>
       <span class="truncate-overflow" fxFlex *ngIf="!hasAmount">

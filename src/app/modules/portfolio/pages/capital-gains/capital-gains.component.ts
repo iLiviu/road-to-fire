@@ -43,8 +43,8 @@ interface AssetCapitalGains {
 export class CapitalGainsComponent extends PortfolioPageComponent implements OnInit {
 
   dataLoaded = false;
-  netTotalProfitLoss: number;
-  netTotalProfitLossPercent: number;
+  grossTotalProfitLoss: number;
+  grossTotalProfitLossPercent: number;
   totalCost: number;
   totalProfitLoss: number;
   totalProfitLossPercent: number;
@@ -54,7 +54,7 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
   salesGroupBy: SalesGroupBy = SalesGroupBy.Asset;
   yearAssetsCapitalGains: AssetCapitalGains[] = [];
 
-  readonly displayedColumns: string[] = ['description', 'amount', 'buyDate', 'buyPrice', 'sellPrice', 'PL', 'PLPercent', 'Fees'];
+  readonly displayedColumns: string[] = ['description', 'amount', 'buyDate', 'buyPrice', 'sellPrice', 'Fees', 'PL', 'PLPercent'];
   readonly SalesGroupBy = SalesGroupBy;
 
   private transactions: Transaction[] = [];
@@ -108,8 +108,8 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
     this.yearAssetsCapitalGains = [];
     this.totalProfitLoss = 0;
     this.totalProfitLossPercent = 0;
-    this.netTotalProfitLoss = 0;
-    this.netTotalProfitLossPercent = 0;
+    this.grossTotalProfitLoss = 0;
+    this.grossTotalProfitLossPercent = 0;
     this.totalCost = 0;
     this.totalFees = 0;
 
@@ -129,11 +129,11 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
         const txDate = new Date(tx.date);
         if (tx.isSellTrade() && txDate.getFullYear() === this.currentYear) {
           const sellTx = <SellTransaction>tx;
-          const profitLoss = sellTx.rate * sellTx.amount - sellTx.buyPrice * sellTx.amount;
           let fees = (sellTx.fee || 0);
           if (sellTx.grossBuyPrice > sellTx.buyPrice) {
-             fees += (sellTx.grossBuyPrice - sellTx.buyPrice) * sellTx.amount;
+            fees += (sellTx.grossBuyPrice - sellTx.buyPrice) * sellTx.amount;
           }
+          const profitLoss = sellTx.rate * sellTx.amount - sellTx.buyPrice * sellTx.amount - fees;
           const rate: number = this.getCurrencyRate(sellTx.asset.currency);
           this.totalCost += sellTx.buyPrice * sellTx.amount * rate;
           this.totalProfitLoss += profitLoss * rate;
@@ -154,8 +154,9 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
 
               assetCapitalGains.amount += sellTx.amount;
               assetCapitalGains.profitLoss += profitLoss;
-              assetCapitalGains.profitLossPercent = (assetCapitalGains.sellPrice - assetCapitalGains.buyPrice) / assetCapitalGains.buyPrice;
               assetCapitalGains.fees += fees;
+              assetCapitalGains.profitLossPercent = (assetCapitalGains.sellPrice - assetCapitalGains.buyPrice -
+                assetCapitalGains.fees / assetCapitalGains.amount) / assetCapitalGains.buyPrice;
             }
           }
 
@@ -169,7 +170,7 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
               buyPrice: sellTx.buyPrice,
               sellPrice: sellTx.rate,
               profitLoss: profitLoss,
-              profitLossPercent: (sellTx.rate - sellTx.buyPrice) / sellTx.buyPrice,
+              profitLossPercent: (sellTx.rate - sellTx.buyPrice - fees / sellTx.amount) / sellTx.buyPrice,
               fees: fees,
             };
             this.yearAssetsCapitalGains.push(assetCapitalGains);
@@ -184,8 +185,8 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
     }
     this.yearAssetsCapitalGains.sort((a, b) => a.description.toLowerCase() < b.description.toLowerCase() ? -1 : 1);
     this.totalProfitLossPercent = (this.totalCost > 0) ? this.totalProfitLoss / this.totalCost : 0;
-    this.netTotalProfitLoss = this.totalProfitLoss - this.totalFees;
-    this.netTotalProfitLossPercent = (this.totalCost > 0) ? this.netTotalProfitLoss / this.totalCost : 0;
+    this.grossTotalProfitLoss = this.totalProfitLoss + this.totalFees;
+    this.grossTotalProfitLossPercent = (this.totalCost > 0) ? this.grossTotalProfitLoss / this.totalCost : 0;
 
     this.dataLoaded = true;
     this.cdr.markForCheck();

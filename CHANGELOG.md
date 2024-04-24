@@ -5,6 +5,10 @@
 * Display Yield to Maturity (YTM) for bonds
 * Display Total Return in Portfolio History chart
 
+### UI Changes
+* Display total buy cost (including fees) for assets
+* Display net P/L for assets instead of gross P/L
+
 ### Bug fixes
 * Show fee field when editing tradeable asset positions
 

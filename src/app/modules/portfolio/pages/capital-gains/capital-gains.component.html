@@ -24,14 +24,14 @@
     <ng-container *ngIf="yearAssetsCapitalGains.length > 0">
       <div>
         <span fxFlex>Gross Total P/L:</span>
-        <span [ngClass]="(totalProfitLoss<0)? 'negative':'positive'">
-          {{totalProfitLoss | currency:baseCurrency }} ({{totalProfitLossPercent | percent:'1.0-2' }})
+        <span [ngClass]="(grossTotalProfitLoss<0)? 'negative':'positive'">
+          {{grossTotalProfitLoss | currency:baseCurrency }} ({{grossTotalProfitLossPercent | percent:'1.0-2' }})
         </span>
       </div>
       <div>
         <span fxFlex>Net Total P/L:</span>
-        <span [ngClass]="(netTotalProfitLoss<0)? 'negative':'positive'">
-          {{netTotalProfitLoss | currency:baseCurrency }} ({{netTotalProfitLossPercent | percent:'1.0-2' }})
+        <span [ngClass]="(totalProfitLoss<0)? 'negative':'positive'">
+          {{totalProfitLoss | currency:baseCurrency }} ({{totalProfitLossPercent | percent:'1.0-2' }})
         </span>
       </div>
 

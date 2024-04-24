@@ -50,7 +50,7 @@
     <ng-container *ngIf="hasAmount">
       <div>
         <span fxFlex>Buy Price:</span>
-        <span>{{viewAsset.position.buyPrice | currency:viewAsset.asset.currency}}</span>
+        <span>{{viewAsset.position.grossBuyPrice | currency:viewAsset.asset.currency}}</span>
       </div>
 
       <mat-divider></mat-divider>
