@@ -307,7 +307,6 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   };
 
   private allPortfolioHistory: PortfolioHistory;
-  private refreshTimer: any;
   private baseCurrencySymbol: string;
 
 
@@ -501,8 +500,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    * Build the chart data for the allocation percentage of each asset type out of the total assets value
    */
   private computeAssetAllocationData() {
-    this.assetAllocationChart.datasets = [{ data: [] }];
-    this.assetAllocationChart.labels = [];
+    const chartCtx: ChartContext = { datasets: [{ data: [] }], labels: [] };
     let assetsTotalValue = this.assetsTotalValue;
 
     // do not count debt as an asset type, so remove it
@@ -514,35 +512,33 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     const assetAllocations = this.sortNumDict(assetsTotalValue);
 
     for (const [assetType, value] of assetAllocations) {
-      this.assetAllocationChart.labels.push(this.assetTypeLabels[assetType]);
-      this.assetAllocationChart.datasets[0].data.push(this.toPercentage(value, this.assetsValue));
+      chartCtx.labels.push(this.assetTypeLabels[assetType]);
+      chartCtx.datasets[0].data.push(this.toPercentage(value, this.assetsValue));
     }
+    return chartCtx;
   }
 
   /**
    * Build the chart data for the allocation percentage of each currency out of the total portfolio value
    */
   private computeCurrenciesAllocationData() {
-    this.currencyAllocationChart.datasets = [{ data: [] }];
-    this.currencyAllocationChart.labels = [];
+    const chartCtx: ChartContext = { datasets: [{ data: [] }], labels: [] };
     const currencyAllocations = this.sortNumDict(this.currenciesTotalValue);
     // we need the absolute portfolio value to better represent negative constituents
     const absPortfolioValue = this.getAbsTotalAllocationValue(currencyAllocations);
     for (const [currency, value] of currencyAllocations) {
-      this.currencyAllocationChart.labels.push(currency);
-      this.currencyAllocationChart.datasets[0].data.push(this.toPercentage(Math.abs(value), absPortfolioValue));
+      chartCtx.labels.push(currency);
+      chartCtx.datasets[0].data.push(this.toPercentage(Math.abs(value), absPortfolioValue));
     }
+    return chartCtx;
   }
 
   /**
    * Build the chart data for the currency allocation of a specific asset type.
-   * @param chart chart context
    * @param assetType asset type
    */
-  private computeAssetCurrencyAllocationData(chart: ChartContext, assetType: AssetType) {
-    chart.datasets = [{ data: [] }];
-    chart.labels = [];
-
+  private computeAssetCurrencyAllocationData(assetType: AssetType) {
+    const chartCtx: ChartContext = { datasets: [{ data: [] }], labels: [] };
     const assetCurrenciesValue = this.assetCurrenciesValue[assetType];
     if (assetCurrenciesValue) {
       const currencyAllocations = this.sortNumDict(assetCurrenciesValue);
@@ -550,21 +546,20 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       const totalValue = this.getAbsTotalAllocationValue(currencyAllocations);
 
       for (const [currency, value] of currencyAllocations) {
-        chart.labels.push(currency);
-        chart.datasets[0].data.push(this.toPercentage(Math.abs(value), totalValue));
+        chartCtx.labels.push(currency);
+        chartCtx.datasets[0].data.push(this.toPercentage(Math.abs(value), totalValue));
       }
     }
+    return chartCtx;
   }
 
   /**
    * Build the chart data for the allocation of a specific asset type.
-   * @param chart chart context
    * @param assetType asset type
    * @param maxItems if provided, the max number of items to include in the chart
    */
-  private computeAssetTypeAllocationData(chart: ChartContext, assetType: AssetType, maxItems: number = 0) {
-    chart.datasets = [{ data: [] }];
-    chart.labels = [];
+  private computeAssetTypeAllocationData(assetType: AssetType, maxItems: number = 0) {
+    const chartCtx: ChartContext = { datasets: [{ data: [] }], labels: [] };
     if (this.assetTypeAllocationMap[assetType]) {
       const allocation = this.sortNumDict(this.assetTypeAllocationMap[assetType]);
       // we need the absolute portfolio value to better represent negative constituents
@@ -573,37 +568,37 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       let includedValue = 0;
       for (const [assetId, value] of allocation) {
         includedValue += value;
-        chart.labels.push(this.assetDescriptions[assetId]);
-        chart.datasets[0].data.push(this.toPercentage(Math.abs(value), totalValue));
-        if (maxItems && chart.datasets[0].data.length >= maxItems) {
+        chartCtx.labels.push(this.assetDescriptions[assetId]);
+        chartCtx.datasets[0].data.push(this.toPercentage(Math.abs(value), totalValue));
+        if (maxItems && chartCtx.datasets[0].data.length >= maxItems) {
           break;
         }
       }
 
       // if we don't include all the items, add an "Other" item with the rest of the allocation as value
-      if (chart.datasets[0].data.length < allocation.length) {
-        chart.datasets[0].data.push(this.toPercentage(Math.abs(totalValue) - Math.abs(includedValue), totalValue));
-        chart.labels.push('Other');
+      if (chartCtx.datasets[0].data.length < allocation.length) {
+        chartCtx.datasets[0].data.push(this.toPercentage(Math.abs(totalValue) - Math.abs(includedValue), totalValue));
+        chartCtx.labels.push('Other');
       }
     }
+    return chartCtx;
   }
 
   /**
    * Build the chart data for the geographic allocation of a specific asset type
-   * @param chart chart context
    * @param assetType asset type
    */
-  private computeAssetGeoAllocationData(chart: ChartContext, assetType: AssetType) {
-    chart.datasets = [{ data: [] }];
-    chart.labels = [];
+  private computeAssetGeoAllocationData(assetType: AssetType) {
+    const chartCtx: ChartContext = { datasets: [{ data: [] }], labels: [] };
     const regionsValues = this.assetRegions[assetType];
     if (regionsValues) {
       const regionArr = this.sortNumDict(regionsValues);
       for (const [regionId, value] of regionArr) {
-        chart.labels.push(ASSET_REGION_LABELS[regionId]);
-        chart.datasets[0].data.push(this.toPercentage(value, this.assetsTotalValue[assetType]));
+        chartCtx.labels.push(ASSET_REGION_LABELS[regionId]);
+        chartCtx.datasets[0].data.push(this.toPercentage(value, this.assetsTotalValue[assetType]));
       }
     }
+    return chartCtx;
   }
 
   /**
@@ -791,21 +786,21 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     }
 
     this.computeGoals();
-    this.computeAssetAllocationData();
-    this.computeCurrenciesAllocationData();
-    this.computeAssetCurrencyAllocationData(this.stockCurrencyAllocationChart, AssetType.Stock);
-    this.computeAssetCurrencyAllocationData(this.bondCurrencyAllocationChart, AssetType.Bond);
-    this.computeAssetCurrencyAllocationData(this.p2pCurrencyAllocationChart, AssetType.P2P);
-    this.computeAssetGeoAllocationData(this.stockGeoAllocationChart, AssetType.Stock);
-    this.computeAssetGeoAllocationData(this.bondGeoAllocationChart, AssetType.Bond);
-    this.computeAssetGeoAllocationData(this.p2pGeoAllocationChart, AssetType.P2P);
-    this.computeAssetTypeAllocationData(this.cryptoAllocationChart, AssetType.Cryptocurrency);
-    this.computeAssetTypeAllocationData(this.commodityAllocationChart, AssetType.Commodity);
-    this.computeAssetTypeAllocationData(this.debtAllocationChart, AssetType.Debt);
-    this.computeAssetCurrencyAllocationData(this.cashAllocationChart, AssetType.Cash);
-    this.computeAssetTypeAllocationData(this.bondAllocationChart, AssetType.Bond, 10);
-    this.computeAssetTypeAllocationData(this.p2pAllocationChart, AssetType.P2P, 10);
-    this.computeAssetTypeAllocationData(this.stockAllocationChart, AssetType.Stock, 10);
+    this.assetAllocationChart = this.computeAssetAllocationData();
+    this.currencyAllocationChart = this.computeCurrenciesAllocationData();
+    this.stockCurrencyAllocationChart = this.computeAssetCurrencyAllocationData(AssetType.Stock);
+    this.bondCurrencyAllocationChart = this.computeAssetCurrencyAllocationData(AssetType.Bond);
+    this.p2pCurrencyAllocationChart = this.computeAssetCurrencyAllocationData(AssetType.P2P);
+    this.stockGeoAllocationChart = this.computeAssetGeoAllocationData(AssetType.Stock);
+    this.bondGeoAllocationChart = this.computeAssetGeoAllocationData(AssetType.Bond);
+    this.p2pGeoAllocationChart = this.computeAssetGeoAllocationData(AssetType.P2P);
+    this.cryptoAllocationChart = this.computeAssetTypeAllocationData(AssetType.Cryptocurrency);
+    this.commodityAllocationChart = this.computeAssetTypeAllocationData(AssetType.Commodity);
+    this.debtAllocationChart = this.computeAssetTypeAllocationData(AssetType.Debt);
+    this.cashAllocationChart = this.computeAssetCurrencyAllocationData(AssetType.Cash);
+    this.bondAllocationChart = this.computeAssetTypeAllocationData(AssetType.Bond, 10);
+    this.p2pAllocationChart = this.computeAssetTypeAllocationData(AssetType.P2P, 10);
+    this.stockAllocationChart = this.computeAssetTypeAllocationData(AssetType.Stock, 10);
     this.computeRebalanceSteps();
     await this.computePortfolioHistory();
     this.displayPortfolioHistory();

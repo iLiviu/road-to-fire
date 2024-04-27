@@ -11,6 +11,7 @@
 
 ### Bug fixes
 * Show fee field when editing tradeable asset positions
+* Refresh pie charts on data update
 
 ## 1.4.0
 
