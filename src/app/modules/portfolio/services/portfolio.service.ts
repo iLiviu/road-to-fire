@@ -28,8 +28,9 @@ import { TransferTransaction, TransferTransactionData } from '../models/transfer
 import { TransactionFactory } from '../models/transaction-factory';
 import { TransactionsImportTemplate } from '../models/transactions-import-template';
 
-
-const PORTFOLIO_VERSION = 2;
+const PORTFOLIO_VERSION2 = 2;
+const PORTFOLIO_VERSION3 = 3;
+const PORTFOLIO_VERSION = PORTFOLIO_VERSION3;
 
 enum ChangeAction {
   ADDED,
@@ -809,47 +810,100 @@ export class PortfolioService {
    * @param cfg stored portfolio configuration
    */
   async upgradePortfolioVersion(cfg: PortfolioConfig): Promise<PortfolioConfig> {
-    if (!cfg.version || cfg.version < 2) {
-      // Version 2 modified how deposit fund transactions are viewed (transfer instead of debit)
-      const transactions = await this.storage.getAllTransactions();
-      const promises: Promise<Transaction>[] = [];
-      for (const tx of transactions) {
-        if (tx.type === TransactionType.DebitCash && tx.description.startsWith('Fund deposit:')) {
-          const txData: TransferTransactionData = {
-            id: tx.id,
-            asset: {
-              accountDescription: tx.asset.accountDescription,
-              accountId: tx.asset.accountId,
-              currency: tx.asset.currency,
-            },
-            otherAsset: {
-              accountDescription: tx.asset.accountDescription,
-              accountId: tx.asset.accountId,
-              id: tx.asset.id,
-              description: tx.asset.description,
-              currency: tx.asset.currency,
-            },
-            date: tx.date,
-            description: tx.description,
-            type: TransactionType.CashTransfer,
-            fee: tx.fee,
-            value: tx.value,
-          };
-          const newTx = new TransferTransaction(txData);
-          const promise = this.updateTransaction(newTx);
-          promises.push(promise);
-        } else if (tx.type === TransactionType.Transfer && tx.description.startsWith('Liquidated ')) {
-          tx.type = TransactionType.CashTransfer;
-          const promise = this.updateTransaction(tx);
-          promises.push(promise);
-        }
-      }
-      await Promise.all(promises);
-
-      cfg.version = PORTFOLIO_VERSION;
+    let configChanged = false;
+    if (!cfg.version || cfg.version < PORTFOLIO_VERSION2) {
+      await this.upgradePortfolioToVersion2(cfg);
+      configChanged = true;
+    }
+    if (cfg.version < PORTFOLIO_VERSION3) {
+      await this.upgradePortfolioToVersion3(cfg);
+      configChanged = true;
+    }
+    if (configChanged) {
       await this.saveConfig(cfg);
     }
     return cfg;
+  }
+
+  /**
+   * Version 2 modified how deposit fund transactions are viewed (transfer instead of debit)
+   * @param cfg stored portfolio configuration
+   */
+  async upgradePortfolioToVersion2(cfg: PortfolioConfig): Promise<Transaction[]> {
+    
+    const transactions = await this.storage.getAllTransactions();
+    const promises: Promise<Transaction>[] = [];
+    for (const tx of transactions) {
+      if (tx.type === TransactionType.DebitCash && tx.description.startsWith('Fund deposit:')) {
+        const txData: TransferTransactionData = {
+          id: tx.id,
+          asset: {
+            accountDescription: tx.asset.accountDescription,
+            accountId: tx.asset.accountId,
+            currency: tx.asset.currency,
+          },
+          otherAsset: {
+            accountDescription: tx.asset.accountDescription,
+            accountId: tx.asset.accountId,
+            id: tx.asset.id,
+            description: tx.asset.description,
+            currency: tx.asset.currency,
+          },
+          date: tx.date,
+          description: tx.description,
+          type: TransactionType.CashTransfer,
+          fee: tx.fee,
+          value: tx.value,
+        };
+        const newTx = new TransferTransaction(txData);
+        const promise = this.updateTransaction(newTx);
+        promises.push(promise);
+      } else if (tx.type === TransactionType.Transfer && tx.description.startsWith('Liquidated ')) {
+        tx.type = TransactionType.CashTransfer;
+        const promise = this.updateTransaction(tx);
+        promises.push(promise);
+      }
+    }
+    const response = Promise.all(promises);
+
+    cfg.version = PORTFOLIO_VERSION2;
+    return response;
+  }
+
+  /**
+   * In version 3, all tradeable assets are required to have a `grossBuyPrice` property, so initialize it
+   * to `buyPrice` value, if it doesn't exist
+   * @param cfg stored portfolio configuration
+   */
+  async upgradePortfolioToVersion3(cfg: PortfolioConfig): Promise<Asset[]> {
+    const accounts = await this.getAccounts(true);
+    const promises: Promise<Asset>[] = [];
+    for (const acc of accounts) {
+      for (const asset of acc.assets) {
+        if (asset.isTradeable()) {
+          const tradeableAsset = <TradeableAsset>asset;
+          if (tradeableAsset.positions) {
+            let assetUpdated = false;
+            for (const position of tradeableAsset.positions) {
+              if (!position.grossBuyPrice) {
+                position.grossBuyPrice = position.buyPrice;
+                assetUpdated = true;
+              }
+            }
+            if (assetUpdated) {
+              const promise = this.updateAsset(tradeableAsset, acc);
+
+
+              promises.push(promise);
+            }
+          }
+        }
+      }
+    }
+    const response = Promise.all(promises);
+    
+    cfg.version = PORTFOLIO_VERSION3;
+    return response;
   }
 
   /**
