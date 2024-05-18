@@ -13,6 +13,7 @@ export enum CSV_IMPORT_COLUMN_IDS {
   GROSS_TX_VALUE = 10,
   NET_TX_VALUE = 11,
   CURRENCY = 12,
+  FEE2 = 13,
 }
 
 export class TransactionsImportTemplate {

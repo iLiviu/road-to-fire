@@ -142,7 +142,7 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
         startWith(''),
         map(value => this.filterSupportedExchanges(value))
       );
-      
+
     this.loadTemplates();
   }
 
@@ -162,7 +162,7 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
         this.currentForm = this.mapForm;
         break;
       case 2:
-        this.preview();
+        this.preview();        
     }
   }
 
@@ -295,17 +295,17 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
     if (!name || name.trim() === "") {
       return;
     }
-    let template = this.buildTemplate();
-    template.name = name;
     try {
+      let template = this.buildTemplate();
+      template.name = name;
       await this.portfolioService.addTransactionsImportTemplate(template);
       await this.loadTemplates();
       // we need to get the new template object
       template = this.templates.find((tpl: TransactionsImportTemplate) => tpl.name === name);
       this.template.setValue(template);
     } catch (err) {
-      this.logger.error(`Could not save template: ${err}`);
-      this.dialogs.error("Could not save template");
+      this.logger.error(err);
+      this.dialogs.error(err,'Could not save template');
     }
   }
 
@@ -427,7 +427,11 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
     template.columns = [];
     for (let i = 0; i < this.columnIDs.value.length; i++) {
       if (this.columnIDs.value[i] !== CSV_IMPORT_COLUMN_IDS.IGNORE) {
-        template.columns[this.columnIDs.value[i]] = i;
+        if (template.columns[this.columnIDs.value[i]] === undefined) {
+          template.columns[this.columnIDs.value[i]] = i;
+        } else {
+          throw new Error(`Column ${i + 1} is mapped to the same field as column ${template.columns[this.columnIDs.value[i]] + 1}`);
+        }
       }
     }
 

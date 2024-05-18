@@ -5,8 +5,8 @@ import * as moment from "moment";
 import { Asset, AssetType } from "../models/asset";
 import { AssetRegion } from "../models/asset-region";
 import { AssetOperationAction, AssetOperationData } from "../models/asset-operation-data";
-import { Transaction, TransactionType } from "../models/transaction";
 import { PortfolioAccount } from "../models/portfolio-account";
+import { FloatingMath } from "src/app/shared/util";
 
 
 export interface ParsedCSVTransaction {
@@ -117,19 +117,27 @@ export class TransactionsImportService {
 
         let fee: number;
         if (!isNaN(netTxValue) && !isNaN(txValue)) {
-          fee = Math.abs(txValue - netTxValue);
+          fee = FloatingMath.fixRoundingError(Math.abs(txValue - netTxValue));
         } else {
           if (CSV_IMPORT_COLUMN_IDS.FEE in template.columns && template.columns[CSV_IMPORT_COLUMN_IDS.FEE] < csvRow.length) {
             fee = this.parseNumber(csvRow[template.columns[CSV_IMPORT_COLUMN_IDS.FEE]]);
           }
           fee = isNaN(fee) ? 0 : Math.abs(fee);
 
-          let taxFee: number = null;
-          if (CSV_IMPORT_COLUMN_IDS.TAX in template.columns && template.columns[CSV_IMPORT_COLUMN_IDS.TAX] < csvRow.length) {
-            taxFee = this.parseNumber(csvRow[template.columns[CSV_IMPORT_COLUMN_IDS.TAX]]);
+          let additionalFee: number = null;
+          if (CSV_IMPORT_COLUMN_IDS.FEE2 in template.columns && template.columns[CSV_IMPORT_COLUMN_IDS.FEE2] < csvRow.length) {
+            additionalFee = this.parseNumber(csvRow[template.columns[CSV_IMPORT_COLUMN_IDS.FEE2]]);
           }
-          if (!isNaN(taxFee)) {
-            fee += Math.abs(taxFee);
+          if (!isNaN(additionalFee)) {
+            fee = FloatingMath.fixRoundingError(fee + Math.abs(additionalFee));
+          }
+
+
+          if (CSV_IMPORT_COLUMN_IDS.TAX in template.columns && template.columns[CSV_IMPORT_COLUMN_IDS.TAX] < csvRow.length) {
+            additionalFee = this.parseNumber(csvRow[template.columns[CSV_IMPORT_COLUMN_IDS.TAX]]);
+            if (!isNaN(additionalFee)) {
+              fee = FloatingMath.fixRoundingError(fee + Math.abs(additionalFee));
+            }
           }
         }
 
@@ -177,7 +185,7 @@ export class TransactionsImportService {
             if (isNaN(fee)) {
               amount = txValue;
             } else {
-              amount = txValue - fee;
+              amount = FloatingMath.fixRoundingError(txValue - fee);
             }
           }
         } else {
@@ -188,14 +196,14 @@ export class TransactionsImportService {
 
           if (CSV_IMPORT_COLUMN_IDS.PRICE in template.columns && template.columns[CSV_IMPORT_COLUMN_IDS.PRICE] < csvRow.length) {
             price = this.parseNumber(csvRow[template.columns[CSV_IMPORT_COLUMN_IDS.PRICE]]);;
-            netTxValue = Math.abs(price * amount);
+            netTxValue = FloatingMath.fixRoundingError(Math.abs(price * amount));
             if (!isNaN(txValue)) {
-              fee = Math.abs(txValue - netTxValue);
+              fee = FloatingMath.fixRoundingError(Math.abs(txValue - netTxValue));
             }
           } else if (!isNaN(netTxValue)) {
-            price = Math.abs(netTxValue / amount);
+            price = FloatingMath.fixRoundingError(Math.abs(netTxValue / amount));
           } else if (!isNaN(txValue)) {
-            price = Math.abs((txValue - fee * (isBuyTx ? 1 : -1)) / amount);
+            price = FloatingMath.fixRoundingError(Math.abs((txValue - fee * (isBuyTx ? 1 : -1)) / amount));
           }
           if (isNaN(price)) {
             throw new Error('Invalid price');
