@@ -7,6 +7,7 @@ import { AssetRegion } from "../models/asset-region";
 import { AssetOperationAction, AssetOperationData } from "../models/asset-operation-data";
 import { PortfolioAccount } from "../models/portfolio-account";
 import { FloatingMath } from "src/app/shared/util";
+import { DepositListItemComponent } from "../components/deposit-list-item/deposit-list-item.component";
 
 
 export interface ParsedCSVTransaction {
@@ -38,7 +39,17 @@ export class TransactionsImportService {
    * @param delimiter CSV field separator
    * @returns arrays of strings
    */
-  parseCSVInput(input: string | Buffer, delimiter: string) {
+  parseCSVInput(input: string, delimiter: string) {
+    // treat non-standard Excel separator metadata
+    const separatorRegex = /^sep=(.)\r?\n/i;
+    const match = input.match(separatorRegex);
+    if (match) {
+      if (!delimiter) {
+        delimiter = match[1];
+      }
+      input = input.replace(separatorRegex, "");
+    }
+
     const csvData: string[][] = parse(input, {
       delimiter: delimiter,
     });
