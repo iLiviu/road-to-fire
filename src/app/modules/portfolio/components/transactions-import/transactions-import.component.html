@@ -148,7 +148,8 @@
             <ng-container *ngFor="let column of displayedColumns;index as i" [matColumnDef]="column">
               <th mat-header-cell *matHeaderCellDef>
                 <mat-form-field formArrayName="columnIDs">
-                  <mat-select placeholder="{{column}}" [formControlName]="i" required>
+                  <mat-select placeholder="{{column}}" [formControlName]="i" required
+                    (selectionChange)="mappingColumnSelected()">
                     <mat-option [value]="CSV_IMPORT_COLUMN_IDS.IGNORE">Ignore</mat-option>
                     <mat-option [value]="CSV_IMPORT_COLUMN_IDS.DATE">Date</mat-option>
                     <mat-option [value]="CSV_IMPORT_COLUMN_IDS.BUY_SELL">Buy/Sell</mat-option>
@@ -161,9 +162,12 @@
                     <mat-option [value]="CSV_IMPORT_COLUMN_IDS.FEE2">2nd Fee</mat-option>
                     <mat-option [value]="CSV_IMPORT_COLUMN_IDS.TAX">Tax</mat-option>
                     <mat-option [value]="CSV_IMPORT_COLUMN_IDS.CURRENCY">Currency</mat-option>
-                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.GROSS_TX_VALUE">Gross Transaction Value</mat-option>
-                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.NET_TX_VALUE">Net Transaction Value</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.GROSS_TX_VALUE">Transaction Value incl. fees</mat-option>
+                    <mat-option [value]="CSV_IMPORT_COLUMN_IDS.NET_TX_VALUE">Transaction Value excl. fees</mat-option>
                   </mat-select>
+                  <mat-error *ngIf="columnIDs.controls[i].hasError('duplicate')">
+                    Duplicate column
+                  </mat-error>
                 </mat-form-field>
               </th>
               <td mat-cell *matCellDef="let element"> {{element[i]}} </td>

@@ -162,7 +162,7 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
         this.currentForm = this.mapForm;
         break;
       case 2:
-        this.preview();        
+        this.preview();
     }
   }
 
@@ -305,7 +305,7 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
       this.template.setValue(template);
     } catch (err) {
       this.logger.error(err);
-      this.dialogs.error(err,'Could not save template');
+      this.dialogs.error(err, 'Could not save template');
     }
   }
 
@@ -436,6 +436,28 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
     }
 
     return template;
+  }
+
+  /**
+   * When user maps a data column to a field, check that the field was not already assigned to another column
+   */
+  mappingColumnSelected() {
+    const columns = [];
+    for (let i = 0; i < this.columnIDs.value.length; i++) {
+      if (this.columnIDs.value[i] !== CSV_IMPORT_COLUMN_IDS.IGNORE) {
+        if (columns[this.columnIDs.value[i]] === undefined) {
+          columns[this.columnIDs.value[i]] = i;
+          this.columnIDs.controls[i].setErrors(null);
+        } else {
+          this.columnIDs.controls[i].markAsTouched();
+          this.columnIDs.controls[i].setErrors({ 'duplicate': true });
+
+          const otherIdx = columns[this.columnIDs.value[i]];
+          this.columnIDs.controls[otherIdx].markAsTouched();
+          this.columnIDs.controls[otherIdx].setErrors({ 'duplicate': true });
+        }
+      }
+    }
   }
 
   private displayCSV() {
