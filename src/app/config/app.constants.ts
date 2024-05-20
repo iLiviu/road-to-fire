@@ -11,21 +11,22 @@ export interface SymbolDetails {
 
 export const APP_CONSTS = {
   TITLE: 'Road To FIRE',
-  VERSION: '1.4.0',
+  VERSION: '1.5.0',
   // text to show when user first loads the current new version
-  WHATS_NEW_TITLE: `What's new in version 1.4.0`,
+  WHATS_NEW_TITLE: `What's new in version 1.5.0`,
   WHATS_NEW:
     `Features
-* Add support for virtual forex assets
-* Added charts for top bond, P2P & stock holdings
-* Display portfolio's IRR in Portfolio History chart
+* Import account transactions from CSV file
+* Display Yield to Maturity (YTM) for bonds
+* Display Total Return in Portfolio History chart
 
 UI Changes
-* Improve charts performance
+* Display total buy cost (including fees) for assets
+* Display net P/L for assets instead of gross P/L
 
 Bug fixes
-* Group capital gains correctly by asset description
-* Correctly set transaction date for pending recurring transactions
+* Show fee field when editing tradeable asset position
+* Refresh pie charts on data update
 `,
   REPOSITORY_URL: 'https://github.com/iLiviu/road-to-fire',
   STORAGE_API_KEYS: {

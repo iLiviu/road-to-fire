@@ -20,6 +20,7 @@ Road To FIRE is a portfolio manager app for your stocks, ETFs, mutual funds, bon
 * Works offline.
 * Can optionally be installed as an app (supported by most mobile and some desktop modern browsers).
 * Backup / Restore application data.
+* Import account transactions from a CSV file.
 
 ## Frequently Asked Questions (FAQ)
 See [FAQ.md](FAQ.md)

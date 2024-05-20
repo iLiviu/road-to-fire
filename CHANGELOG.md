@@ -1,4 +1,4 @@
-## Master
+## 1.5.0
 
 ### Features
 * Import account transactions from CSV file
