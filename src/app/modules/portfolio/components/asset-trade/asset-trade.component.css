@@ -2,8 +2,14 @@
   height: 65vh; 
 }
 
+.fill-dialog-height.header-less-tabs {
+  height: auto;
+  max-height: 65vh; 
+}
+
 .fill-dialog-height.handset {
   height: 90vh;
+  max-height: inherit;
 }
 
 .full-height {

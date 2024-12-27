@@ -97,6 +97,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
   supportedExchanges: ExchangeDetails[];
   suggestedSymbols: SymbolDetails[];
   todayDate: Date;
+  tradeExistingAsset: boolean;
   transactionDate: UntypedFormControl;
   updateCashAssetBalance: UntypedFormControl;
   withholdInterestTax: UntypedFormControl;
@@ -127,7 +128,10 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.bondLikeAsset = this.data.assetType === AssetType.Bond || this.data.assetType === AssetType.P2P;
     this.exchangeTradedAsset = this.data.assetType !== AssetType.RealEstate && this.data.assetType !== AssetType.P2P &&
       this.data.assetType !== AssetType.Forex;
-    this.singleTabEdit = !this.bondLikeAsset || this.data.action === AssetOperationAction.SELL;
+    this.tradeExistingAsset = this.data.action === AssetOperationAction.SELL || 
+      (this.data.action === AssetOperationAction.BUY && this.data.asset !== null
+        && this.data.asset !== undefined);
+    this.singleTabEdit = !this.bondLikeAsset || this.tradeExistingAsset;
     this.stockLikeAsset = Asset.isStockLike(this.data.assetType);
 
     if (this.stockLikeAsset || this.data.assetType === AssetType.Bond) {

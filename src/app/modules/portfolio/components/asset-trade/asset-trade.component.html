@@ -1,13 +1,13 @@
 <form [formGroup]="assetForm">
   <app-edit-dialog [form]="assetForm"
-    title="{{data.action === AssetTradeAction.BUY? 'Buy '+assetLabel:((data.action === AssetTradeAction.SELL)?'Sell ':'Edit ') + data.asset.description}}"
+    title="{{data.action === AssetTradeAction.BUY? 'Buy '+(tradeExistingAsset? data.asset.description:assetLabel):((data.action === AssetTradeAction.SELL)?'Sell ':'Edit ') + data.asset.description}}"
     (close)="dialogClosed($event)" #editDialog>
     <div [ngClass]="{ 'header-less-tabs': singleTabEdit, 'handset': editDialog.isHandset}" class="fill-dialog-height">
       <mat-tab-group [swipeTabs]="{hasSideNav: true}" class="mat-tab-group-fill-height">
         <mat-tab label="Main">
           <div fxLayout="column" class="text-content">
             <mat-form-field
-              *ngIf="exchangeTradedAsset && !isMutualFund && data.action !== AssetTradeAction.SELL">
+              *ngIf="exchangeTradedAsset && !isMutualFund && !tradeExistingAsset">
               <input type="text" placeholder="Securities Exchange Code" matInput [formControl]="exchange"
                 [matAutocomplete]="exchangeCode">
               <mat-autocomplete #exchangeCode="matAutocomplete">
@@ -17,7 +17,7 @@
               </mat-autocomplete>
             </mat-form-field>
 
-            <mat-form-field *ngIf="exchangeTradedAsset && data.action !== AssetTradeAction.SELL">
+            <mat-form-field *ngIf="exchangeTradedAsset && !tradeExistingAsset">
               <input matInput type="text" placeholder="Symbol (Ticker)" formControlName="symbol" [matAutocomplete]="assetSymbol">
               <mat-autocomplete #assetSymbol="matAutocomplete">
                 <mat-option *ngFor="let symbol of filteredSuggestedSymbols | async" [value]="symbol.code">
@@ -26,11 +26,11 @@
               </mat-autocomplete>
             </mat-form-field>
 
-            <mat-form-field *ngIf="data.action !== AssetTradeAction.SELL">
+            <mat-form-field *ngIf="!tradeExistingAsset">
               <input matInput type="text" placeholder="Title" formControlName="description" required>
             </mat-form-field>
 
-            <mat-form-field *ngIf="stockLikeAsset && data.action !== AssetTradeAction.SELL">
+            <mat-form-field *ngIf="stockLikeAsset && !tradeExistingAsset">
               <mat-select placeholder="Stock type" formControlName="stockType" required>
                 <mat-option [value]="AssetType.Stock">Stock</mat-option>
                 <mat-option [value]="AssetType.StockETF">Stock ETF</mat-option>
@@ -44,7 +44,63 @@
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field *ngIf="data.action !== AssetTradeAction.SELL">
+            <mat-form-field *ngIf="data.action !== AssetTradeAction.EDIT || bondLikeAsset">
+              <mat-select placeholder="Cash account" formControlName="cashAsset" required>
+                <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                  {{asset.description}} ({{asset.amount | currency:asset.currency}})
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="hasAmount">
+              <input matInput type="number" placeholder="Amount" formControlName="amount" required>
+              <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
+              <mat-error *ngIf="amount.errors?.max">Amount can not exceed {{data.position.amount}}</mat-error>
+              <mat-error *ngIf="amount.errors?.invalidTransaction">Transaction value exceeds cash balance
+                ({{cashAsset.value?.amount | currency: assetCurrency}})</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <span matPrefix>@&nbsp;</span>
+              <input matInput type="number" placeholder="Price{{hasAmount? ' per unit':''}}" formControlName="price" required>
+              <span matPrefix>{{assetCurrency | currencySymbol}}</span>
+              <mat-error *ngIf="price.errors?.min">Price must be positive</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="number" placeholder="Fee" formControlName="fee">
+              <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
+              <mat-error>Fee must be positive</mat-error>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="data.action === AssetTradeAction.EDIT">
+              <input matInput type="number" placeholder="Current price per unit" formControlName="currentPrice"
+                required>
+              <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
+              <mat-error *ngIf="currentPrice.errors?.min">Price must be positive</mat-error>
+            </mat-form-field>
+
+            <ng-container *ngIf="bondLikeAsset && !tradeExistingAsset">
+              <mat-form-field>
+                <input matInput type="number" placeholder="Coupon interest rate" formControlName="couponRate" required
+                  matTooltip="Based on 365 days/year (actual/365)">
+                <span matSuffix>%</span>
+              </mat-form-field>
+
+              <mat-form-field>
+                <input matInput type="number" placeholder="Principal value" formControlName="principalAmount" required>
+                <span matPrefix>{{assetCurrency | currencySymbol}}</span>
+              </mat-form-field>
+
+              <mat-form-field>
+                <input matInput [matDatepicker]="datepicker" placeholder="Maturity Date" formControlName="maturityDate"
+                  required>
+                <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+                <mat-datepicker #datepicker></mat-datepicker>
+              </mat-form-field>
+            </ng-container>
+
+            <mat-form-field *ngIf="!tradeExistingAsset">
               <mat-select placeholder="Asset Region" formControlName="region">
                 <mat-option [value]="AssetRegion.Unspecified">{{ASSET_REGION_LABELS[AssetRegion.Unspecified]}}
                 </mat-option>
@@ -111,62 +167,6 @@
                 </mat-optgroup>
               </mat-select>
             </mat-form-field>
-
-            <mat-form-field *ngIf="data.action !== AssetTradeAction.EDIT || bondLikeAsset">
-              <mat-select placeholder="Cash account" formControlName="cashAsset" required>
-                <mat-option *ngFor="let asset of cashAssets" [value]="asset">
-                  {{asset.description}} ({{asset.amount | currency:asset.currency}})
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field *ngIf="hasAmount">
-              <input matInput type="number" placeholder="Amount" formControlName="amount" required>
-              <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
-              <mat-error *ngIf="amount.errors?.max">Amount can not exceed {{data.position.amount}}</mat-error>
-              <mat-error *ngIf="amount.errors?.invalidTransaction">Transaction value exceeds cash balance
-                ({{cashAsset.value?.amount | currency: assetCurrency}})</mat-error>
-            </mat-form-field>
-
-            <mat-form-field>
-              <span matPrefix>@&nbsp;</span>
-              <input matInput type="number" placeholder="Price{{hasAmount? ' per unit':''}}" formControlName="price" required>
-              <span matPrefix>{{assetCurrency | currencySymbol}}</span>
-              <mat-error *ngIf="price.errors?.min">Price must be positive</mat-error>
-            </mat-form-field>
-
-            <mat-form-field>
-              <input matInput type="number" placeholder="Fee" formControlName="fee">
-              <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
-              <mat-error>Fee must be positive</mat-error>
-            </mat-form-field>
-
-            <mat-form-field *ngIf="data.action === AssetTradeAction.EDIT">
-              <input matInput type="number" placeholder="Current price per unit" formControlName="currentPrice"
-                required>
-              <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
-              <mat-error *ngIf="currentPrice.errors?.min">Price must be positive</mat-error>
-            </mat-form-field>
-
-            <ng-container *ngIf="bondLikeAsset && data.action !== AssetTradeAction.SELL">
-              <mat-form-field>
-                <input matInput type="number" placeholder="Coupon interest rate" formControlName="couponRate" required
-                  matTooltip="Based on 365 days/year (actual/365)">
-                <span matSuffix>%</span>
-              </mat-form-field>
-
-              <mat-form-field>
-                <input matInput type="number" placeholder="Principal value" formControlName="principalAmount" required>
-                <span matPrefix>{{assetCurrency | currencySymbol}}</span>
-              </mat-form-field>
-
-              <mat-form-field>
-                <input matInput [matDatepicker]="datepicker" placeholder="Maturity Date" formControlName="maturityDate"
-                  required>
-                <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
-                <mat-datepicker #datepicker></mat-datepicker>
-              </mat-form-field>
-            </ng-container>
 
             <mat-checkbox *ngIf="data.action !== AssetTradeAction.EDIT && data.assetType !== AssetType.Forex" formControlName="updateCashAssetBalance"
               (change)="updateCashAssetBalanceToggled()">
