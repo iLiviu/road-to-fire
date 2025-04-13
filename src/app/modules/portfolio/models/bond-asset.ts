@@ -38,10 +38,14 @@ export class BondAsset extends TradeableAsset implements BondAssetData {
 
   constructor(source?: AssetData) {
     super(source);
-    if (!this.interestPaymentSchedule) {
+    if (this.interestPaymentSchedule) {
+      this.interestPaymentSchedule = this.interestPaymentSchedule.map((el) => Object.assign({}, el));
+    } else {
       this.interestPaymentSchedule = [];
     }
-    if (!this.principalPaymentSchedule) {
+    if (this.principalPaymentSchedule) {
+      this.principalPaymentSchedule = this.principalPaymentSchedule.map((el) => Object.assign({}, el));
+    } else {
       this.principalPaymentSchedule = [];
     }
     this.calculateYTM();

@@ -43,6 +43,17 @@ export class TradeableAsset extends Asset implements TradeableAssetData {
 
   constructor(source?: AssetData) {
     super(source);
+    if (this.customRegions) {
+      // Asset region weights are constants so we do a shallow copy
+      this.customRegions = Object.assign([], this.customRegions);
+    } else {
+      this.customRegions = [];
+    }
+    if (this.positions) {
+      this.positions = this.positions.map((el) => Object.assign({}, el));
+    } else {
+      this.positions = [];
+    }
     this.calculateAveragePositionValues();
   }
 
