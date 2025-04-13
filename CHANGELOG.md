@@ -1,3 +1,8 @@
+## Master
+
+### UI Changes
+* 3Y interval option in Dashboard charts
+
 ## 1.5.0
 
 ### Features

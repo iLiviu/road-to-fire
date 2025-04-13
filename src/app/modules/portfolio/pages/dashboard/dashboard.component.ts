@@ -973,6 +973,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         minDate = new Date();
         minDate.setFullYear(minDate.getFullYear() - 1);
         break;
+      case '3Y':
+        minDate = new Date();
+        minDate.setFullYear(minDate.getFullYear() - 3);
+        break;
       case '5Y':
         minDate = new Date();
         minDate.setFullYear(minDate.getFullYear() - 5);
