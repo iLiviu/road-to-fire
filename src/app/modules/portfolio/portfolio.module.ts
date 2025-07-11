@@ -108,6 +108,7 @@ import { P2PComponent } from './pages/p2p/p2p.component';
 import { TransactionsFilterEditComponent } from './components/transactions-filter-edit/transactions-filter-edit.component';
 import { TransactionsImportComponent } from './components/transactions-import/transactions-import.component';
 import { TransactionsImportService } from './services/tx-import-service';
+import { RecurringTransactionsFilterEditComponent } from './components/recurring-transactions-filter-edit/recurring-transactions-filter-edit.component';
 
 @NgModule({
     declarations: [
@@ -173,6 +174,7 @@ import { TransactionsImportService } from './services/tx-import-service';
         P2PComponent,
         TransactionsFilterEditComponent,
         TransactionsImportComponent,
+        RecurringTransactionsFilterEditComponent,
     ],
     imports: [
         CommonModule,

@@ -111,7 +111,7 @@
       <mat-tab label="Transactions" #transactionsTab>
         <ng-template matTabContent>
           <app-transactions-list #transactionsList [transactions]="transactions" [baseCurrency]="baseCurrency"
-            [dataLoaded]="transactionsLoaded">
+            [forexRates]="forexRates" [dataLoaded]="transactionsLoaded">
           </app-transactions-list>
         </ng-template>
       </mat-tab>

@@ -1,19 +1,14 @@
 <app-top-toolbar pageTitle="Scheduled Transactions">
-  <app-notifications-button></app-notifications-button>
-
-  <button type="button" aria-label="Actions" mat-icon-button matTooltip="Actions" [matMenuTriggerFor]="actionsMenu">
-    <mat-icon>more_vert</mat-icon>
+  <button type="button" aria-label="Filter Transactions" mat-icon-button matTooltip="Filter Transactions"
+    (click)="showFilterDialog()">
+    <mat-icon>filter_list</mat-icon>
   </button>
 
-  <mat-menu #actionsMenu="matMenu">
-    <button mat-menu-item (click)="toggleBondAndDepositTxs()">
-      <mat-icon>{{portfolioConfig?.hideBondAndDepositsRecurringTxs? '':'check'}}</mat-icon>
-      Bond & Deposit Transactions
-    </button>
-  </mat-menu>
+  <app-notifications-button></app-notifications-button>
 </app-top-toolbar>
 
 <div class="page-content">
-  <app-recurring-transactions-list [transactions]="transactions" [dataLoaded]="transactionsLoaded">
+  <app-recurring-transactions-list [transactions]="transactions" [forexRates]="forexRates" [baseCurrency]="baseCurrency"
+    [dataLoaded]="transactionsLoaded">
   </app-recurring-transactions-list>
 </div>

@@ -927,7 +927,6 @@ export class PortfolioService {
         goals: [
           { title: 'Financial Independence', value: 1000000 },
         ],
-        hideBondAndDepositsRecurringTxs: false,
         version: PORTFOLIO_VERSION,
       };
     } else {

@@ -1,10 +1,21 @@
 <ng-container *ngIf="dataLoaded">
-  <mat-nav-list dense>
-    <app-recurring-transactions-list-item *ngFor="let recTx of transactions; trackBy: txIdTrackFn" [transaction]="recTx"></app-recurring-transactions-list-item>
-  </mat-nav-list>
-  <div *ngIf="transactions.length === 0" fxLayout="row" fxLayoutAlign="center center">
-    <div class="text-content">There are no transactions to display.</div>
-  </div>  
+  <div fxLayout="column" class="full-height">
+    <mat-nav-list dense class="transactions-list">
+      <div *ngIf="showHeader" mat-subheader fxLayout="row">
+        <div>Debit: {{ totalDebit | currency:baseCurrency }}</div>
+        <div fxFlex></div>
+        <div>Credit: {{ totalCredit | currency:baseCurrency }}</div>
+      </div>
+
+      <cdk-virtual-scroll-viewport itemSize="76" class="list-viewport" #viewport>
+        <app-recurring-transactions-list-item *ngFor="let recTx of transactions; trackBy: txIdTrackFn"
+          [transaction]="recTx"></app-recurring-transactions-list-item>
+      </cdk-virtual-scroll-viewport>
+    </mat-nav-list>
+    <div *ngIf="transactions.length === 0" fxLayout="row" fxLayoutAlign="center center">
+      <div class="text-content">There are no transactions to display.</div>
+    </div>
+  </div>
 </ng-container>
 <div *ngIf="!dataLoaded" fxLayoutAlign="center center" fxLayout="column">
   <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>

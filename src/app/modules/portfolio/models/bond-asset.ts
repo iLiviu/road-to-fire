@@ -143,7 +143,7 @@ export class BondAsset extends TradeableAsset implements BondAssetData {
    * Return the next interest payment date. If no custom payment date is defined, return
    * maturity date.
    */
-  private getNextInterestPaymentDate() {
+  getNextInterestPaymentDate() {
     let nextDate: Date;
     if (this.interestPaymentSchedule.length > 0) {
       nextDate = new Date(this.interestPaymentSchedule[0].paymentDate);

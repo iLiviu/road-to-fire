@@ -13,6 +13,9 @@ import { PortfolioAccount } from '../../models/portfolio-account';
 import { AssetManagementService } from '../../services/asset-management.service';
 import { BondAsset } from '../../models/bond-asset';
 import { debounce } from 'lodash-decorators';
+import { AssetFactory } from '../../models/asset-factory';
+import { DateUtils, FloatingMath } from 'src/app/shared/util';
+import { RecurringTransactionsFilterEditComponent, RecurringTransactionFilters, RecurringTransactionFilterInterval } from '../../components/recurring-transactions-filter-edit/recurring-transactions-filter-edit.component';
 
 /**
  * Component to display a page, allowing the user to manage the recurring transactions
@@ -32,6 +35,12 @@ export class RecurringTransactionsComponent extends PortfolioPageComponent imple
   transactions: RecurringTransaction[];
   transactionsLoaded = false;
   private loadTimer: any;
+  filters: RecurringTransactionFilters = {
+    showDividendTransactions: true,
+    showUserTransactions: true,
+    showBondAndDepositTransactions: true,
+    interval: RecurringTransactionFilterInterval.all,
+  };
 
   constructor(protected eventsService: EventsService, protected portfolioService: PortfolioService,
     protected logger: LoggerService, protected dialogService: DialogsService, protected router: Router,
@@ -136,68 +145,85 @@ export class RecurringTransactionsComponent extends PortfolioPageComponent imple
     return recTxs;
   }
 
+
   /**
-   * Get the next interest payment transaction for a given bond and the next principal payment
-   * transaction
+   * Get all principal & interest payment transactions for a given bond
    * @param bond the bond to get the transactions for
    * @param account account of bond asset
    */
   getBondTransactions(bond: BondAsset, account: PortfolioAccount) {
     const recTxs: RecurringTransaction[] = [];
     const cashAsset = this.getCashAsset(bond, account);
-
-    // get next interest transaction
-    const interestAmount = bond.getNextPayableInterest();
-    if (interestAmount) {
+    const bondCopy = <BondAsset>AssetFactory.newInstance(bond.type, bond);
+    let transactionsLeft: boolean;
+    do {
+      transactionsLeft = false;
+      // get next interest transaction    
+      let interestAmount = bondCopy.getNextPayableInterest();
       let nextInterestDate: Date;
-      if (bond.interestPaymentSchedule && bond.interestPaymentSchedule.length > 0) {
-        const nextInterestEvent = bond.interestPaymentSchedule[0];
-        nextInterestDate = new Date(nextInterestEvent.paymentDate);
-      } else {
-        nextInterestDate = new Date(bond.maturityDate);
-      }
-      const withholdingTax = bond.getNextWithholdingTax();
-      const tx = this.assetManagementService.createInterestTransaction(interestAmount, 0, withholdingTax, nextInterestDate,
-        bond, account, cashAsset);
-      const recTx = new RecurringTransaction();
-      recTx.autoApprove = true;
-      recTx.type = RecurringTransactionType.Never;
-      recTx.transactionsLeft = 1;
-      recTx.tx = tx;
-      recTxs.push(recTx);
-    }
+      if (interestAmount) {
+        nextInterestDate = bondCopy.getNextInterestPaymentDate();
+        const withholdingTax = bondCopy.getNextWithholdingTax();
+        const tx = this.assetManagementService.createInterestTransaction(interestAmount, 0, withholdingTax, nextInterestDate,
+          bondCopy, account, cashAsset);
+        const recTx = new RecurringTransaction();
+        recTx.autoApprove = true;
+        recTx.type = RecurringTransactionType.Never;
+        recTx.transactionsLeft = 1;
+        recTx.tx = tx;
+        recTxs.push(recTx);
+        transactionsLeft = true;
 
-    // get next principal payment transaction
-    let nextPaymentDate: Date;
-    let nextPaymentAmount: number;
-    if (bond.principalPaymentSchedule && bond.principalPaymentSchedule.length > 0) {
-      const nextPayment = bond.principalPaymentSchedule[0];
-      nextPaymentAmount = nextPayment.amount;
-      nextPaymentDate = new Date(nextPayment.date);
-    } else if (!bond.interestPaymentSchedule || bond.interestPaymentSchedule.length < 2) {
-      // we only add the principal payment on expiration if we don't have more than 1 interest payment
-      // before expiration as we only want to show the earliest transactions
-      nextPaymentDate = new Date(bond.maturityDate);
-      nextPaymentAmount = bond.principalAmount;
-    }
-    if (nextPaymentDate) {
-      const tx = this.assetManagementService.createBondPrincipalPaymentTransaction(nextPaymentAmount, bond, cashAsset, account,
-        nextPaymentDate, 0, false);
-      const recTx = new RecurringTransaction();
-      recTx.autoApprove = true;
-      recTx.type = RecurringTransactionType.Never;
-      recTx.transactionsLeft = 1;
-      recTx.tx = tx;
-      recTxs.push(recTx);
-    }
+        bondCopy.interestPaymentSchedule.splice(0, 1);
+        bondCopy.previousInterestPaymentDate = nextInterestDate.toISOString();
+      }
+
+      // get next principal payment transaction
+      let nextPaymentDate: Date;
+      let nextPaymentAmount: number;
+      if (bondCopy.principalPaymentSchedule && bondCopy.principalPaymentSchedule.length > 0) {
+        const nextPayment = bondCopy.principalPaymentSchedule[0];
+        nextPaymentAmount = nextPayment.amount;
+        nextPaymentDate = new Date(nextPayment.date);
+      } else {
+        nextPaymentDate = new Date(bondCopy.maturityDate);
+        nextPaymentAmount = bondCopy.principalAmount;
+      }
+      if (bondCopy.interestPaymentSchedule.length > 0) {
+        nextInterestDate = bondCopy.getNextInterestPaymentDate();
+      } else {
+        nextInterestDate = null;
+      }
+      if (nextPaymentDate && (!nextInterestDate || DateUtils.compareDates(nextPaymentDate, nextInterestDate) < 0)) {
+        const tx = this.assetManagementService.createBondPrincipalPaymentTransaction(nextPaymentAmount, bondCopy, cashAsset, account,
+          nextPaymentDate, 0, false);
+        const recTx = new RecurringTransaction();
+        recTx.autoApprove = true;
+        recTx.type = RecurringTransactionType.Never;
+        recTx.transactionsLeft = 1;
+        recTx.tx = tx;
+        recTxs.push(recTx);
+        bondCopy.principalAmount = FloatingMath.fixRoundingError(bondCopy.principalAmount - nextPaymentAmount);
+        if (bondCopy.principalPaymentSchedule && bondCopy.principalPaymentSchedule.length > 0) {
+          bondCopy.principalPaymentSchedule.splice(0, 1);
+        }
+        transactionsLeft = bondCopy.principalAmount > 0;
+      }
+    } while (transactionsLeft);
 
     return recTxs;
   }
 
-  toggleBondAndDepositTxs() {
-    this.portfolioConfig.hideBondAndDepositsRecurringTxs = !this.portfolioConfig.hideBondAndDepositsRecurringTxs;
-    this.portfolioService.saveConfig(this.portfolioConfig);
-    this.displayTransactions();
+  /**
+   * Open the filter editor dialog and allow user to select filters for transactions
+   */
+  async showFilterDialog() {
+    const newFilters = await this.dialogService.showAdaptableScreenModal(RecurringTransactionsFilterEditComponent, this.filters);
+    if (newFilters) {
+      this.filters = newFilters;
+      this.displayTransactions();
+      this.cdr.markForCheck();
+    }
   }
 
   /**
@@ -225,11 +251,17 @@ export class RecurringTransactionsComponent extends PortfolioPageComponent imple
    */
   private displayTransactions() {
     const allTxs: RecurringTransaction[] = [];
-    allTxs.push(...this.recTxs);
-    if (!this.portfolioConfig.hideBondAndDepositsRecurringTxs) {
+    if (this.filters.showUserTransactions || this.filters.showDividendTransactions) {
+      allTxs.push(...this.recTxs.filter(recTx => recTx.tx.isDividend() ? this.filters.showDividendTransactions : this.filters.showUserTransactions));
+    }
+    if (this.filters.showBondAndDepositTransactions) {
       allTxs.push(...this.assetTxs);
     }
-    this.transactions = allTxs;
+    this.transactions = allTxs.filter((recTx: RecurringTransaction) =>
+      (this.filters.showDividendTransactions || !recTx.tx.isDividend()) &&
+      (!this.filters.minDate || DateUtils.compareDates(this.filters.minDate, new Date(recTx.tx.date)) <= 0) &&
+      (!this.filters.maxDate || DateUtils.compareDates(this.filters.maxDate, new Date(recTx.tx.date)) >= 0)
+    );
   }
 
   private async loadTransactions() {
@@ -237,6 +269,14 @@ export class RecurringTransactionsComponent extends PortfolioPageComponent imple
       const recTxsPromise$ = this.portfolioService.getRecurringTransactions();
       const assetTxsPromise$ = this.getAssetRecurringTxs();
       [this.recTxs, this.assetTxs] = await Promise.all([recTxsPromise$, assetTxsPromise$]);
+
+      const allTxs: RecurringTransaction[] = [];
+      allTxs.push(...this.recTxs);
+      allTxs.push(...this.assetTxs);
+      const requiredCurrencies: string[] = [];
+      allTxs.forEach(recTx => requiredCurrencies.push(recTx.tx.asset.currency));
+      await this.updateForexRates(requiredCurrencies);
+
       this.displayTransactions();
     } catch (err) {
       this.logger.error('An error occurred while retrieving recurring transactions!', err);

@@ -21,6 +21,7 @@ import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { LoggerService } from 'src/app/core/services/logger.service';
 import { APP_CONSTS, ExchangeDetails } from 'src/app/config/app.constants';
 import { map, startWith } from 'rxjs/operators';
+import { Dictionary } from 'src/app/shared/models/dictionary';
 
 /**
  * Data passed to the `TransactionsImportComponent` dialog
@@ -62,6 +63,7 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
   cashAsset: FormControl<Asset>;
   customDateFormat: FormControl<string>;
   dateFormat: FormControl<number>;
+  forexRates: Dictionary<number> = {};
   includeFirstRow: FormControl<boolean>;
   updateCashAssetBalance: FormControl<boolean>;
   columnIDs: FormArray<FormControl<number>>;
@@ -182,8 +184,9 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
   /**
    * Parse the CSV rows and use the data to build & display the buy/sell transactions list
    */
-  preview() {
+  async preview() {
     this.transactionsLoaded = false;
+    let allTransactions: Transaction[] = [];
     this.transactions = [];
     try {
       const template = this.buildTemplate();
@@ -222,7 +225,7 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
             rate: operationData.price,
           };
           const tx = new TradeTransaction(txData);
-          this.transactions.push(tx);
+          allTransactions.push(tx);
         } else if (operationData.action === AssetOperationAction.SELL) {
           const transactionValue = FloatingMath.fixRoundingError(operationData.amount * operationData.price - operationData.fee);
           const txData: SellTransactionData = {
@@ -253,7 +256,7 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
             positionId: null,
           };
           const tx = new SellTransaction(txData);
-          this.transactions.push(tx);
+          allTransactions.push(tx);
         } else if (operationData.action === AssetOperationAction.CREDIT || operationData.action === AssetOperationAction.DEBIT) {
           const txValue = FloatingMath.fixRoundingError(operationData.amount - operationData.fee);
           const txData: TransactionData = {
@@ -272,12 +275,17 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
             withholdingTax: 0,
           };
           const tx = new Transaction(txData);
-          this.transactions.push(tx);
+          allTransactions.push(tx);
         }
       }
     } catch (e) {
       this.dialogs.error(e);
     }
+    const requiredCurrencies: string[] = [];
+    allTransactions.forEach(tx => requiredCurrencies.push(tx.asset.currency));
+    await this.updateForexRates(requiredCurrencies);
+
+    this.transactions = allTransactions;
     this.transactionsLoaded = true;
   }
 
@@ -503,5 +511,32 @@ export class TransactionsImportComponent implements OnInit, OnDestroy {
     this.templates = await this.portfolioService.getTransactionsImportTemplates();
   }
 
+  /**
+   * Update the exchange rates for a list of currencies and store the result for
+   * later use
+   */
+  private async updateForexRates(currencies: string[]): Promise<boolean> {
+    const fxPairs: Dictionary<boolean> = {};
+    for (const currency of currencies) {
+      if (currency !== this.data.baseCurrency) {
+        fxPairs[currency + this.data.baseCurrency] = true;
+      }
+    }
+    const requiredFXPairs: string[] = Object.keys(fxPairs);
+    if (requiredFXPairs.length > 0) {
+      try {
+        const rates = await this.portfolioService.getForexRates(requiredFXPairs);
+        for (const quote of rates) {
+          this.forexRates[quote.symbol] = quote.price;
+        }
+        return true;
+      } catch (e) {
+        const errMsg = 'An error occurred while retrieving forex rates!';
+        this.logger.error(errMsg, e);
+        return Promise.reject(errMsg);
+      }
+    }
+    return false;
+  }
 
 }

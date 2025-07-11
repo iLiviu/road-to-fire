@@ -24,13 +24,12 @@ export class TransactionsListComponent implements OnChanges {
   @Input() readOnly = false;
   @Input() baseCurrency: string;
   @Input() showHeader = true;
+  @Input() forexRates: Dictionary<number> = {};
   @ViewChild('viewport') private readonly viewportComponent: CdkVirtualScrollViewport;
   selectionCount = 0;
   txSelectionStates: NumKeyDictionary<boolean> = {};
   totalDebit: number;
   totalCredit: number;
-
-  private forexRates: Dictionary<number> = {};
 
 
   constructor(private portfolioService: PortfolioService, private logger: LoggerService, protected cdr: ChangeDetectorRef) {
@@ -160,48 +159,24 @@ export class TransactionsListComponent implements OnChanges {
   }
 
   /**
- * Update the exchange rates for a list of currencies and store the result for
- * later use
- */
-  protected async updateForexRates(currencies: string[]): Promise<boolean> {
-    const requiredFXPairs: string[] = [];
-    for (const currency of currencies) {
-      if (currency !== this.baseCurrency) {
-        requiredFXPairs.push(currency + this.baseCurrency);
-      }
-    }
-    if (requiredFXPairs.length > 0) {
-      try {
-        const rates = await this.portfolioService.getForexRates(requiredFXPairs);
-        for (const quote of rates) {
-          this.forexRates[quote.symbol] = quote.price;
-        }
-        return true;
-      } catch (e) {
-        const errMsg = 'An error occurred while retrieving forex rates!';
-        throw new Error(errMsg);
-      }
-    }
-    return false;
-  }
-
-  /**
    * Calculate total debit & credit value in base currency for the transactions list
    */
   private async calculateTxStats() {
     this.totalDebit = 0;
     this.totalCredit = 0;
-    const requiredCurrencies: string[] = [];
-    this.transactions.forEach(tx => requiredCurrencies.push(tx.asset.currency));
-    await this.updateForexRates(requiredCurrencies);
-
-    for (const tx of this.transactions) {
-      const txValue = tx.value * this.getCurrencyRate(tx.asset.currency);
-      if (tx.isDebit()) {
-        this.totalDebit += txValue;
-      } else if (tx.isCredit()) {
-        this.totalCredit += txValue;
+    try {
+      for (const tx of this.transactions) {
+        const txValue = tx.value * this.getCurrencyRate(tx.asset.currency);
+        if (tx.isDebit()) {
+          this.totalDebit += txValue;
+        } else if (tx.isCredit()) {
+          this.totalCredit += txValue;
+        }
       }
+    } catch (e) {
+      this.logger.error(e, e);
+      this.totalDebit = NaN;
+      this.totalCredit = NaN;
     }
     this.cdr.markForCheck();
   }

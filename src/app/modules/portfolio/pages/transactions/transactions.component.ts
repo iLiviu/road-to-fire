@@ -93,6 +93,10 @@ export class TransactionsComponent extends PortfolioPageComponent implements OnI
   private async loadTransactions() {
     try {
       this.allTransactions = await this.portfolioService.getTransactions();
+      const requiredCurrencies: string[] = [];
+      this.allTransactions.forEach(tx => requiredCurrencies.push(tx.asset.currency));
+      await this.updateForexRates(requiredCurrencies);
+
       this.filterTransactions();
     } catch (err) {
       this.logger.error('An error occurred while retrieving transactions!', err);

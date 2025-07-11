@@ -20,6 +20,5 @@ export interface PortfolioConfig {
   withdrawalRate: number;
   dashboardGridVisibility: Dictionary<boolean>;
   loanToValueRatio: number;
-  hideBondAndDepositsRecurringTxs: boolean;
   version: number;
 }

@@ -185,7 +185,7 @@
     </mat-step>
     <mat-step label="Preview" fxLayout="column">
       <app-transactions-list [transactions]="transactions" [readOnly]="true" [baseCurrency]="data.baseCurrency"
-        [dataLoaded]="transactionsLoaded" [showHeader]="false">
+        [forexRates]="forexRates" [dataLoaded]="transactionsLoaded" [showHeader]="false">
       </app-transactions-list>
     </mat-step>
 

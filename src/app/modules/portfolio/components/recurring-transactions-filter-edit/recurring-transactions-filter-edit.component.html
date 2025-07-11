@@ -1,0 +1,43 @@
+<form [formGroup]="filterForm">
+  <app-edit-dialog [form]="filterForm" title="Filter Transactions" (close)="dialogClosed($event)">
+    <div class="text-content" fxLayout="column">
+      <h3>Transaction Types</h3>
+      <mat-checkbox formControlName="showUserTransactions">
+        User Transactions
+      </mat-checkbox>
+
+      <mat-checkbox formControlName="showDividendTransactions">
+        Dividends
+      </mat-checkbox>
+
+      <mat-checkbox formControlName="showBondAndDepositTransactions">
+        Bond and Deposit Transactions
+      </mat-checkbox>
+
+      <h3>Interval</h3>
+      <mat-radio-group  fxLayout="column" formControlName="interval">
+        <mat-radio-button [value]="RecurringTransactionFilterInterval.currentMonth">This Month</mat-radio-button>
+        <mat-radio-button [value]="RecurringTransactionFilterInterval.nextMonth">Next Month</mat-radio-button>
+        <mat-radio-button [value]="RecurringTransactionFilterInterval.currentYear">This Year</mat-radio-button>
+        <mat-radio-button [value]="RecurringTransactionFilterInterval.all">All</mat-radio-button>
+        <mat-radio-button [value]="RecurringTransactionFilterInterval.custom">Custom</mat-radio-button>
+      </mat-radio-group>
+      <div *ngIf="interval.value === RecurringTransactionFilterInterval.custom" fxLayout="column">
+        <mat-form-field>
+          <input matInput [min]="todayDate" [matDatepicker]="mindatepicker" placeholder="From Date"
+            formControlName="minDate">
+          <mat-datepicker-toggle matSuffix [for]="mindatepicker"></mat-datepicker-toggle>
+          <mat-datepicker #mindatepicker></mat-datepicker>
+          <mat-error>Date can't be in the past</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput [min]="todayDate" [matDatepicker]="maxdatepicker" placeholder="To Date"
+            formControlName="maxDate">
+          <mat-datepicker-toggle matSuffix [for]="maxdatepicker"></mat-datepicker-toggle>
+          <mat-datepicker #maxdatepicker></mat-datepicker>
+          <mat-error>Date can't be in the past</mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+  </app-edit-dialog>
+</form>
