@@ -36,6 +36,7 @@ export interface AssetTradeUserInputData {
   asset?: TradeableAsset;
   allLabels: Label[];
   allLabelCategories: LabelCategory[];
+  existingAssets?: Asset[];
 }
 
 
@@ -140,29 +141,38 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.singleTabEdit = !this.bondLikeAsset || this.tradeExistingAsset;
     this.stockLikeAsset = Asset.isStockLike(this.data.assetType);
 
+    this.supportedExchanges = [];
+    this.suggestedSymbols = [];
     if (this.stockLikeAsset || this.data.assetType === AssetType.Bond) {
-      this.supportedExchanges = APP_CONSTS.SUPPORTED_EXCHANGES.EQUITY;
-      this.suggestedSymbols = APP_CONSTS.SUGGESTED_SYMBOLS.EQUITY;
+      this.supportedExchanges.push(...APP_CONSTS.SUPPORTED_EXCHANGES.EQUITY);
+      this.suggestedSymbols.push(...APP_CONSTS.SUGGESTED_SYMBOLS.EQUITY);
     } else if (this.data.assetType === AssetType.Commodity) {
-      this.supportedExchanges = APP_CONSTS.SUPPORTED_EXCHANGES.COMMODITY;
-      this.suggestedSymbols = APP_CONSTS.SUGGESTED_SYMBOLS.COMMODITY;
+      this.supportedExchanges.push(...APP_CONSTS.SUPPORTED_EXCHANGES.COMMODITY);
+      this.suggestedSymbols.push(...APP_CONSTS.SUGGESTED_SYMBOLS.COMMODITY);
     } else if (this.data.assetType === AssetType.Cryptocurrency) {
-      this.supportedExchanges = APP_CONSTS.SUPPORTED_EXCHANGES.CRYPTO;
-      this.suggestedSymbols = APP_CONSTS.SUGGESTED_SYMBOLS.CRYPTO;
-    } else {
-      this.supportedExchanges = [];
-      this.suggestedSymbols = [];
+      this.supportedExchanges.push(...APP_CONSTS.SUPPORTED_EXCHANGES.CRYPTO);
+      this.suggestedSymbols.push(...APP_CONSTS.SUGGESTED_SYMBOLS.CRYPTO);
     }
+
+    if (this.data.existingAssets && this.data.existingAssets.length > 0) {
+      this.data.existingAssets.forEach(asset => {
+        if (asset.isTradeable()) {
+          const tradeableAsset = <TradeableAsset>asset;
+          if (tradeableAsset.symbol && tradeableAsset.type === this.data.assetType) {
+            if (!this.suggestedSymbols.find(s => s.code === tradeableAsset.symbol)) {
+              this.suggestedSymbols.push({ code: tradeableAsset.symbol, name: tradeableAsset.description });
+            }
+          }
+        }
+      });
+    }
+
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
     this.assetLabel = ASSET_TYPE_LABELS[this.data.assetType];
     this.cashAssets = this.data.account.assets
       .filter(asset => asset.type === AssetType.Cash && (!this.data.asset || asset.currency === this.data.asset.currency));
     let defaultCashAsset = null;
-    if (this.data.asset) {
-      this.assetCurrency = this.data.asset.currency;
-      defaultCashAsset = this.data.account.getAssetById(this.data.asset.cashAssetId);
-    }
 
     this.cashAsset = new UntypedFormControl(defaultCashAsset);
     this.symbol = new UntypedFormControl();
@@ -196,7 +206,6 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
         startWith(''),
         map(value => this.filterSuggestedSymbols(value))
       );
-
     this.updateAmountValidators();
     this.price.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
@@ -212,47 +221,6 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
         }
         this.amount.updateValueAndValidity();
       });
-    if (this.data.asset) {
-      if (this.data.assetType !== AssetType.RealEstate) {
-        const symbolParts = this.data.asset.parseSymbol();
-        this.exchange.setValue(symbolParts.marketCode);
-        this.symbol.setValue(symbolParts.shortSymbol);
-      } else {
-        this.symbol.setValue(this.data.asset.symbol);
-      }
-      if (this.data.action === AssetOperationAction.EDIT) {
-        this.currentPrice.setValue(this.data.asset.currentPrice);
-      }
-      this.description.setValue(this.data.asset.description);
-      this.region.setValue(this.data.asset.region);
-      if (this.data.position) {
-        this.amount.setValue(this.data.position.amount);
-        this.price.setValue(this.data.position.buyPrice);
-        const totalFees = FloatingMath.fixRoundingError((this.data.position.grossBuyPrice -
-          this.data.position.buyPrice) * this.data.position.amount);
-        this.fee.setValue(totalFees);
-        if (this.data.action === AssetOperationAction.EDIT) {
-          this.transactionDate.setValue(this.data.position.buyDate);
-        }
-      }
-      if (this.bondLikeAsset) {
-        const bond = <BondAsset>this.data.asset;
-        this.principalAmount.setValue(bond.principalAmount);
-        this.couponRate.setValue(FloatingMath.fixRoundingError(bond.couponRate * 100));
-        this.maturityDate.setValue(bond.maturityDate);
-        this.previousInterestPaymentDate.setValue(bond.previousInterestPaymentDate);
-        this.interestTaxRate.setValue(FloatingMath.fixRoundingError(bond.interestTaxRate * 100));
-        this.withholdInterestTax.setValue(bond.withholdInterestTax);
-        this.interestPaymentSchedule = [...bond.interestPaymentSchedule];
-        this.principalPaymentSchedule = [...bond.principalPaymentSchedule];
-      } else if (this.data.asset.isStockLike()) {
-        this.stockType.setValue(this.data.asset.type);
-      }
-
-      if (this.data.asset.labels) {
-        this.labelIds.setValue(this.data.asset.labels.map(l => l.id));
-      }
-    }
 
     this.labelsByCategory = {};
     for (const category of this.data.allLabelCategories) {
@@ -266,8 +234,10 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
         this.labelsByCategory[label.category.id].push(label);
       }
     }
-    this.cdr.markForCheck();
 
+    if (this.data.asset) {
+      this.displayAsset(this.data.asset, this.data.position)
+    }
 
     this.assetForm = new UntypedFormGroup({
       cashAsset: this.cashAsset,
@@ -293,6 +263,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
       this.assetForm.addControl('interestTaxRate', this.interestTaxRate);
       this.assetForm.addControl('withholdInterestTax', this.withholdInterestTax);
     }
+    this.cdr.markForCheck();
   }
 
   ngAfterViewInit() {
@@ -378,6 +349,63 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       this.dialogRef.close(null);
     }
+  }
+
+  symbolOptionChanged(symbol: string) {
+    if (this.data.existingAssets && symbol) {
+      const savedAsset = <TradeableAsset>this.data.existingAssets.find(a =>
+        a.isTradeable() &&
+        (<TradeableAsset>a).symbol.toUpperCase() === symbol.toUpperCase() &&
+        a.type === this.data.assetType
+      );
+      if (savedAsset) {
+
+        this.displayAsset(savedAsset);
+      }
+    }
+  }
+
+  private displayAsset(asset: TradeableAsset, position?: TradePosition) {
+    this.assetCurrency = asset.currency;
+    this.cashAsset.setValue(this.data.account.getAssetById(asset.cashAssetId));
+    if (asset.type !== AssetType.RealEstate) {
+      const symbolParts = asset.parseSymbol();
+      this.exchange.setValue(symbolParts.marketCode);
+      this.symbol.setValue(symbolParts.shortSymbol);
+    } else {
+      this.symbol.setValue(asset.symbol);
+    }
+    this.currentPrice.setValue(asset.currentPrice);
+    this.description.setValue(asset.description);
+    this.region.setValue(asset.region);
+    if (position) {
+      this.amount.setValue(position.amount);
+      this.price.setValue(position.buyPrice);
+      const totalFees = FloatingMath.fixRoundingError((position.grossBuyPrice -
+        position.buyPrice) * position.amount);
+      this.fee.setValue(totalFees);
+      if (this.data.action === AssetOperationAction.EDIT) {
+        this.transactionDate.setValue(this.data.position.buyDate);
+      }
+    }
+    if (this.bondLikeAsset) {
+      const bond = <BondAsset>asset;
+      this.principalAmount.setValue(bond.principalAmount);
+      this.couponRate.setValue(FloatingMath.fixRoundingError(bond.couponRate * 100));
+      this.maturityDate.setValue(bond.maturityDate);
+      this.previousInterestPaymentDate.setValue(bond.previousInterestPaymentDate);
+      this.interestTaxRate.setValue(FloatingMath.fixRoundingError(bond.interestTaxRate * 100));
+      this.withholdInterestTax.setValue(bond.withholdInterestTax);
+      this.interestPaymentSchedule = [...bond.interestPaymentSchedule];
+      this.principalPaymentSchedule = [...bond.principalPaymentSchedule];
+    } else if (asset.isStockLike()) {
+      this.stockType.setValue(asset.type);
+    }
+
+    if (asset.labels) {
+      this.labelIds.setValue(asset.labels.map(l => l.id));
+    }
+    this.cdr.markForCheck();
   }
 
   /**

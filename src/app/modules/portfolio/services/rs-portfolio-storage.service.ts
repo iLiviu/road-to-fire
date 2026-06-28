@@ -778,7 +778,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
             // wait for all assets to be removed before deleting account
             await Promise.all(promises);
 
-            await privateClient.remove(ACCOUNTS_PATH + account.id);
+            await this.privateClient.remove(ACCOUNTS_PATH + account.id);
             if (this._accountIds) {
               delete this._accountIds[account.id];
             }
@@ -839,7 +839,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
           }
 
           async removeAsset(asset: Asset) {
-            await privateClient.remove(ASSETS_PATH + asset.id);
+            await this.privateClient.remove(ASSETS_PATH + asset.id);
             if (this._assets) {
               delete this._assets[asset.id];
             }
@@ -890,7 +890,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
 
           async removeTransaction(tx: Transaction): Promise<void> {
             const path = TRANSACTIONS_PATH + tx.id; // use id as filename
-            await privateClient.remove(path);
+            await this.privateClient.remove(path);
             if (this._transactionIds) {
               delete this._transactionIds[tx.id];
             }
@@ -941,7 +941,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
 
           async removeRecurringTransaction(tx: RecurringTransaction): Promise<void> {
             const path = RECURRING_TRANSACTIONS_PATH + tx.id; // use id as filename
-            await privateClient.remove(path);
+            await this.privateClient.remove(path);
             if (this._recurringTransactionIds) {
               delete this._recurringTransactionIds[tx.id];
             }
@@ -967,7 +967,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
 
           async removeNotification(notification: AppNotification): Promise<void> {
             const path = NOTIFICATIONS_PATH + notification.id; // use id as filename
-            await privateClient.remove(path);
+            await this.privateClient.remove(path);
             if (this._notificationIds) {
               delete this._notificationIds[notification.id];
             }
@@ -1057,7 +1057,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
 
           async removeTransactionsImportTemplate(template: TransactionsImportTemplate): Promise<void> {
             const path = TX_IMPORT_TEMPLATES_PATH + template.name;
-            await privateClient.remove(path);
+            await this.privateClient.remove(path);
           }
 
           // Label Categories

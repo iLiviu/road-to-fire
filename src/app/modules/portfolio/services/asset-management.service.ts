@@ -1025,6 +1025,9 @@ export class AssetManagementService {
     }
 
 
+    const allAccounts = await this.portfolioService.getAccounts(true);
+    const existingAssets = allAccounts.reduce((acc, accnt) => acc.concat(accnt.assets), []);
+
     const data: AssetTradeUserInputData = {
       account: account,
       assetType: assetType,
@@ -1032,6 +1035,7 @@ export class AssetManagementService {
       asset: asset,
       allLabels: await this.portfolioService.getLabels(),
       allLabelCategories: await this.portfolioService.getLabelCategories(),
+      existingAssets: existingAssets
     };
     const response: AssetOperationData = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
     if (response) {
@@ -1081,6 +1085,9 @@ export class AssetManagementService {
    * @param account account that holds the asset to edit
    */
   async editTradeableAsset(position: TradePosition, asset: TradeableAsset, account: PortfolioAccount) {
+    const allAccounts = await this.portfolioService.getAccounts(true);
+    const existingAssets = allAccounts.reduce((acc, accnt) => acc.concat(accnt.assets), []);
+
     const data: AssetTradeUserInputData = {
       account: account,
       asset: asset,
@@ -1089,6 +1096,7 @@ export class AssetManagementService {
       position: position,
       allLabels: await this.portfolioService.getLabels(),
       allLabelCategories: await this.portfolioService.getLabelCategories(),
+      existingAssets: existingAssets
     };
     const response: AssetOperationData = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
     if (response) {
@@ -1143,6 +1151,9 @@ export class AssetManagementService {
       }
     }
 
+    const allAccounts = await this.portfolioService.getAccounts(true);
+    const existingAssets = allAccounts.reduce((acc, accnt) => acc.concat(accnt.assets), []);
+
     const data: AssetTradeUserInputData = {
       account: account,
       assetType: asset.type,
@@ -1151,6 +1162,7 @@ export class AssetManagementService {
       position: position,
       allLabels: await this.portfolioService.getLabels(),
       allLabelCategories: await this.portfolioService.getLabelCategories(),
+      existingAssets: existingAssets
     };
     const response: AssetOperationData = await this.dialogsService.showAdaptableScreenModal(AssetTradeComponent, data);
     if (response) {

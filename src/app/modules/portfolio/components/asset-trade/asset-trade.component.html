@@ -19,9 +19,9 @@
             <mat-form-field *ngIf="exchangeTradedAsset && !tradeExistingAsset">
               <input matInput type="text" placeholder="Symbol (Ticker)" formControlName="symbol"
                 [matAutocomplete]="assetSymbol">
-              <mat-autocomplete #assetSymbol="matAutocomplete">
+              <mat-autocomplete #assetSymbol="matAutocomplete" (optionSelected)="symbolOptionChanged(symbol.value)">
                 <mat-option *ngFor="let symbol of filteredSuggestedSymbols | async" [value]="symbol.code">
-                  {{symbol.code}} - {{symbol.name}}
+                  {{symbol.name !== symbol.code ? symbol.name + ' (' + symbol.code + ')' : symbol.code}}
                 </mat-option>
               </mat-autocomplete>
             </mat-form-field>
