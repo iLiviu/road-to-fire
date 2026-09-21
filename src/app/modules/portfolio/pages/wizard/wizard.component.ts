@@ -12,6 +12,7 @@ import { PortfolioConfig, Goal } from '../../models/portfolio-config';
 import { EventsService } from 'src/app/core/services/events.service';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
 import { LocaleIDs } from 'src/app/core/services/locale-service';
+import { AuthService } from 'src/app/core/services/auth.service';
 
 const valueMatchesControlValidator = (secondCtrl: UntypedFormControl) => {
   return (control: UntypedFormControl): ValidationErrors | null => {
@@ -55,7 +56,8 @@ export class WizardComponent implements OnInit {
 
   constructor(private storageService: StorageService, private configService: ConfigService,
     private portfolioService: PortfolioService, private logger: LoggerService, private router: Router,
-    private route: ActivatedRoute, private eventsService: EventsService, private dialogService: DialogsService) {
+    private route: ActivatedRoute, private eventsService: EventsService, private dialogService: DialogsService,
+    private authService: AuthService) {
 
   }
 
@@ -134,6 +136,7 @@ export class WizardComponent implements OnInit {
         // encryption mode has changed, we need to rewrite all data
         const dialogRef = this.dialogService.loadingScreen('Encrypting storage. Please wait...');
         await this.storageService.toggleEncryption(true, this.configPassword.value);
+        this.authService.storePassword(this.configPassword.value, false);
         this.eventsService.encryptionToggled(true);
         dialogRef.close();
       }

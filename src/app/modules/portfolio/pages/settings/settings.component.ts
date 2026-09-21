@@ -121,6 +121,20 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
         });
       }
 
+      const enableEncryption = this.passwordProtect.value;
+      if (this.encryptionEnabled !== enableEncryption) {
+        // encryption mode has changed, we need to rewrite all data
+        const dialogRef = this.dialogService.loadingScreen((enableEncryption ? 'Encrypting' : 'Decrypting') + ' storage. Please wait...');
+        await this.storageService.toggleEncryption(this.passwordProtect.value, this.configPassword.value);
+        if (enableEncryption) {
+          this.authService.storePassword(this.configPassword.value, false);
+        } else {
+          this.authService.clearAuthStorageData();
+        }
+        this.eventsService.encryptionToggled(enableEncryption);
+        dialogRef.close();
+      }
+
       if (this.enable2FA.value) {
         if (!this.authService.is2FAEnabled()) {
           const enabled = await this.authService.enable2FA();
@@ -140,14 +154,6 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
       }
       this.appConfig.dateAndCurrencyFormat = this.dateAndCurrencyFormat.value;
       this.appConfig.saveOnCloud = this.saveOnCloud.value;
-      const enableEncryption = this.passwordProtect.value;
-      if (this.encryptionEnabled !== enableEncryption) {
-        // encryption mode has changed, we need to rewrite all data
-        const dialogRef = this.dialogService.loadingScreen((enableEncryption ? 'Encrypting' : 'Decrypting') + ' storage. Please wait...');
-        await this.storageService.toggleEncryption(this.passwordProtect.value, this.configPassword.value);
-        this.eventsService.encryptionToggled(enableEncryption);
-        dialogRef.close();
-      }
 
       await this.portfolioService.saveConfig(this.portfolioConfig);
       await this.configService.saveConfig(this.appConfig);

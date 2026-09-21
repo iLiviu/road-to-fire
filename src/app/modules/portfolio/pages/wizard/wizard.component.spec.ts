@@ -35,6 +35,8 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { WizardComponent } from './wizard.component';
 import { ConfigService } from 'src/app/core/services/config.service';
 import { MockConfigService } from 'src/app/core/mocks/config.service.mock';
+import { AuthService } from 'src/app/core/services/auth.service';
+import { MockAuthService } from 'src/app/core/mocks/auth.service.mock';
 import { CurrencySymbolPipe } from 'src/app/shared/pipes/currency-symbol.pipe';
 
 describe('WizardComponent', () => {
@@ -77,6 +79,7 @@ describe('WizardComponent', () => {
         { provide: DialogsService, useClass: MockDialogsService },
         { provide: StorageService, useClass: MockStorageService },
         { provide: ConfigService, useClass: MockConfigService },
+        { provide: AuthService, useClass: MockAuthService },
         //        { provide: AssetManagementService, useClass: MockAssetManagementService },
         EventsService,
       ],

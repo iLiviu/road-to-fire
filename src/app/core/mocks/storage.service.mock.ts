@@ -1,6 +1,7 @@
 export class MockStorageService {
 
   encryptionEnabled = false;
+  correctPassword = 'test-password';
 
   waitForSync() {
     return Promise.resolve();
@@ -8,6 +9,10 @@ export class MockStorageService {
 
   isEncryptionEnabled(): boolean {
     return this.encryptionEnabled;
+  }
+
+  verifyPassword(password: string): Promise<boolean> {
+    return Promise.resolve(!this.encryptionEnabled || password === this.correctPassword);
   }
 
 }
