@@ -209,7 +209,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
    */
   async twoFAChanged() {
     if (this.enable2FA.value) {
-      const confirm = await this.dialogService.confirm(`Enabling biometric authentication requires storing password on this device.\n` +
+      const confirm = await this.dialogService.confirm(`Enabling biometric authentication requires storing the password on this device.\n` +
         `Do you want to continue?`);
       if (!confirm) {
         this.enable2FA.setValue(false);
@@ -242,7 +242,7 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
    */
   async importAppDataFromFile(fileInput: any) {
     const response = await this.dialogService.confirm('Importing data will overwrite your current app configuration and portfolio data.\n' +
-      'Are you sure you want continue?');
+      'Are you sure you want to continue?');
     if (response) {
       const reader = new FileReader();
       const dialogRef = this.dialogService.loadingScreen('Importing data, please wait...');

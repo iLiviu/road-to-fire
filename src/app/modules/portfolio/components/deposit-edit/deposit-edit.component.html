@@ -39,7 +39,7 @@
         <mat-error>Maturity date can't be in the past</mat-error>
       </mat-form-field>
 
-      <mat-checkbox formControlName="withholdInterestTax">Withold interest tax</mat-checkbox>
+      <mat-checkbox formControlName="withholdInterestTax">Withhold interest tax</mat-checkbox>
       <mat-form-field *ngIf="withholdInterestTax.value">
         <input matInput type="number" placeholder="Tax rate" formControlName="interestTaxRate">
         <span matSuffix>%</span>
@@ -50,7 +50,7 @@
       <mat-checkbox *ngIf="autoRenewDeposit.checked" formControlName="capitalize">Capitalize interest</mat-checkbox>
 
       <mat-checkbox *ngIf="!data.asset.id" formControlName="debitAccount" (change)="debitAccountToggled()">Automatically
-        debit cash account with {{depositAmount.value | currency:selectedCashAsset.currency}}</mat-checkbox>
+        debit the cash account with {{depositAmount.value | currency:selectedCashAsset.currency}}</mat-checkbox>
     </div>
   </app-edit-dialog>
 </form>

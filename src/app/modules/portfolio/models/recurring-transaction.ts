@@ -20,7 +20,7 @@ export enum RecurringTransactionType {
 export const RECURRING_TRANSACTION_TYPE_LABELS = {
   [RecurringTransactionType.Daily]: 'Daily',
   [RecurringTransactionType.Weekly]: 'Weekly',
-  [RecurringTransactionType.BiWeekly]: 'BiWeekly',
+  [RecurringTransactionType.BiWeekly]: 'Bi-weekly',
   [RecurringTransactionType.Monthly]: 'Monthly',
   [RecurringTransactionType.BiMonthly]: 'Every 2 months',
   [RecurringTransactionType.Quarterly]: 'Quarterly',

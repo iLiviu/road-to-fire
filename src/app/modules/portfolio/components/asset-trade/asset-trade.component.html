@@ -55,7 +55,7 @@
             <mat-form-field *ngIf="hasAmount">
               <input matInput type="number" placeholder="Amount" formControlName="amount" required>
               <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
-              <mat-error *ngIf="amount.errors?.max">Amount can not exceed {{data.position.amount}}</mat-error>
+              <mat-error *ngIf="amount.errors?.max">Amount cannot exceed {{data.position.amount}}</mat-error>
               <mat-error *ngIf="amount.errors?.invalidTransaction">Transaction value exceeds cash balance
                 ({{cashAsset.value?.amount | currency: assetCurrency}})</mat-error>
             </mat-form-field>
@@ -181,7 +181,7 @@
 
             <mat-checkbox *ngIf="data.action !== AssetTradeAction.EDIT && data.assetType !== AssetType.Forex"
               formControlName="updateCashAssetBalance" (change)="updateCashAssetBalanceToggled()">
-              Automatically {{data.action === AssetTradeAction.BUY? 'debit':'credit'}} cash account with
+              Automatically {{data.action === AssetTradeAction.BUY? 'debit':'credit'}} the cash account with
               {{(amount.value *
               price.value + fee.value * (data.action === AssetTradeAction.BUY? 1:-1) ) | currency: assetCurrency}}
             </mat-checkbox>
@@ -241,7 +241,7 @@
                 <mat-datepicker #previousInterestDatepicker></mat-datepicker>
               </mat-form-field>
 
-              <mat-checkbox formControlName="withholdInterestTax" class="bottom-margin">Withold interest tax
+              <mat-checkbox formControlName="withholdInterestTax" class="bottom-margin">Withhold interest tax
               </mat-checkbox>
               <mat-form-field *ngIf="withholdInterestTax.value">
                 <input matInput type="number" placeholder="Tax rate" formControlName="interestTaxRate">

@@ -116,7 +116,7 @@ export class ConfigService {
     } else {
       // throw error if config version is newer, to avoid any silent errors cased by different format
       if (cfg.version && cfg.version > CONFIG_VERSION) {
-        this.logger.error('Config was saved with a newer version of the app! Update app first!');
+        this.logger.error('Config was saved with a newer version of the app! Update the app first!');
         throw new UnsupportedConfigVersionError(`Unsupported config version: ${cfg.version}`);
       }
     }

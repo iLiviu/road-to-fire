@@ -41,7 +41,7 @@
       </mat-form-field>
 
       <mat-checkbox formControlName="updateCashAssetBalance" (change)="updateCashAssetBalanceToggled()">
-        Automatically debit cash account with {{(amount.value + fee.value ) | currency: data.asset.currency}}
+        Automatically debit the cash account with {{(amount.value + fee.value ) | currency: data.asset.currency}}
       </mat-checkbox>
 
       <mat-checkbox formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>

@@ -4,6 +4,7 @@
 * Add support for labeling assets
 * Autocomplete asset details using existing assets data.
 * Encrypt stored password when biometric authentication is enabled 
+* Fix spelling and grammar
 
 ### Bug fixes
 * If the same asset is present in multiple accounts, only display it once when manually updating quotes

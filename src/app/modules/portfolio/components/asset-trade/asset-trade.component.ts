@@ -294,24 +294,24 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
     if (saveData) {
       const totalPaymentsAmount = this.principalPaymentSchedule.reduce((acc, curValue) => acc + curValue.amount, 0);
       if (this.principalAmount.value && totalPaymentsAmount > this.principalAmount.value) {
-        this.dialogs.error('The sum of principal payments exceed the principal value!');
+        this.dialogs.error('The sum of principal payments exceeds the principal value!');
         return;
       }
       const interestPayment = this.interestPaymentSchedule.find(
         (payment) => DateUtils.compareDates(new Date(payment.paymentDate), new Date(this.maturityDate.value)) > 0);
       if (interestPayment) {
-        this.dialogs.error('At least 1 interest payment date is greater than maturity date!');
+        this.dialogs.error('At least 1 interest payment date is greater than the maturity date!');
         return;
       }
       if (this.interestPaymentSchedule.length > 0 && !this.previousInterestPaymentDate.value) {
-        this.dialogs.error('The date of previous interest payment is required in order to calculate days passed between payments, ' +
+        this.dialogs.error('The date of the previous interest payment is required in order to calculate days passed between payments, ' +
           'if interest payments are added!');
         return;
       }
       const principalPayment = this.principalPaymentSchedule.find(
         (payment) => DateUtils.compareDates(new Date(payment.date), new Date(this.maturityDate.value)) > 0);
       if (principalPayment) {
-        this.dialogs.error('At least 1 principal payment date is greater than maturity date!');
+        this.dialogs.error('At least 1 principal payment date is greater than the maturity date!');
         return;
       }
 
@@ -450,7 +450,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async addInterestPayment() {
     if (!this.maturityDate.value) {
-      this.dialogs.error('Please set bond maturity date first!');
+      this.dialogs.error('Please set the bond maturity date first!');
       return;
     }
 
@@ -480,7 +480,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async addPrincipalPayment() {
     if (!this.maturityDate.value) {
-      this.dialogs.error('Please set bond maturity date first!');
+      this.dialogs.error('Please set the bond maturity date first!');
       return;
     }
 

@@ -427,7 +427,7 @@ export class AssetManagementService {
       .reduce((acc, currAsset) => acc + (currAsset.type === AssetType.Cash && currAsset.currency !== asset.currency ? 1 : 0), 0);
     if (cashAssetsCount === 0) {
       const createCashAsset = await this.dialogsService.confirm(`There are no cash accounts in a different currency ` +
-        `than ${asset.currency} available to exchange funds to!\nWould you like to create one now?.`);
+        `than ${asset.currency} available to exchange funds to!\nWould you like to create one now?`);
       if (createCashAsset) {
         const cashAsset = await this.addCashAsset(account);
         if (!cashAsset || cashAsset.currency === asset.currency) { // account of same currency was created
@@ -725,7 +725,7 @@ export class AssetManagementService {
   async addDeposit(account: PortfolioAccount) {
     const cashAssetsCount = account.assets.reduce((acc, asset) => acc + (asset.type === AssetType.Cash ? 1 : 0), 0);
     if (cashAssetsCount === 0) {
-      await this.dialogsService.error('There are no cash accounts available as source for the deposit!\nPlease add one first.');
+      await this.dialogsService.error('There are no cash accounts available as a source for the deposit!\nPlease add one first.');
     } else {
       const depositData: DepositAssetData = {
         currency: null,
@@ -1013,7 +1013,7 @@ export class AssetManagementService {
     const cashAssetsCount = account.assets.reduce((acc, curAsset) => acc + (curAsset.type === AssetType.Cash ? 1 : 0), 0);
     if (cashAssetsCount === 0) {
       const createCashAsset = await this.dialogsService.confirm(`There are no cash accounts available to debit for purchase!\n` +
-        `Would you like to create one now?.`);
+        `Would you like to create one now?`);
       if (createCashAsset) {
         const cashAsset = await this.addCashAsset(account);
         if (!cashAsset) { // account not created
@@ -1140,7 +1140,7 @@ export class AssetManagementService {
       .reduce((acc, currAsset) => acc + ((currAsset.type === AssetType.Cash && currAsset.currency === asset.currency) ? 1 : 0), 0);
     if (cashAssetsCount === 0) {
       const createCashAsset = await this.dialogsService.confirm(`There are no ${asset.currency} cash accounts available to credit` +
-        ` after sell!\nWould you like to create one now?.`);
+        ` after the sale!\nWould you like to create one now?`);
       if (createCashAsset) {
         const cashAsset = await this.addCashAsset(account, asset.currency);
         if (!cashAsset || cashAsset.currency !== asset.currency) { // account in required currency not created
@@ -1586,7 +1586,7 @@ export class AssetManagementService {
    * @param account account that holds the affected asset
    */
   async mergeAssetPositions(asset: TradeableAsset, account: PortfolioAccount) {
-    const response = await this.dialogsService.confirm(`Are you sure you want to merge all positions into one? The action can't be undone`);
+    const response = await this.dialogsService.confirm(`Are you sure you want to merge all positions into one? The action can't be undone.`);
     if (response) {
       try {
         await this.mergePositions(asset, account);
@@ -1704,7 +1704,7 @@ export class AssetManagementService {
                 tradeData.assetType = existingAsset.type;
                 tradeData.description = existingAsset.description;
               } else if (tradeData.assetType === AssetType.Bond) {
-                throw new Error(`Can't import ${tradeData.symbol} buy transaction. Bond asset must already exist in account!`);
+                throw new Error(`Can't import ${tradeData.symbol} buy transaction. The bond asset must already exist in the account!`);
               }
               const newAsset = await this.buy(account, tradeData);
               await this.addBuyTransaction(account, newAsset, tradeData);

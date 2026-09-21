@@ -8,7 +8,7 @@
       <mat-option [value]="RecurringTransactionType.BiMonthly">Every 2 months</mat-option>
       <mat-option [value]="RecurringTransactionType.Quarterly">Quarterly</mat-option>
       <mat-option [value]="RecurringTransactionType.TriAnnual">Tri-annual</mat-option>
-      <mat-option [value]="RecurringTransactionType.SemiAnnual">Semi-annal</mat-option>
+      <mat-option [value]="RecurringTransactionType.SemiAnnual">Semi-annual</mat-option>
       <mat-option [value]="RecurringTransactionType.Yearly">Yearly</mat-option>
       <mat-option [value]="RecurringTransactionType.AfterGivenDays">In (x) days</mat-option>
       <mat-option [value]="RecurringTransactionType.EveryGivenDays">Every (x) days</mat-option>
@@ -16,7 +16,8 @@
     </mat-select>
   </mat-form-field>
 
-  <mat-form-field *ngIf="recurringType.value >= RecurringTransactionType.AfterGivenDays && recurringType.value <= RecurringTransactionType.EveryGivenMonths">
+  <mat-form-field
+    *ngIf="recurringType.value >= RecurringTransactionType.AfterGivenDays && recurringType.value <= RecurringTransactionType.EveryGivenMonths">
     <input matInput type="number" placeholder="Period" formControlName="recurringPeriod" required>
   </mat-form-field>
 
@@ -26,7 +27,8 @@
   </mat-form-field>
 
 
-  <mat-checkbox formControlName="autoApproveRecurring" matTooltip="The transaction will occur without user having to approve it">
+  <mat-checkbox formControlName="autoApproveRecurring"
+    matTooltip="The transaction will occur without the user having to approve it">
     Execute recurring transaction automatically
   </mat-checkbox>
 

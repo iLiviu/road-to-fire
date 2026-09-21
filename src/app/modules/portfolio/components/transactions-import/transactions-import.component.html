@@ -28,7 +28,7 @@
             transaction date, amount traded, asset symbol/description and price per unit or total transaction value.
           </p>
           <p class="warning-box">
-            Warning: If there is a buy transaction, and the asset doesn't already exist in account, the new asset will
+            Warning: If there is a buy transaction, and the asset doesn't already exist in the account, the new asset will
             be considered to be a stock!
           </p>
           <div fxLayoutAlign="center center" fxFlex>
@@ -137,7 +137,7 @@
 
           <div fxLayoutAlign="start center">
             <mat-checkbox formControlName="updateCashAssetBalance"
-              matTooltip="Debits/Credits the appropriate transaction value from/to the selected cash account balance. If the starting balance is not setup correctly, the import may fail to complete successfully!">
+              matTooltip="Debits/Credits the appropriate transaction value from/to the selected cash account balance. If the starting balance is not set up correctly, the import may fail to complete successfully!">
               Update cash balance
             </mat-checkbox>
           </div>
@@ -178,7 +178,7 @@
           </table>
           <div *ngIf="!parseComplete" class="warning-box">
             Could not parse CSV file!<br />
-            Please make sure that you selected a valid CSV file and that the correct CSV field separator si selected!
+            Please make sure that you selected a valid CSV file and that the correct CSV field separator is selected!
           </div>
         </div>
       </form>

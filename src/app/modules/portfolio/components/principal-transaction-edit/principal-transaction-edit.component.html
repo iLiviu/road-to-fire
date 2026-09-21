@@ -14,7 +14,7 @@
         <input matInput type="number" placeholder="Principal payment per unit" formControlName="principalPayment" required>
         <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
         <mat-error>
-          Amount must be between than 0 and {{data.asset.principalAmount}}
+          Amount must be between 0 and {{data.asset.principalAmount}}
         </mat-error>
         <mat-error *ngIf="principalPayment.errors?.min">Amount must be greater than 0</mat-error>
       </mat-form-field>
@@ -26,7 +26,7 @@
       </mat-form-field>
 
       <mat-checkbox formControlName="updateCashAssetBalance">
-        Automatically credit cash account
+        Automatically credit the cash account
       </mat-checkbox>
 
       <mat-form-field>

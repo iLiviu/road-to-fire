@@ -346,7 +346,7 @@
           <mat-card-title>Rebalancing</mat-card-title>
           <mat-card-content>
             <p *ngIf="!rebalancingSetup" class="negative">
-              You need to configure your desired portfolio allocation first! (see Settings page)
+              You need to configure your desired portfolio allocation first! (see the Settings page)
             </p>
 
             <p class="positive" *ngIf="rebalancingSetup && (rebalancingSteps.length === 0)">No rebalancing needed!</p>
@@ -371,7 +371,7 @@
               </span>
 
               <span *ngIf="debtToAcquire === 0">
-                Your debt to value ratio is spot on!
+                Your debt-to-value ratio is spot on!
               </span>
             </ng-container>
           </mat-card-content>
