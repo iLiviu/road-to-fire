@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import * as CryptoJS from 'crypto-js';
 
-import { AuthService } from './auth.service';
+import { AuthService, CONFIG_2FA_VERSION } from './auth.service';
 import { StorageService } from './storage.service';
 import { MockStorageService } from '../mocks/storage.service.mock';
 import { EventsService } from './events.service';
@@ -158,6 +158,7 @@ describe('AuthService', () => {
       const credStr = localStorage.getItem(CONFIG_2FA_CREDENTIAL);
       expect(credStr).toBeTruthy();
       const cred = JSON.parse(credStr);
+      expect(cred.version).toBe(CONFIG_2FA_VERSION);
       expect(cred.encryptedPassword).toBeTruthy();
       expect(cred.encryptedPassword).not.toBe('secure-pass');
     });
@@ -271,6 +272,7 @@ describe('AuthService', () => {
     it('should clear corrupted 2FA credential if biometric succeeds but decryption fails', async () => {
       // Put a corrupted/undecryptable credential into localStorage
       const corruptedCred = {
+        version: CONFIG_2FA_VERSION,
         type: 'public-key',
         id: 'AQID',
         salt: 'AQID',
@@ -286,6 +288,67 @@ describe('AuthService', () => {
 
       const authed = await service.isAuthenticated();
       expect(authed).toBeFalse();
+      expect(localStorage.getItem(CONFIG_2FA_CREDENTIAL)).toBeNull();
+    });
+
+    it('should remove stored 2FA credential and restart login process when 2FA credential has no version', async () => {
+      const legacyCredWithoutVersion = {
+        type: 'public-key',
+        id: 'AQID',
+        salt: 'AQID',
+        encryptedPassword: 'ciphertext',
+      };
+      localStorage.setItem(CONFIG_2FA_CREDENTIAL, JSON.stringify(legacyCredWithoutVersion));
+
+      const authed = await service.isAuthenticated();
+      expect(authed).toBeFalse();
+      expect(localStorage.getItem(CONFIG_2FA_CREDENTIAL)).toBeNull();
+      expect(service.is2FAEnabled()).toBeFalse();
+    });
+
+    it('should remove stored 2FA credential and restart login process when 2FA credential has mismatched version', async () => {
+      const mismatchedVersionCred = {
+        version: CONFIG_2FA_VERSION + 1,
+        type: 'public-key',
+        id: 'AQID',
+        salt: 'AQID',
+        encryptedPassword: 'ciphertext',
+      };
+      localStorage.setItem(CONFIG_2FA_CREDENTIAL, JSON.stringify(mismatchedVersionCred));
+
+      const authed = await service.isAuthenticated();
+      expect(authed).toBeFalse();
+      expect(localStorage.getItem(CONFIG_2FA_CREDENTIAL)).toBeNull();
+      expect(service.is2FAEnabled()).toBeFalse();
+    });
+
+    it('should remove stored 2FA credential and restart login process when 2FA credential JSON is invalid', async () => {
+      localStorage.setItem(CONFIG_2FA_CREDENTIAL, 'invalid-json{');
+
+      const authed = await service.isAuthenticated();
+      expect(authed).toBeFalse();
+      expect(localStorage.getItem(CONFIG_2FA_CREDENTIAL)).toBeNull();
+      expect(service.is2FAEnabled()).toBeFalse();
+    });
+
+    it('should fallback to stored password when 2FA credential version is invalid and resume login', async () => {
+      mockStorageService.encryptionEnabled = true;
+      mockStorageService.correctPassword = 'plain-pass';
+      localStorage.setItem(CONFIG_PASSWORD_KEY, 'plain-pass');
+
+      const mismatchedVersionCred = {
+        version: 99,
+        type: 'public-key',
+        id: 'AQID',
+        salt: 'AQID',
+        encryptedPassword: 'ciphertext',
+      };
+      localStorage.setItem(CONFIG_2FA_CREDENTIAL, JSON.stringify(mismatchedVersionCred));
+
+      const authed = await service.isAuthenticated();
+      expect(authed).toBeTrue();
+      expect(service.isLoggedIn()).toBeTrue();
+      expect(service.getStoredPassword()).toBe('plain-pass');
       expect(localStorage.getItem(CONFIG_2FA_CREDENTIAL)).toBeNull();
     });
   });

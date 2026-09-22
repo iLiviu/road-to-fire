@@ -7,6 +7,7 @@ import { APP_CONSTS } from 'src/app/config/app.constants';
 import { LoggerService } from './logger.service';
 
 interface LocalStored2FACredential {
+  version: number;
   id: string;
   type: 'public-key';
   transports?: Array<'usb' | 'nfc' | 'ble' | 'internal'>;
@@ -20,6 +21,7 @@ interface LocalStored2FACredential {
 
 const CONFIG_PASSWORD_KEY = 'roadtofire:config_password';
 const CONFIG_2FA_CREDENTIAL = 'roadtofire:config_2fa_cred';
+export const CONFIG_2FA_VERSION = 1;
 
 /**
  * Service that handles user authentication. If storage is encrypted, the user will be required to
@@ -114,7 +116,20 @@ export class AuthService {
       if (this.is2FAEnabled() && (await this.isWebAuthnAvailable())) {
         const storedCredential = this.getStored2FACredential();
         if (storedCredential) {
-          const passed2FA = await this.authenticate2FA(storedCredential);
+          let credential: LocalStored2FACredential | null = null;
+          try {
+            credential = JSON.parse(storedCredential);
+          } catch (e) {
+            credential = null;
+          }
+
+          if (!credential || credential.version !== CONFIG_2FA_VERSION) {
+            this.logger.warn('Stored 2FA credential version is invalid. Restarting login process.');
+            localStorage.removeItem(CONFIG_2FA_CREDENTIAL);
+            return this.isAuthenticated();
+          }
+
+          const passed2FA = await this.authenticate2FA(credential);
           if (!passed2FA) {
             return false;
           }
@@ -189,6 +204,8 @@ export class AuthService {
       this.logger.error('Cannot enable 2FA: No password available to encrypt');
       return false;
     }
+    // Delete any old/existing 2FA credential before creating a new one
+    localStorage.removeItem(CONFIG_2FA_CREDENTIAL);
     const registered = await this.register2FA(pwd);
     if (registered) {
       localStorage.removeItem(CONFIG_PASSWORD_KEY);
@@ -272,6 +289,7 @@ export class AuthService {
         const wrappedMasterKeyWebAuthn = CryptoJS.AES.encrypt(masterKeyHex, webAuthnKey).toString();
 
         const credential: LocalStored2FACredential = {
+          version: CONFIG_2FA_VERSION,
           type: 'public-key',
           id: uint8ArrayToBase64(rawIdBytes),
           salt: uint8ArrayToBase64(salt),
@@ -330,11 +348,18 @@ export class AuthService {
 
   /**
    * Authenticate the user using WebAuthn and decrypt the stored password
-   * @param credentialStr JSON stringified credential descriptor
+   * @param credentialInput JSON stringified credential descriptor or credential object
    */
-  private async authenticate2FA(credentialStr: string): Promise<boolean> {
+  private async authenticate2FA(credentialInput: string | LocalStored2FACredential): Promise<boolean> {
     try {
-      const credential: LocalStored2FACredential = JSON.parse(credentialStr);
+      const credential: LocalStored2FACredential = typeof credentialInput === 'string'
+        ? JSON.parse(credentialInput)
+        : credentialInput;
+      if (!credential || credential.version !== CONFIG_2FA_VERSION) {
+        this.logger.warn('Stored 2FA credential version is invalid or missing.');
+        localStorage.removeItem(CONFIG_2FA_CREDENTIAL);
+        return false;
+      }
       const salt = base64ToUint8Array(credential.salt);
       const credentialIdBytes = base64ToUint8Array(credential.id);
       const publicKey: PublicKeyCredentialRequestOptions = {
@@ -369,7 +394,7 @@ export class AuthService {
           const prfHex = uint8ArrayToHex(new Uint8Array(prfKey));
           const bytes = CryptoJS.AES.decrypt(credential.wrappedMasterKeyPrf, prfHex);
           masterKeyHex = bytes.toString(CryptoJS.enc.Utf8);
-        } catch (e) {}
+        } catch (e) { }
       }
 
       // 2. Try WebAuthn unwrap if masterKeyHex not yet recovered
@@ -378,7 +403,7 @@ export class AuthService {
           const webAuthnKey = this.getWebAuthnKey(salt, credentialIdBytes);
           const bytes = CryptoJS.AES.decrypt(credential.wrappedMasterKeyWebAuthn, webAuthnKey);
           masterKeyHex = bytes.toString(CryptoJS.enc.Utf8);
-        } catch (e) {}
+        } catch (e) { }
       }
 
       let decryptedPassword = '';
@@ -386,7 +411,7 @@ export class AuthService {
         try {
           const bytes = CryptoJS.AES.decrypt(credential.encryptedPassword, masterKeyHex);
           decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
-        } catch (e) {}
+        } catch (e) { }
       }
 
       // 3. Fallback for legacy credential formats
@@ -394,7 +419,7 @@ export class AuthService {
         if (prfKey) {
           try {
             decryptedPassword = this.decryptPassword(credential.encryptedPassword, new Uint8Array(prfKey));
-          } catch (e) {}
+          } catch (e) { }
         }
         if (!decryptedPassword && credential.wrappedKey) {
           try {
@@ -402,7 +427,7 @@ export class AuthService {
             const derivedKeyHex = this.generateDerivedKey(backupKey, salt, credentialIdBytes);
             const bytes = CryptoJS.AES.decrypt(credential.encryptedPassword, derivedKeyHex);
             decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
-          } catch (e) {}
+          } catch (e) { }
         }
       }
 
