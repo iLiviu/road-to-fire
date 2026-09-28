@@ -11,7 +11,9 @@ import {
   LABEL_CATEGORIES_PATH,
   LABEL_CATEGORY_ALIAS,
   LABELS_PATH,
-  LABEL_ALIAS
+  LABEL_ALIAS,
+  ASSET_CURRENT_PRICES_PATH,
+  ASSET_CURRENT_PRICES_ALIAS
 } from './portfolio-storage.service';
 import { PortfolioStorage } from '../models/portfolio-storage';
 import { BaseRemoteStorageModule, RSModuleObjectType } from 'src/app/core/models/remotestorage-module';
@@ -32,6 +34,7 @@ import { PortfolioHistory } from '../models/portfolio-history';
 import { TransactionsImportTemplate } from '../models/transactions-import-template';
 import { LabelCategory, LabelCategoryData } from '../models/label-category';
 import { Label, LabelData } from '../models/label';
+import { AssetCurrentPrices } from '../models/asset-current-prices';
 
 const RSMODULE_NAME = 'asset-portfolio';
 
@@ -82,6 +85,18 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
                 }
               },
             },
+          },
+        },
+      });
+
+      privateClient.declareType(ASSET_CURRENT_PRICES_ALIAS, {
+        'type': 'object',
+        'properties': {
+          'encryptedData': {
+            'type': 'string'
+          },
+          'prices': {
+            'type': 'object',
           },
         },
       });
@@ -671,6 +686,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
                 this._labelIds = null;
                 this._assets = null;
               }
+              // ASSET_CURRENT_PRICES_PATH is a single file; no local cache to invalidate
             }
           }
 
@@ -1023,6 +1039,14 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
             return this.storeObject(FOREXRATES_ALIAS, FOREXRATES_PATH, quotes);
           }
 
+          getAssetCurrentPrices(): Promise<AssetCurrentPrices> {
+            return this.getObject(ASSET_CURRENT_PRICES_PATH);
+          }
+
+          storeAssetCurrentPrices(prices: AssetCurrentPrices): Promise<void> {
+            return this.storeObject(ASSET_CURRENT_PRICES_ALIAS, ASSET_CURRENT_PRICES_PATH, prices);
+          }
+
           getPortfolioHistory(): Promise<PortfolioHistory> {
             return this.getObject(PORTFOLIO_HISTORY_PATH);
           }
@@ -1201,6 +1225,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
               { path: ACCOUNTS_PATH, alias: ACCOUNT_ALIAS, collectionType: true },
               { path: CONFIG_PATH, alias: CONFIG_ALIAS, collectionType: false },
               { path: FOREXRATES_PATH, alias: FOREXRATES_ALIAS, collectionType: false },
+              { path: ASSET_CURRENT_PRICES_PATH, alias: ASSET_CURRENT_PRICES_ALIAS, collectionType: false },
               { path: NOTIFICATIONS_PATH, alias: NOTIFICATION_ALIAS, collectionType: true },
               { path: PORTFOLIO_HISTORY_PATH, alias: PORTFOLIO_HISTORY_ALIAS, collectionType: false },
               { path: TX_IMPORT_TEMPLATES_PATH, alias: TX_IMPORT_TEMPLATE_ALIAS, collectionType: true },

@@ -439,6 +439,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       case AppEventType.LABEL_CATEGORY_ADDED:
       case AppEventType.LABEL_CATEGORY_REMOVED:
       case AppEventType.LABEL_CATEGORY_UPDATED:
+      case AppEventType.ASSET_PRICES_UPDATED:
         this.onDataUpdated();
         break;
       case AppEventType.THEME_CHANGED:

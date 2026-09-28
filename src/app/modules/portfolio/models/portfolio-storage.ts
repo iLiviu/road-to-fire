@@ -4,6 +4,7 @@ import { Asset } from './asset';
 import { Transaction } from './transaction';
 import { PortfolioConfig } from './portfolio-config';
 import { StoredQuotes } from './asset-quote';
+import { AssetCurrentPrices } from './asset-current-prices';
 import { AppNotification } from './notification';
 import { RecurringTransaction } from './recurring-transaction';
 import { PortfolioHistory } from './portfolio-history';
@@ -42,6 +43,8 @@ export interface PortfolioStorage extends StorageModule {
   saveConfig(cfg: PortfolioConfig): Promise<void>;
   getStoredForexRates(): Promise<StoredQuotes>;
   storeForexRates(quotes: StoredQuotes): Promise<void>;
+  getAssetCurrentPrices(): Promise<AssetCurrentPrices>;
+  storeAssetCurrentPrices(prices: AssetCurrentPrices): Promise<void>;
   getPortfolioHistory(): Promise<PortfolioHistory>;
   storePortfolioHistory(history: PortfolioHistory): Promise<void>;
   getTransactionsImportTemplates(): Promise<TransactionsImportTemplate[]>;

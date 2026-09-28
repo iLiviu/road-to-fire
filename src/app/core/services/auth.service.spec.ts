@@ -292,6 +292,8 @@ describe('AuthService', () => {
     });
 
     it('should remove stored 2FA credential and restart login process when 2FA credential has no version', async () => {
+      mockStorageService.encryptionEnabled = true;
+      mockStorageService.correctPassword = 'secure-pass';
       const legacyCredWithoutVersion = {
         type: 'public-key',
         id: 'AQID',
@@ -307,6 +309,8 @@ describe('AuthService', () => {
     });
 
     it('should remove stored 2FA credential and restart login process when 2FA credential has mismatched version', async () => {
+      mockStorageService.encryptionEnabled = true;
+      mockStorageService.correctPassword = 'secure-pass';
       const mismatchedVersionCred = {
         version: CONFIG_2FA_VERSION + 1,
         type: 'public-key',
@@ -323,6 +327,8 @@ describe('AuthService', () => {
     });
 
     it('should remove stored 2FA credential and restart login process when 2FA credential JSON is invalid', async () => {
+      mockStorageService.encryptionEnabled = true;
+      mockStorageService.correctPassword = 'secure-pass';
       localStorage.setItem(CONFIG_2FA_CREDENTIAL, 'invalid-json{');
 
       const authed = await service.isAuthenticated();

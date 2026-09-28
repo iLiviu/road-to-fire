@@ -4,10 +4,11 @@
 * Add support for labeling assets
 * Autocomplete asset details using existing assets data.
 * Encrypt stored password when biometric authentication is enabled 
-* Fix spelling and grammar
+* Faster cloud sync when asset prices are refreshed
 
 ### Bug fixes
 * If the same asset is present in multiple accounts, only display it once when manually updating quotes
+* Fix spelling and grammar
 
 ## 1.6.0
 

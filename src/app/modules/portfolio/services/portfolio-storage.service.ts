@@ -25,6 +25,8 @@ export const LABEL_CATEGORIES_PATH = 'label-categories/';
 export const LABEL_CATEGORY_ALIAS = 'label-category';
 export const LABELS_PATH = 'labels/';
 export const LABEL_ALIAS = 'label';
+export const ASSET_CURRENT_PRICES_PATH = 'asset_current_prices';
+export const ASSET_CURRENT_PRICES_ALIAS = 'asset-current-prices';
 
 @Injectable()
 export abstract class PortfolioStorageService {

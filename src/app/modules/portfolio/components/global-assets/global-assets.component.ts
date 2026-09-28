@@ -34,6 +34,7 @@ export class GlobalAssetsComponent extends AssetsComponent {
       case AppEventType.LABEL_CATEGORY_ADDED:
       case AppEventType.LABEL_CATEGORY_REMOVED:
       case AppEventType.LABEL_CATEGORY_UPDATED:
+      case AppEventType.ASSET_PRICES_UPDATED:
         this.onDataUpdated();
         break;
       default:

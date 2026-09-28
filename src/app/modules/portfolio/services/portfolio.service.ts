@@ -19,7 +19,9 @@ import {
   CONFIG_ALIAS,
   PORTFOLIO_HISTORY_ALIAS,
   LABEL_ALIAS,
-  LABEL_CATEGORY_ALIAS
+  LABEL_CATEGORY_ALIAS,
+  ASSET_CURRENT_PRICES_PATH,
+  ASSET_CURRENT_PRICES_ALIAS
 } from './portfolio-storage.service';
 import { AssetQuote, StoredAssetQuote } from '../models/asset-quote';
 import { APP_CONSTS } from 'src/app/config/app.constants';
@@ -39,6 +41,9 @@ import { TransactionFactory } from '../models/transaction-factory';
 import { TransactionsImportTemplate } from '../models/transactions-import-template';
 import { LabelCategory } from '../models/label-category';
 import { Label } from '../models/label';
+import { AssetCurrentPrices, AssetPriceEntry } from '../models/asset-current-prices';
+import { AccountAsset } from '../models/account-asset';
+import { debounce } from 'lodash-decorators';
 
 const PORTFOLIO_VERSION2 = 2;
 const PORTFOLIO_VERSION3 = 3;
@@ -77,6 +82,7 @@ export class PortfolioService {
   private recTxCache: RecurringTransaction[];
   private recTxMapCache: NumKeyDictionary<RecurringTransaction>;
   private portfolioHistoryCache: PortfolioHistory;
+  private assetCurrentPricesCache: AssetCurrentPrices;
 
   private labelCategoriesCache: LabelCategory[];
   private labelCategoriesMapCache: NumKeyDictionary<LabelCategory>;
@@ -152,6 +158,8 @@ export class PortfolioService {
         return this.accountsMapCache[id];
       } else {
         const acc = await this.storage.getAccount(id);
+        // Populate currentPrice/lastQuoteUpdate from the centralized prices file
+        this.applyCurrentPricesFromStore([acc]);
         return acc;
       }
     }
@@ -187,6 +195,8 @@ export class PortfolioService {
       this.accountsLoadingPromise = (async () => {
         try {
           const accounts = await this.storage.getAllAccounts(true);
+          // Populate currentPrice/lastQuoteUpdate from the centralized prices file
+          await this.applyCurrentPricesFromStore(accounts);
           this.buildAccountsCache(accounts);
           return accounts;
         } finally {
@@ -727,8 +737,9 @@ export class PortfolioService {
         if (promises.length > 0) {
           await Promise.all(promises);
 
-          // update all assets with current prices
+          // Update in-memory assets with current prices and collect into a single prices dictionary
           const timestamp = new Date().toISOString();
+          const newPrices: AssetCurrentPrices = { prices: {} };
           for (const account of accounts) {
             for (const asset of account.assets) {
               if (asset.isOfRelatedType(assetTypesMask)) {
@@ -755,11 +766,14 @@ export class PortfolioService {
                     tradeableAsset.currentPrice = quote.price;
                   }
                   tradeableAsset.lastQuoteUpdate = timestamp;
-                  this.updateAsset(asset, account);
+                  // Record in the centralized prices dictionary (keyed by asset id)
+                  newPrices.prices[asset.id] = { price: tradeableAsset.currentPrice, lastQuoteUpdate: timestamp };
                 }
               }
             }
           }
+          // Persist all updated prices as a single file (no per-asset writes needed)
+          await this.saveAssetCurrentPrices(newPrices);
         }
       } else if (allAssetsUpdated) {
         if (lowestUpdateTime && !silentUpdate) {
@@ -796,6 +810,133 @@ export class PortfolioService {
     }
   }
 
+
+  /**
+   * Persists manually-entered current prices for a set of assets into the centralized
+   * asset prices file. This avoids writing each asset file individually (which would
+   * trigger N cloud-sync HTTP requests) and instead writes a single file.
+   *
+   * The `currentPrice` values are expected to have already been set on the asset objects
+   * by the caller (i.e. via ManualQuoteComponent). This method also updates `lastQuoteUpdate`.
+   *
+   * @param accountAssets list of account/asset pairs whose prices were manually updated
+   */
+  async updateManualAssetCurrentPrices(accountAssets: AccountAsset[]): Promise<void> {
+    const timestamp = new Date().toISOString();
+    const newPrices: AssetCurrentPrices = { prices: {} };
+    for (const { asset } of accountAssets) {
+      if (asset.isTradeable()) {
+        const tradeableAsset = <TradeableAsset>asset;
+        if (tradeableAsset.currentPrice !== undefined && tradeableAsset.currentPrice !== null) {
+          tradeableAsset.lastQuoteUpdate = timestamp;
+          newPrices.prices[asset.id] = {
+            price: tradeableAsset.currentPrice,
+            lastQuoteUpdate: timestamp,
+          };
+        }
+      }
+    }
+    await this.saveAssetCurrentPrices(newPrices);
+  }
+
+
+  /**
+   * Retrieves the centralized asset current prices dictionary from the in-memory cache,
+   * fetching it from storage if not already cached.
+   *
+   * @return Promise that resolves with the asset current prices dictionary.
+   */
+  private async getAssetCurrentPrices(): Promise<AssetCurrentPrices> {
+    if (!this.assetCurrentPricesCache) {
+      this.assetCurrentPricesCache = await this.storage.getAssetCurrentPrices();
+    }
+    return this.assetCurrentPricesCache;
+  }
+
+  /**
+   * Applies current prices from the centralized prices file to all in-memory tradeable assets.
+   *
+   * Iterates through all accounts and updates each tradeable asset's `currentPrice` and
+   * `lastQuoteUpdate` only if the stored entry has a newer `lastQuoteUpdate` timestamp than the
+   * asset's current value, ensuring fresher in-memory quotes are not overwritten.
+   *
+   * Called during initial account loading (`getAccounts()`) to hydrate assets with the latest prices.
+   */
+  private async applyCurrentPricesFromStore(accounts: PortfolioAccount[]): Promise<void> {
+    const stored = await this.getAssetCurrentPrices();
+    if (!stored || !stored.prices) {
+      return;
+    }
+    for (const account of accounts) {
+      for (const asset of account.assets) {
+        if (asset.isTradeable()) {
+          const tradeableAsset = <TradeableAsset>asset;
+          const entry: AssetPriceEntry = stored.prices[asset.id];
+          if (entry &&
+            (!tradeableAsset.lastQuoteUpdate || (new Date(tradeableAsset.lastQuoteUpdate).getTime() < new Date(entry.lastQuoteUpdate).getTime()))) {
+            tradeableAsset.currentPrice = entry.price;
+            tradeableAsset.lastQuoteUpdate = entry.lastQuoteUpdate;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Persists the centralized asset current prices dictionary to storage.
+   * Uses a 500ms debounce so that multiple rapid calls (e.g. during a batch update)
+   * result in only a single write.
+   *
+   * When a partial `prices` object is supplied (i.e. only the assets that were just
+   * updated), the method reads the existing stored prices first and merges the new
+   * entries on top, so assets that were not updated in this batch retain their prices.
+   *
+   * When no `prices` argument is supplied, the full set of in-memory asset prices is
+   * used directly (already a complete picture), so no merge is needed.
+   *
+   * @param prices the prices object to merge and store, or null to rebuild from in-memory assets
+   */
+  @debounce(500)
+  private async saveAssetCurrentPrices(prices?: AssetCurrentPrices): Promise<void> {
+    try {
+      let pricesToStore: AssetCurrentPrices;
+      if (prices) {
+        // Load existing stored prices and merge the updated entries on top,
+        // so assets not included in this update batch keep their previous prices.
+        const existing = await this.storage.getAssetCurrentPrices();
+        pricesToStore = {
+          prices: {
+            ...(existing && existing.prices ? existing.prices : {}),
+            ...prices.prices,
+          },
+        };
+      } else {
+        // Rebuild the full picture from in-memory assets (complete, no merge needed)
+        pricesToStore = { prices: {} };
+        let accounts = await this.getAccounts();
+        if (this.accountsCache) {
+          for (const account of accounts) {
+            for (const asset of account.assets) {
+              if (asset.isTradeable()) {
+                const tradeableAsset = <TradeableAsset>asset;
+                if (tradeableAsset.currentPrice !== undefined && tradeableAsset.currentPrice !== null) {
+                  pricesToStore.prices[asset.id] = {
+                    price: tradeableAsset.currentPrice,
+                    lastQuoteUpdate: tradeableAsset.lastQuoteUpdate,
+                  };
+                }
+              }
+            }
+          }
+        }
+      }
+      await this.storage.storeAssetCurrentPrices(pricesToStore);
+      this.assetCurrentPricesCache = pricesToStore;
+      this.eventsService.assetPricesUpdated();
+    } catch (err) {
+      this.logger.error('Could not save asset current prices', err);
+    }
+  }
 
   /**
    * Get locally cached forex rates, if available
@@ -1188,6 +1329,11 @@ export class PortfolioService {
     this.invalidateLabelsCache();
   }
 
+  private invalidateAssetCurrentPricesCache() {
+    this.assetCurrentPricesCache = null;
+    this.invalidateAccountsCache();
+  }
+
   /**
    * Listen for events and handle the ones specific to accounts, notifications, transactions and recurring
    * transactions. Used to clear the in-memory cache.
@@ -1220,6 +1366,8 @@ export class PortfolioService {
       return LABEL_ALIAS;
     } else if (event.relativePath.startsWith(LABEL_CATEGORIES_PATH)) {
       return LABEL_CATEGORY_ALIAS;
+    } else if (event.relativePath === ASSET_CURRENT_PRICES_PATH) {
+      return ASSET_CURRENT_PRICES_ALIAS;
     }
     return null;
   }
@@ -1342,8 +1490,14 @@ export class PortfolioService {
             } else {
               self.eventsService.labelCategoryUpdated(newLabelCategory.id);
             }
+          } else if (objectAlias === ASSET_CURRENT_PRICES_ALIAS) {
+            // The centralized prices file changed remotely: 
+            // fire a single assetPricesUpdated event so the UI refreshes.
+            self.invalidateAssetCurrentPricesCache();
+            // delay notifications until sync is complete
+            await self.storageService.waitForSync();
+            self.eventsService.assetPricesUpdated();
           }
-
         }
       }
     });

@@ -57,7 +57,7 @@ export class RefreshQuotesButtonComponent implements OnInit, OnDestroy {
         this.rotateButton();
         this.cdr.markForCheck();
         break;
-      case AppEventType.QUOTES_UPDATED:
+      case AppEventType.QUOTES_UPDATE_FINISHED:
         this.resetRotation();
         this.assetPricesUpdating = false;
         this.cdr.markForCheck();
@@ -108,13 +108,7 @@ export class RefreshQuotesButtonComponent implements OnInit, OnDestroy {
 
     const quotesUpdated = await this.dialogService.showModal(ManualQuoteComponent, assets);
     if (quotesUpdated) {
-      const promises = [];
-      for (let i = 0; i < assets.length; i++) {
-        const accountAsset = assets[i];
-        const promise = this.portfolioService.updateAsset(accountAsset.asset, accountAsset.account);
-        promises.push(promise);
-      }
-      await Promise.all(promises);
+      await this.portfolioService.updateManualAssetCurrentPrices(assets);
 
       this.logger.info('Quotes updated manually!');
     }

@@ -25,7 +25,7 @@ export enum AppEventType {
   NOTIFICATION_REMOVED,
   STORAGE_WIPED,
   QUOTES_UPDATE_STARTED,
-  QUOTES_UPDATED,
+  QUOTES_UPDATE_FINISHED,
   PORTFOLIO_MODULE_LOADED,
   MENU_UPDATED,
   OFFLINE_MODE_TOGGLED,
@@ -39,6 +39,7 @@ export enum AppEventType {
   LABEL_CATEGORY_ADDED,
   LABEL_CATEGORY_REMOVED,
   LABEL_CATEGORY_UPDATED,
+  ASSET_PRICES_UPDATED,
 }
 
 export interface ConfigLoadedData {
@@ -394,7 +395,7 @@ export class EventsService {
    */
   quotesUpdateFinished() {
     this.triggerEvent({
-      type: AppEventType.QUOTES_UPDATED,
+      type: AppEventType.QUOTES_UPDATE_FINISHED,
       data: null,
     });
   }
@@ -467,6 +468,16 @@ export class EventsService {
     this.triggerEvent({
       type: AppEventType.THEME_CHANGED,
       data: newTheme,
+    });
+  }
+
+  /**
+   * Fired when asset prices have changed
+   */
+  assetPricesUpdated() {
+    this.triggerEvent({
+      type: AppEventType.ASSET_PRICES_UPDATED,
+      data: null,
     });
   }
 }
