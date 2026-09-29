@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 
 import { AppNotification, AppNotificationType } from '../../models/notification';
 import { PortfolioService } from '../../services/portfolio.service';

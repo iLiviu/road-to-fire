@@ -32,7 +32,7 @@ import { ChartOptions, TooltipItem } from 'chart.js';
 import { APP_THEMES, ConfigService } from 'src/app/core/services/config.service';
 import { TransactionType } from '../../models/transaction';
 import * as IRR from 'node-irr';
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 
 const MULTI_COL_GRID_ROW_HEIGHT = '2:1.6';
 const SINGLE_COL_GRID_ROW_HEIGHT = '1:1.1';

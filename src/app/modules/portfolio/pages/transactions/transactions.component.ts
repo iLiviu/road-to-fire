@@ -12,7 +12,7 @@ import {
   TransactionsFilterEditComponent, TransactionFilters
 } from '../../components/transactions-filter-edit/transactions-filter-edit.component';
 import { DateUtils } from 'src/app/shared/util';
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 
 /**
  * Component to display a page where the user can see the list of all transactions and manage (delete) them

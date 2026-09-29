@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { AssetsComponent } from '../assets/assets.component';

@@ -43,7 +43,7 @@ import { LabelCategory } from '../models/label-category';
 import { Label } from '../models/label';
 import { AssetCurrentPrices, AssetPriceEntry } from '../models/asset-current-prices';
 import { AccountAsset } from '../models/account-asset';
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 
 const PORTFOLIO_VERSION2 = 2;
 const PORTFOLIO_VERSION3 = 3;

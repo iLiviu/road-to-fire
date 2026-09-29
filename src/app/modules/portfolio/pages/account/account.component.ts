@@ -2,7 +2,7 @@ import { Component, ViewChild, OnDestroy, OnInit, ChangeDetectorRef, ChangeDetec
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { MatTab, MatTabChangeEvent } from '@angular/material/tabs';
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
 import { PortfolioAccount } from '../../models/portfolio-account';

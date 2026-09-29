@@ -12,7 +12,7 @@ import { DepositAsset } from '../../models/deposit-asset';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { AssetManagementService } from '../../services/asset-management.service';
 import { BondAsset } from '../../models/bond-asset';
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 import { AssetFactory } from '../../models/asset-factory';
 import { DateUtils, FloatingMath } from 'src/app/shared/util';
 import { RecurringTransactionsFilterEditComponent, RecurringTransactionFilters, RecurringTransactionFilterInterval } from '../../components/recurring-transactions-filter-edit/recurring-transactions-filter-edit.component';

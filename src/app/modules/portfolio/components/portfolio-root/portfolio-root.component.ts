@@ -7,7 +7,7 @@ import { map, filter, withLatestFrom, takeUntil } from 'rxjs/operators';
 import { Router, NavigationEnd } from '@angular/router';
 import { MatSidenav } from '@angular/material/sidenav';
 import * as Hammer from 'hammerjs';
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 
 import * as WebAPK from 'src/web-apk';
 import { EventsService, AppEventType, AppEvent } from 'src/app/core/services/events.service';

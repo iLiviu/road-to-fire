@@ -31,7 +31,13 @@
             "buildOptimizer": false,
             "sourceMap": true,
             "optimization": false,
-            "namedChunks": true
+            "namedChunks": true,
+            "allowedCommonJsDependencies": [
+              "remotestoragejs",
+              "remotestorage-widget",
+              "node-irr",
+              "crypto-js"
+            ]
           },
           "configurations": {
             "production": {
@@ -92,7 +98,7 @@
               "browserTarget": "RoadToFIRE:build:development"
             }
           },
-		  "defaultConfiguration": "development"
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
