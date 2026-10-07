@@ -111,6 +111,7 @@ import { TransactionsImportComponent } from './components/transactions-import/tr
 import { TransactionsImportService } from './services/tx-import-service';
 import { RecurringTransactionsFilterEditComponent } from './components/recurring-transactions-filter-edit/recurring-transactions-filter-edit.component';
 import { LabelsSettingsComponent } from './components/labels-settings/labels-settings.component';
+import { BenchmarkService } from './services/benchmark.service';
 
 @NgModule({
   declarations: [
@@ -225,6 +226,7 @@ import { LabelsSettingsComponent } from './components/labels-settings/labels-set
     PeriodicChecksService,
     DialogsService,
     TransactionsImportService,
+    BenchmarkService,
     { provide: PortfolioStorageService, useClass: RSPortfolioStorageService },
   ]
 })

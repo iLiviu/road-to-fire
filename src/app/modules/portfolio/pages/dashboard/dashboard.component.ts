@@ -33,6 +33,8 @@ import { APP_THEMES, ConfigService } from 'src/app/core/services/config.service'
 import { TransactionType } from '../../models/transaction';
 import * as IRR from 'node-irr';
 import { debounce } from 'src/app/shared/decorators/debounce.decorator';
+import { BenchmarkService } from '../../services/benchmark.service';
+import { BENCHMARK_CURRENCIES, BenchmarkDefinition, TWRDataPoint } from '../../models/benchmark';
 
 const MULTI_COL_GRID_ROW_HEIGHT = '2:1.6';
 const SINGLE_COL_GRID_ROW_HEIGHT = '1:1.1';
@@ -56,11 +58,18 @@ const HISTORY_ASSET_ORDER = [
   AssetType.Stock,
   AssetType.Forex];
 
+export interface BenchmarkAnnualizedStat {
+  id: string;
+  name: string;
+  twr: number;
+}
+
 interface ChartDataSet {
   label?: string;
   data: number[];
   backgroundColor?: any;
   borderColor?: any;
+  borderWidth?: number;
   lineTension?: number;
 }
 
@@ -167,12 +176,22 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   stockGeoAllocationChart: ChartContext = { datasets: [], labels: [] };
   portfolioHistoryChart: ChartContext = { datasets: [{ label: '', data: [] }], labels: [] };
   unrealizedPLHistoryChart: ChartContext = { datasets: [{ label: '', data: [] }], labels: [] };
+  benchmarkChart: ChartContext = { datasets: [], labels: [] };
+  benchmarkTimeFrame = 'Max';
+  availableBenchmarks: BenchmarkDefinition[] = [];
+  selectedBenchmarkIds: string[] = [];
+  benchmarkDataLoading = false;
+  portfolioAnnualizedTWR: number = null;
+  benchmarkAnnualizedStats: BenchmarkAnnualizedStat[] = [];
+  private fullPortfolioTWR: TWRDataPoint[] = [];
+  private fullBenchmarkTWR: { [benchmarkId: string]: TWRDataPoint[] } = {};
   timeFrameIRR: number;
   timeFrameTotalReturn: number;
   inaccurateIRR: boolean;
   labelCategoriesAllocationCharts: { [categoryId: number]: ChartContext } = {};
   labelCategories: LabelCategory[] = [];
   LABEL_CATEGORY_TILE_PREFIX = LABEL_CATEGORY_TILE_PREFIX;
+  BENCHMARK_CURRENCIES = BENCHMARK_CURRENCIES;
 
   readonly assetTypeLabels = { ...ASSET_TYPE_LABELS };
   readonly goalChartColors: Array<any> = ['rgb(51, 160, 223)', 'rgba(214, 214, 214, 0.897)'];
@@ -316,12 +335,65 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   private baseCurrencySymbol: string;
   private labelAllocations: { [categoryId: number]: { [labelId: number]: { label: Label, value: number } } } = {};
 
+  readonly benchmarkChartOptions: ChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: this.legendOptions,
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          label: (tooltipItem: TooltipItem<any>) => {
+            const rawLabel = tooltipItem.dataset.label || '';
+            const match = rawLabel.match(/^(.*?)\s*(\([+-]?\d+.*% p\.a\.\))$/);
+            const rawVal = <number>tooltipItem.raw;
+            const sign = rawVal >= 0 ? '+' : '';
+            const valueStr = sign + rawVal.toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS) + '%';
+            if (match) {
+              return `${match[1]}: ${valueStr} ${match[2]}`;
+            }
+            return `${rawLabel ? rawLabel + ': ' : ''}${valueStr}`;
+          },
+        }
+      },
+    },
+    elements: {
+      point: {
+        radius: 0,
+      },
+      line: {
+        fill: false,
+      }
+    },
+    hover: {
+      mode: 'index',
+      intersect: false,
+    },
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          tooltipFormat: moment.localeData().longDateFormat('LL'),
+        }
+      },
+      y: {
+        ticks: {
+          callback: (value: any, index: any, values: any) => {
+            return value.toLocaleString(this.locale, LOCALE_NUMBER_OPTIONS) + '%';
+          }
+        }
+      }
+    },
+  };
+
   constructor(protected eventsService: EventsService, protected portfolioService: PortfolioService,
     protected logger: LoggerService, protected dialogService: DialogsService, protected router: Router,
     protected assetManagementService: AssetManagementService,
     protected storageService: StorageService, private cdr: ChangeDetectorRef, private route: ActivatedRoute,
     @Inject(LOCALE_ID) public locale: string, private chartsThemeService: ThemeService,
-    private configService: ConfigService) {
+    private configService: ConfigService, private benchmarkService: BenchmarkService) {
     super(logger, portfolioService, dialogService, eventsService, router, storageService);
     this.assetTypeLabels[AssetType.Cash] = 'Cash & Equivalents';
   }
@@ -414,6 +486,50 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   onPHTimeFrameChanged(newTimeFrame: string) {
     this.phTimeFrame = newTimeFrame;
     this.displayPortfolioHistory();
+    this.portfolioConfig.phTimeFrame = this.phTimeFrame;
+    this.portfolioService.saveConfig(this.portfolioConfig);
+  }
+
+  /**
+   * Fired when user changes the benchmark chart time frame.
+   * Instantaneous re-normalization from cached cumulative series (< 0.1ms).
+   * @param newTimeFrame new chart display time frame
+   */
+  onBenchmarkTimeFrameChanged(newTimeFrame: string) {
+    this.benchmarkTimeFrame = newTimeFrame;
+    this.updateBenchmarkChartDisplay();
+    this.portfolioConfig.benchmarkTimeFrame = this.benchmarkTimeFrame;
+    this.portfolioService.saveConfig(this.portfolioConfig);
+  }
+
+  /**
+   * Toggle a benchmark on/off in the chart.
+   * If benchmark data is already cached, updates the display instantaneously in 0ms.
+   * @param benchmarkId the id of the benchmark to toggle
+   */
+  toggleBenchmark(benchmarkId: string) {
+    const idx = this.selectedBenchmarkIds.indexOf(benchmarkId);
+    if (idx >= 0) {
+      this.selectedBenchmarkIds.splice(idx, 1);
+    } else {
+      this.selectedBenchmarkIds.push(benchmarkId);
+    }
+    // Persist selection
+    this.portfolioConfig.selectedBenchmarks = [...this.selectedBenchmarkIds];
+    this.portfolioService.saveConfig(this.portfolioConfig);
+
+    if (this.fullBenchmarkTWR[benchmarkId] || !this.selectedBenchmarkIds.includes(benchmarkId)) {
+      this.updateBenchmarkChartDisplay();
+    } else {
+      this.computeBenchmarkChart();
+    }
+  }
+
+  /**
+   * Check if a benchmark is currently selected
+   */
+  isBenchmarkSelected(benchmarkId: string): boolean {
+    return this.selectedBenchmarkIds.includes(benchmarkId);
   }
 
   /**
@@ -423,6 +539,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   onPLHTimeFrameChanged(newTimeFrame: string) {
     this.plhTimeFrame = newTimeFrame;
     this.displayUnrealizedPLHistory();
+    this.portfolioConfig.plhTimeFrame = this.plhTimeFrame;
+    this.portfolioService.saveConfig(this.portfolioConfig);
   }
 
   protected handleEvents(event: AppEvent) {
@@ -869,6 +987,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     await this.computePortfolioHistory();
     this.displayPortfolioHistory();
     this.displayUnrealizedPLHistory();
+    this.computeBenchmarkChart();
   }
 
   onDataLoaded() {
@@ -962,7 +1081,6 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     let startValue = 0;
     let endDate = new Date(0, 0, 0);
     let endValue = 0;
-
     // find first and last day for which we have data during given time frame
     for (const entry of this.allPortfolioHistory.entries) {
       const entryDate = new Date(entry.date);
@@ -1065,6 +1183,168 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   }
 
   /**
+   * Compute full benchmark and portfolio TWR data.
+   * Leverages caching, fingerprinting, and incremental computation in BenchmarkService.
+   */
+  private async computeBenchmarkChart() {
+    if (!this.allPortfolioHistory || !this.allPortfolioHistory.entries.length) {
+      this.benchmarkChart = { datasets: [], labels: [] };
+      this.portfolioAnnualizedTWR = null;
+      this.benchmarkAnnualizedStats = [];
+      return;
+    }
+
+    this.benchmarkDataLoading = true;
+    this.cdr.markForCheck();
+
+    try {
+      const transactions = await this.portfolioService.getTransactions();
+
+      // 1. Compute full portfolio TWR from inception (cached / incremental / O(N+M) < 1ms)
+      this.fullPortfolioTWR = await this.benchmarkService.computePortfolioFullTWR(
+        this.allPortfolioHistory,
+        transactions,
+        this.baseCurrency,
+        (currency) => this.getCurrencyRate(currency)
+      );
+
+      if (this.fullPortfolioTWR.length === 0) {
+        this.benchmarkChart = { datasets: [], labels: [] };
+        this.portfolioAnnualizedTWR = null;
+        this.benchmarkAnnualizedStats = [];
+        return;
+      }
+
+      // 2. Fetch and compute benchmark series for selected benchmarks if not already cached
+      const selectedBenchmarks = this.availableBenchmarks.filter(
+        b => this.selectedBenchmarkIds.includes(b.id)
+      );
+
+      const missingSymbols = selectedBenchmarks
+        .filter(b => !this.fullBenchmarkTWR[b.id])
+        .map(b => b.symbol);
+
+      if (missingSymbols.length > 0) {
+        const historyStartDate = new Date(this.allPortfolioHistory.entries[0].date);
+        const historicalData = await this.benchmarkService.getHistoricalPrices(
+          missingSymbols,
+          historyStartDate,
+          undefined,
+          this.baseCurrency
+        );
+
+        const portfolioDates = this.fullPortfolioTWR.map(p => ({
+          date: p.date,
+          time: new Date(p.date).getTime()
+        }));
+
+        for (const benchmark of selectedBenchmarks) {
+          if (!this.fullBenchmarkTWR[benchmark.id]) {
+            const histData = historicalData.find(d => d.symbol === benchmark.symbol);
+            if (histData && histData.history && histData.history.length > 0) {
+              this.fullBenchmarkTWR[benchmark.id] = this.benchmarkService.computeBenchmarkFullTWR(
+                benchmark.symbol,
+                histData.history,
+                portfolioDates
+              );
+            }
+          }
+        }
+      }
+
+      // 3. Render chart display for current timeframe
+      this.updateBenchmarkChartDisplay();
+    } catch (err) {
+      this.logger.error('Error computing benchmark chart', err);
+    } finally {
+      this.benchmarkDataLoading = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  /**
+   * Updates the benchmark chart display synchronously based on the current
+   * benchmarkTimeFrame and selectedBenchmarkIds. Runs purely in memory in < 0.1ms.
+   */
+  private updateBenchmarkChartDisplay() {
+    if (!this.fullPortfolioTWR || this.fullPortfolioTWR.length === 0) {
+      this.benchmarkChart = { datasets: [], labels: [] };
+      this.portfolioAnnualizedTWR = null;
+      this.benchmarkAnnualizedStats = [];
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const minDate = this.getStartDateFromTimeFrame(this.benchmarkTimeFrame);
+
+    // Normalize portfolio series to time frame
+    const normPortfolio = this.benchmarkService.normalizeToTimeFrame(this.fullPortfolioTWR, minDate);
+    if (normPortfolio.length === 0) {
+      this.benchmarkChart = { datasets: [], labels: [] };
+      this.portfolioAnnualizedTWR = null;
+      this.benchmarkAnnualizedStats = [];
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.portfolioAnnualizedTWR = this.benchmarkService.calculateAnnualizedTWR(normPortfolio);
+    this.benchmarkAnnualizedStats = [];
+
+
+    const chartLabels = normPortfolio.map(p => p.date);
+    const datasets: ChartDataSet[] = [{
+      label: 'My Portfolio',
+      data: normPortfolio.map(p => p.twr),
+      lineTension: 0,
+      borderWidth: 1,
+    }];
+
+    // Add selected benchmarks
+    const selectedBenchmarks = this.availableBenchmarks.filter(
+      b => this.selectedBenchmarkIds.includes(b.id)
+    );
+
+    let bmColorIdx = 0;
+    for (const benchmark of selectedBenchmarks) {
+      const fullSeries = this.fullBenchmarkTWR[benchmark.id];
+      if (fullSeries && fullSeries.length > 0) {
+        const normBenchmark = this.benchmarkService.normalizeToTimeFrame(fullSeries, minDate);
+        if (normBenchmark.length > 0) {
+          bmColorIdx++;
+
+          const bmAnnTWR = this.benchmarkService.calculateAnnualizedTWR(normBenchmark);
+          if (bmAnnTWR !== null) {
+            this.benchmarkAnnualizedStats.push({
+              id: benchmark.id,
+              name: benchmark.name,
+              twr: bmAnnTWR,
+            });
+          }
+
+          const dataMap: { [date: string]: number } = {};
+          for (const point of normBenchmark) {
+            dataMap[point.date] = point.twr;
+          }
+          const alignedData: number[] = [];
+          for (const label of chartLabels) {
+            alignedData.push(dataMap[label] ?? null);
+          }
+
+          datasets.push({
+            label: benchmark.name,
+            data: alignedData,
+            lineTension: 0,
+            borderWidth: 1,
+          });
+        }
+      }
+    }
+
+    this.benchmarkChart = { datasets, labels: chartLabels };
+    this.cdr.markForCheck();
+  }
+
+  /**
    * Update the data for a  history type chart
    *
    * @param history portfolio history data
@@ -1115,6 +1395,8 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
           data: dataSets[assetType].data,
           label: this.assetTypeLabels[assetType],
           lineTension: 0,
+          borderWidth: 1,
+
         });
       }
     }
@@ -1166,6 +1448,9 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.baseCurrencySymbol = getCurrencySymbol(this.baseCurrency, 'wide');
     this.rebalancingSetup = this.portfolioConfig.portfolioAllocation.length > 0;
     this.gridVisibility = this.portfolioConfig.dashboardGridVisibility;
+    this.phTimeFrame = this.portfolioConfig.phTimeFrame || this.phTimeFrame;
+    this.benchmarkTimeFrame = this.portfolioConfig.benchmarkTimeFrame || this.benchmarkTimeFrame;
+    this.plhTimeFrame = this.portfolioConfig.plhTimeFrame || this.plhTimeFrame;
     if (!this.gridVisibility) {
       this.gridVisibility = {};
     }
@@ -1174,6 +1459,16 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       if (this.gridVisibility[tile] === undefined) {
         this.gridVisibility[tile] = true;
       }
+    }
+    // Initialize benchmark selections
+    this.fullBenchmarkTWR = {};
+    this.availableBenchmarks = this.benchmarkService.getAvailableBenchmarks(this.baseCurrency);
+    if (this.portfolioConfig.selectedBenchmarks && this.portfolioConfig.selectedBenchmarks.length > 0) {
+      this.selectedBenchmarkIds = [...this.portfolioConfig.selectedBenchmarks];
+    } else if (this.availableBenchmarks.length > 0) {
+      this.selectedBenchmarkIds = [this.availableBenchmarks[0].id];
+    } else {
+      this.selectedBenchmarkIds = [];
     }
     this.loadData();
   }

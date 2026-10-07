@@ -20,5 +20,9 @@ export interface PortfolioConfig {
   withdrawalRate: number;
   dashboardGridVisibility: Dictionary<boolean>;
   loanToValueRatio: number;
+  selectedBenchmarks: string[];
+  phTimeFrame: string;
+  benchmarkTimeFrame: string;
+  plhTimeFrame: string;
   version: number;
 }

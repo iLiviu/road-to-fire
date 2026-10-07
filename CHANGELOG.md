@@ -5,6 +5,7 @@
 * Autocomplete asset details using existing assets data.
 * Encrypt stored password when biometric authentication is enabled 
 * Faster cloud sync when asset prices are refreshed
+* Portfolio Performance Benchmark chart (compare performance against S&P500, MSCI World, FTSE All-World etc)
 
 ### Bug fixes
 * If the same asset is present in multiple accounts, only display it once when manually updating quotes

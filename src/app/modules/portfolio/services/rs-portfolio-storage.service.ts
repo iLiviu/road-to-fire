@@ -13,7 +13,9 @@ import {
   LABELS_PATH,
   LABEL_ALIAS,
   ASSET_CURRENT_PRICES_PATH,
-  ASSET_CURRENT_PRICES_ALIAS
+  ASSET_CURRENT_PRICES_ALIAS,
+  BENCHMARKS_CACHE_PATH,
+  BENCHMARKS_CACHE_ALIAS
 } from './portfolio-storage.service';
 import { PortfolioStorage } from '../models/portfolio-storage';
 import { BaseRemoteStorageModule, RSModuleObjectType } from 'src/app/core/models/remotestorage-module';
@@ -35,6 +37,7 @@ import { TransactionsImportTemplate } from '../models/transactions-import-templa
 import { LabelCategory, LabelCategoryData } from '../models/label-category';
 import { Label, LabelData } from '../models/label';
 import { AssetCurrentPrices } from '../models/asset-current-prices';
+import { BenchmarksCache } from '../models/benchmark';
 
 const RSMODULE_NAME = 'asset-portfolio';
 
@@ -96,6 +99,21 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
             'type': 'string'
           },
           'prices': {
+            'type': 'object',
+          },
+        },
+      });
+
+      privateClient.declareType(BENCHMARKS_CACHE_ALIAS, {
+        'type': 'object',
+        'properties': {
+          'encryptedData': {
+            'type': 'string'
+          },
+          'quotes': {
+            'type': 'object',
+          },
+          'portfolioTWR': {
             'type': 'object',
           },
         },
@@ -1055,6 +1073,14 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
             return this.storeObject(PORTFOLIO_HISTORY_ALIAS, PORTFOLIO_HISTORY_PATH, history);
           }
 
+          getBenchmarksCache(): Promise<BenchmarksCache> {
+            return this.getObject(BENCHMARKS_CACHE_PATH);
+          }
+
+          storeBenchmarksCache(cache: BenchmarksCache): Promise<void> {
+            return this.storeObject(BENCHMARKS_CACHE_ALIAS, BENCHMARKS_CACHE_PATH, cache);
+          }
+
           async getTransactionsImportTemplates(): Promise<TransactionsImportTemplate[]> {
             const paths = await this.getAll(TX_IMPORT_TEMPLATES_PATH);
             const templates: TransactionsImportTemplate[] = [];
@@ -1228,6 +1254,7 @@ function createPortfolioRStorageModule(serializer: StorageSerializer) {
               { path: ASSET_CURRENT_PRICES_PATH, alias: ASSET_CURRENT_PRICES_ALIAS, collectionType: false },
               { path: NOTIFICATIONS_PATH, alias: NOTIFICATION_ALIAS, collectionType: true },
               { path: PORTFOLIO_HISTORY_PATH, alias: PORTFOLIO_HISTORY_ALIAS, collectionType: false },
+              { path: BENCHMARKS_CACHE_PATH, alias: BENCHMARKS_CACHE_ALIAS, collectionType: false },
               { path: TX_IMPORT_TEMPLATES_PATH, alias: TX_IMPORT_TEMPLATE_ALIAS, collectionType: true },
               { path: LABEL_CATEGORIES_PATH, alias: LABEL_CATEGORY_ALIAS, collectionType: true },
               { path: LABELS_PATH, alias: LABEL_ALIAS, collectionType: true },

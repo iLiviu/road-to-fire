@@ -37,6 +37,7 @@ import { NgChartsModule, ThemeService } from 'ng2-charts';
 import { SAMPLE_ACCOUNTS } from '../../mocks/sample-accounts.mock';
 import { ConfigService } from 'src/app/core/services/config.service';
 import { MockConfigService } from 'src/app/core/mocks/config.service.mock';
+import { BenchmarkService } from '../../services/benchmark.service';
 import { Component, Input } from '@angular/core';
 
 @Component({
@@ -58,6 +59,27 @@ class MockRefreshQuotesButtonComponent { }
   template: ''
 })
 class MockNotificationsButtonComponent { }
+
+class MockBenchmarkService {
+  getAvailableBenchmarks() {
+    return [];
+  }
+  computePortfolioFullTWR() {
+    return Promise.resolve([]);
+  }
+  getHistoricalPrices() {
+    return Promise.resolve([]);
+  }
+  computeBenchmarkFullTWR() {
+    return [];
+  }
+  normalizeToTimeFrame(s: any) {
+    return s;
+  }
+  calculateAnnualizedTWR(s: any) {
+    return null;
+  }
+}
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -102,6 +124,7 @@ describe('DashboardComponent', () => {
         { provide: StorageService, useClass: MockStorageService },
         { provide: AssetManagementService, useClass: MockAssetManagementService },
         { provide: ConfigService, useClass: MockConfigService },
+        { provide: BenchmarkService, useClass: MockBenchmarkService },
         ThemeService,
         EventsService,
       ],

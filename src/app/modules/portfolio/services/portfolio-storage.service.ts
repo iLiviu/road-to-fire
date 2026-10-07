@@ -27,6 +27,8 @@ export const LABELS_PATH = 'labels/';
 export const LABEL_ALIAS = 'label';
 export const ASSET_CURRENT_PRICES_PATH = 'asset_current_prices';
 export const ASSET_CURRENT_PRICES_ALIAS = 'asset-current-prices';
+export const BENCHMARKS_CACHE_PATH = 'benchmarks_cache';
+export const BENCHMARKS_CACHE_ALIAS = 'benchmarks-cache';
 
 @Injectable()
 export abstract class PortfolioStorageService {

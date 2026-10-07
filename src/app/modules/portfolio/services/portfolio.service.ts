@@ -21,7 +21,9 @@ import {
   LABEL_ALIAS,
   LABEL_CATEGORY_ALIAS,
   ASSET_CURRENT_PRICES_PATH,
-  ASSET_CURRENT_PRICES_ALIAS
+  ASSET_CURRENT_PRICES_ALIAS,
+  BENCHMARKS_CACHE_PATH,
+  BENCHMARKS_CACHE_ALIAS
 } from './portfolio-storage.service';
 import { AssetQuote, StoredAssetQuote } from '../models/asset-quote';
 import { APP_CONSTS } from 'src/app/config/app.constants';
@@ -43,6 +45,7 @@ import { LabelCategory } from '../models/label-category';
 import { Label } from '../models/label';
 import { AssetCurrentPrices, AssetPriceEntry } from '../models/asset-current-prices';
 import { AccountAsset } from '../models/account-asset';
+import { BenchmarksCache } from '../models/benchmark';
 import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 
 const PORTFOLIO_VERSION2 = 2;
@@ -83,6 +86,7 @@ export class PortfolioService {
   private recTxMapCache: NumKeyDictionary<RecurringTransaction>;
   private portfolioHistoryCache: PortfolioHistory;
   private assetCurrentPricesCache: AssetCurrentPrices;
+  private benchmarksCache: BenchmarksCache;
 
   private labelCategoriesCache: LabelCategory[];
   private labelCategoriesMapCache: NumKeyDictionary<LabelCategory>;
@@ -1007,6 +1011,22 @@ export class PortfolioService {
     return this.storage.storePortfolioHistory(history);
   }
 
+  async getBenchmarksCache(): Promise<BenchmarksCache> {
+    if (!this.benchmarksCache) {
+      this.benchmarksCache = await this.storage.getBenchmarksCache();
+    }
+    return this.benchmarksCache;
+  }
+
+  saveBenchmarksCache(cache: BenchmarksCache): Promise<void> {
+    this.benchmarksCache = cache;
+    return this.storage.storeBenchmarksCache(cache);
+  }
+
+  invalidateBenchmarksCache(): void {
+    this.benchmarksCache = null;
+  }
+
 
   /**
    * Check if portfolio is stored is in an old format and upgrade if necessary
@@ -1123,6 +1143,7 @@ export class PortfolioService {
         withdrawalRate: 0.04,
         dashboardGridVisibility: null,
         loanToValueRatio: 0,
+        selectedBenchmarks: [],
         portfolioAllocation: [
           { assetType: AssetType.Stock, allocation: 0.6 },
           { assetType: AssetType.Bond, allocation: 0.4 },
@@ -1130,6 +1151,9 @@ export class PortfolioService {
         goals: [
           { title: 'Financial Independence', value: 1000000 },
         ],
+        phTimeFrame: '',
+        benchmarkTimeFrame: '',
+        plhTimeFrame: '',
         version: PORTFOLIO_VERSION,
       };
     } else {
@@ -1327,6 +1351,7 @@ export class PortfolioService {
     this.invalidateTxCache();
     this.invalidateLabelCategoriesCache();
     this.invalidateLabelsCache();
+    this.invalidateBenchmarksCache();
   }
 
   private invalidateAssetCurrentPricesCache() {
@@ -1368,6 +1393,8 @@ export class PortfolioService {
       return LABEL_CATEGORY_ALIAS;
     } else if (event.relativePath === ASSET_CURRENT_PRICES_PATH) {
       return ASSET_CURRENT_PRICES_ALIAS;
+    } else if (event.relativePath === BENCHMARKS_CACHE_PATH) {
+      return BENCHMARKS_CACHE_ALIAS;
     }
     return null;
   }
@@ -1497,6 +1524,8 @@ export class PortfolioService {
             // delay notifications until sync is complete
             await self.storageService.waitForSync();
             self.eventsService.assetPricesUpdated();
+          } else if (objectAlias === BENCHMARKS_CACHE_ALIAS) {
+            self.invalidateBenchmarksCache();
           }
         }
       }

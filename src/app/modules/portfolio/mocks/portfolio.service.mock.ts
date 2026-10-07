@@ -15,7 +15,11 @@ export class MockPortfolioService {
     loanToValueRatio: 0,
     portfolioAllocation: [{ assetType: AssetType.Cash, allocation: 1 }],
     withdrawalRate: 0.04,
+    selectedBenchmarks: [],
     dashboardGridVisibility: {},
+    phTimeFrame: '',
+    benchmarkTimeFrame: '',
+    plhTimeFrame: '',
     version: 1,
   };
   notifications: AppNotification[] = [];
@@ -102,6 +106,18 @@ export class MockPortfolioService {
 
   savePortfolioHistory(history: PortfolioHistory): Promise<void> {
     return Promise.resolve();
+  }
+
+  benchmarksCache: any = null;
+  getBenchmarksCache(): Promise<any> {
+    return Promise.resolve(this.benchmarksCache);
+  }
+  saveBenchmarksCache(cache: any): Promise<void> {
+    this.benchmarksCache = cache;
+    return Promise.resolve();
+  }
+  invalidateBenchmarksCache(): void {
+    this.benchmarksCache = null;
   }
 
 }

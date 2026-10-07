@@ -11,6 +11,7 @@ import { PortfolioHistory } from './portfolio-history';
 import { TransactionsImportTemplate } from './transactions-import-template';
 import { LabelCategory } from './label-category';
 import { Label } from './label';
+import { BenchmarksCache } from './benchmark';
 
 export interface PortfolioStorage extends StorageModule {
   addAccount(account: PortfolioAccount): Promise<PortfolioAccount>;
@@ -63,4 +64,7 @@ export interface PortfolioStorage extends StorageModule {
   removeLabel(label: Label): Promise<void>;
   getLabel(id: number): Promise<Label>;
   getAllLabels(): Promise<Label[]>;
+
+  getBenchmarksCache(): Promise<BenchmarksCache>;
+  storeBenchmarksCache(cache: BenchmarksCache): Promise<void>;
 }

@@ -22,6 +22,7 @@ export enum DashboardGridTiles {
   P2PAllocation,
   StocksAllocation,
   PortfolioTopHoldings,
+  PerformanceBenchmark,
 }
 
 export const LABEL_CATEGORY_TILE_PREFIX = 'LabelCategory_';
@@ -48,3 +49,4 @@ DashboardGridTilesLabels[DashboardGridTiles.BondsAllocation] = 'Top Bond Holding
 DashboardGridTilesLabels[DashboardGridTiles.P2PAllocation] = 'Top P2P Holdings';
 DashboardGridTilesLabels[DashboardGridTiles.StocksAllocation] = 'Top Stock Holdings';
 DashboardGridTilesLabels[DashboardGridTiles.PortfolioTopHoldings] = 'Top Portfolio Holdings';
+DashboardGridTilesLabels[DashboardGridTiles.PerformanceBenchmark] = 'Performance Benchmark';

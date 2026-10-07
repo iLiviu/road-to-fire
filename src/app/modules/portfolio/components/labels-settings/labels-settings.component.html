@@ -2,10 +2,6 @@
   <div class="flex flex-row justify-between items-center mb-4">
     <h2 class="mat-h2 m-0 text-color">Labels Management</h2>
     <div class="flex-grow"></div>
-    <button mat-raised-button color="primary" (click)="addCategory()">
-      <mat-icon>add</mat-icon>
-      New Category
-    </button>
   </div>
 
   <mat-accordion multi="true">
@@ -55,4 +51,9 @@
   <div *ngIf="categories.length === 0" class="text-center p-8 text-color-secondary italic">
     No categories defined yet. Start by creating a new category.
   </div>
+</div>
+<div class="fab-bottom-right">
+  <button mat-fab matTooltip="Add Category" color="primary" (click)="addCategory()">
+    <mat-icon aria-label="Add Category">add</mat-icon>
+  </button>
 </div>

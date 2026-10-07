@@ -97,24 +97,122 @@
               <mat-icon aria-label="Manually add history data">add_circle_outline</mat-icon>
             </button>
           </mat-card-title>
-          <mat-card-subtitle *ngIf="timeFrameIRR" fxLayoutAlign="start center" fxLayoutAlign="row">
-            <div fxLayoutAlign="start center">
-              Time frame IRR: {{timeFrameIRR | percent:'1.02'}}
-            </div>
-            <mat-icon *ngIf="inaccurateIRR" color="accent"
-              matTooltip="Note: IRR is not accurate because you have non-base currency cash credits/debits, and the app uses the current FX rate for conversion, not the one on the actual transaction date">
-              error_outline
-            </mat-icon>
+          <mat-card-subtitle *ngIf="timeFrameIRR" fxLayoutAlign="start center" fxLayoutAlign="row"
+            class="perf-subtitle">
+
+            <span class="perf-stat-item" matTooltip="Internal Rate of Return (IRR) for the selected period">
+
+              <span class="perf-stat-name">IRR:</span>
+              <span class="perf-stat-val" [class.positive]="timeFrameIRR >= 0"
+                [class.negative]="timeFrameIRR < 0">{{timeFrameIRR | percent:'1.02'}}
+                <span class="perf-stat-pa">p.a.</span>
+              </span>
+              <mat-icon *ngIf="inaccurateIRR" color="accent"
+                matTooltip="Note: IRR is not accurate because you have non-base currency cash credits/debits, and the app uses the current FX rate for conversion, not the one on the actual transaction date">
+                error_outline
+              </mat-icon>
+            </span>
             <div fxFlex> </div>
-            <div fxLayoutAlign="start center">
-              Total Return: {{timeFrameTotalReturn | percent:'1.02'}}
-            </div>
+            <span class="perf-stat-item" matTooltip="Total return for the selected period">
+              <span class="perf-stat-name">Total Return:</span>
+              <span class="perf-stat-val" [class.positive]="timeFrameTotalReturn >= 0"
+                [class.negative]="timeFrameTotalReturn < 0">{{timeFrameTotalReturn | percent:'1.02'}}
+              </span>
+            </span>
+
           </mat-card-subtitle>
 
           <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
             <canvas *ngIf="portfolioHistoryChart.datasets.length > 0" baseChart
               [datasets]="portfolioHistoryChart.datasets" [labels]="portfolioHistoryChart.labels"
               [options]="portfolioHistoryChartOptions" type="line"></canvas>
+            <p class="warning align-center"
+              *ngIf="(!portfolioHistoryChart.datasets || portfolioHistoryChart.datasets.length === 0)">
+              No portfolio history available for the selected time frame.
+            </p>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile *ngIf="gridVisibility[GridTiles.PerformanceBenchmark]">
+        <mat-card class="grid-card">
+          <mat-card-title fxLayout="row">
+            <span fxFlex>Performance</span>
+
+            <button mat-button [matMenuTriggerFor]="benchmarkTimeFramePicker" matTooltip="Time Frame">
+              {{benchmarkTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
+            </button>
+
+            <mat-menu #benchmarkTimeFramePicker="matMenu">
+              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('Max')">Max</button>
+              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('YTD')">YTD</button>
+              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('1Y')">1Y</button>
+              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('3Y')">3Y</button>
+              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('5Y')">5Y</button>
+              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('10Y')">10Y</button>
+            </mat-menu>
+
+            <button *ngIf="availableBenchmarks.length > 0" mat-icon-button [matMenuTriggerFor]="benchmarkSelector"
+              matTooltip="Select benchmarks">
+              <mat-icon>tune</mat-icon>
+            </button>
+
+            <mat-menu #benchmarkSelector="matMenu">
+              <button mat-menu-item *ngFor="let bm of availableBenchmarks" (click)="toggleBenchmark(bm.id)">
+                <mat-icon>{{isBenchmarkSelected(bm.id) ? 'check_box' : 'check_box_outline_blank'}}</mat-icon>
+                <span>{{bm.name}}</span>
+              </button>
+            </mat-menu>
+          </mat-card-title>
+
+          <mat-card-subtitle *ngIf="portfolioAnnualizedTWR !== null" class="perf-subtitle" fxLayout="row wrap"
+            fxLayoutAlign="start center">
+            <span class="perf-stat-item"
+              matTooltip="Annualized Portfolio Time-Weighted Return (TWR) for the selected period">
+              <span class="perf-stat-name">Portfolio TWR:</span>
+              <span class="perf-stat-val" [class.positive]="portfolioAnnualizedTWR >= 0"
+                [class.negative]="portfolioAnnualizedTWR < 0">
+                {{portfolioAnnualizedTWR >= 0 ? '+' : ''}}{{portfolioAnnualizedTWR | number:'1.2-2'}}%
+                <span class="perf-stat-pa">p.a.</span>
+              </span>
+              <mat-icon *ngIf="inaccurateIRR" color="accent"
+                matTooltip="Note: TWR is not accurate because you have non-base currency cash credits/debits, and the app uses the current FX rate for conversion, not the one on the actual transaction date">
+                error_outline
+              </mat-icon>
+
+            </span>
+
+            <ng-container *ngFor="let bm of benchmarkAnnualizedStats" class="perf-stat-item">
+              <div fxFlex> </div>
+              <span [matTooltip]="'Annualized Time-Weighted Return (TWR) for ' + bm.name + ' over the selected period'">
+                <span class="perf-stat-name">{{bm.name}}:</span>
+                <span class="perf-stat-val" [class.positive]="bm.twr >= 0" [class.negative]="bm.twr < 0">
+                  {{bm.twr >= 0 ? '+' : ''}}{{bm.twr | number:'1.2-2'}}%
+                </span>
+              </span>
+            </ng-container>
+          </mat-card-subtitle>
+
+          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
+            <mat-progress-spinner *ngIf="benchmarkDataLoading" mode="indeterminate" diameter="40">
+            </mat-progress-spinner>
+            <canvas *ngIf="!benchmarkDataLoading && benchmarkChart.datasets.length > 0" baseChart
+              [datasets]="benchmarkChart.datasets" [labels]="benchmarkChart.labels" [options]="benchmarkChartOptions"
+              type="line"></canvas>
+            <p class="warning align-center"
+              *ngIf="!benchmarkDataLoading && (!benchmarkChart.labels || benchmarkChart.labels.length === 0)">
+              No portfolio history available for the selected time frame.
+            </p>
+            <p
+              *ngIf="!benchmarkDataLoading && benchmarkChart.labels && benchmarkChart.labels.length > 0 &&  availableBenchmarks.length > 0 && selectedBenchmarkIds.length === 0">
+              Select at least one benchmark from the options menu above to compare against your portfolio.
+            </p>
+            <p class="warning align-center"
+              *ngIf="!benchmarkDataLoading && benchmarkChart.labels && benchmarkChart.labels.length > 0 &&  availableBenchmarks.length === 0">
+              Benchmarks are only available if your base currency is one of the following:
+              <ng-container *ngFor="let currency of BENCHMARK_CURRENCIES">{{currency}} </ng-container>
+            </p>
+
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -147,6 +245,11 @@
             <canvas *ngIf="unrealizedPLHistoryChart.datasets.length > 0" baseChart
               [datasets]="unrealizedPLHistoryChart.datasets" [labels]="unrealizedPLHistoryChart.labels"
               [options]="portfolioHistoryChartOptions" type="line"></canvas>
+            <p class="warning align-center"
+              *ngIf="(!unrealizedPLHistoryChart.datasets || unrealizedPLHistoryChart.datasets.length === 0)">
+              No portfolio history available for the selected time frame.
+            </p>
+
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>

@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { APP_CONSTS } from 'src/app/config/app.constants';
 import { AssetQuote } from '../models/asset-quote';
 import { AssetType } from '../models/asset';
+import { HistoricalQuoteResponse } from '../models/benchmark';
 
 
 const jsonHttpOptions = {
@@ -50,6 +51,18 @@ export class AssetsQuoteService {
     return quotes;
   }
 
+
+  async getHistoricalQuotes(symbols: string[], startDate: Date): Promise<HistoricalQuoteResponse[]> {
+    const response = await this.http.post<HistoricalQuoteResponse[]>(
+      APP_CONSTS.QUOTE_SERVICE_BASE_URL + 'history',
+      {
+        symbols: symbols,
+        startDate: startDate.toISOString().split('T')[0],
+      },
+      jsonHttpOptions
+    ).toPromise();
+    return response;
+  }
 
   /**
    * Get the quotes for a given list of forex pairs

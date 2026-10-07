@@ -1,14 +1,13 @@
-
 .dashboard-card {
-    width: 100%;
-    margin: 10px;
-    height: 100%;    
+  width: 100%;
+  margin: 10px;
+  height: 100%;
 }
 
 
 .grid-card {
-    width: calc(100% - 64px);
-    height: calc(100% - 64px);
+  width: calc(100% - 64px);
+  height: calc(100% - 64px);
 }
 
 .grid-card-content {
@@ -17,4 +16,45 @@
 
 .allocation-list {
   margin: 0px;
+}
+
+.vertical-center {
+  align-items: center;
+}
+
+.perf-subtitle {
+  margin-top: 4px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+
+.perf-stat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: default;
+}
+
+.perf-stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.perf-stat-name {
+  opacity: 0.85;
+}
+
+.perf-stat-val {}
+
+.perf-stat-pa {
+  font-size: 11px;
+  opacity: 0.75;
+  font-weight: normal;
 }
