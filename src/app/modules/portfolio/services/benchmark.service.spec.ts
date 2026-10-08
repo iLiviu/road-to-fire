@@ -4,6 +4,8 @@ import { BenchmarkService } from './benchmark.service';
 import { PortfolioService } from './portfolio.service';
 import { AssetsQuoteService } from './assets-quote.service';
 import { HistoricalQuoteResponse, BenchmarksCache } from '../models/benchmark';
+import { PortfolioHistory } from '../models/portfolio-history';
+import { Transaction, TransactionType } from '../models/transaction';
 
 describe('BenchmarkService', () => {
   let service: BenchmarkService;
@@ -693,6 +695,286 @@ describe('BenchmarkService', () => {
       expect(service.getForexConversionPlan('EUR', 'EUR')).toBeNull();
       expect(service.getForexConversionPlan('RON', 'RON')).toBeNull();
       expect(service.getForexConversionPlan('', 'EUR')).toBeNull();
+    });
+  });
+
+  describe('getHistoricalForexRate', () => {
+    beforeEach(() => {
+      storedBenchmarksCache = {
+        quotes: {
+          'EURUSD=X': {
+            symbol: 'EURUSD=X',
+            lastFetchTime: Date.now(),
+            data: {
+              symbol: 'EURUSD=X',
+              currency: 'USD',
+              history: [
+                { date: '2024-01-02', price: 1.10 },
+                { date: '2024-01-05', price: 1.12 },
+              ],
+            },
+          },
+          'USDRON=X': {
+            symbol: 'USDRON=X',
+            lastFetchTime: Date.now(),
+            data: {
+              symbol: 'USDRON=X',
+              currency: 'RON',
+              history: [
+                { date: '2024-01-02', price: 4.50 },
+                { date: '2024-01-05', price: 4.60 },
+              ],
+            },
+          },
+          'EURRON=X': {
+            symbol: 'EURRON=X',
+            lastFetchTime: Date.now(),
+            data: {
+              symbol: 'EURRON=X',
+              currency: 'RON',
+              history: [
+                { date: '2024-01-02', price: 4.95 },
+                { date: '2024-01-05', price: 5.00 },
+              ],
+            },
+          },
+          'EURCAD=X': {
+            symbol: 'EURCAD=X',
+            lastFetchTime: Date.now(),
+            data: {
+              symbol: 'EURCAD=X',
+              currency: 'CAD',
+              history: [
+                { date: '2024-01-02', price: 1.45 },
+                { date: '2024-01-05', price: 1.50 },
+              ],
+            },
+          },
+        },
+      };
+    });
+
+    it('should return 1 when currencies match (case-insensitive)', () => {
+      expect(service.getHistoricalForexRate('USD', 'USD', '2024-01-02')).toBe(1);
+      expect(service.getHistoricalForexRate('eur', 'EUR', '2024-01-02')).toBe(1);
+    });
+
+    it('should return direct rate for direct plan', async () => {
+      await (service as any).ensureCacheLoaded();
+      const rate = service.getHistoricalForexRate('EUR', 'USD', '2024-01-02');
+      expect(rate).toBe(1.10);
+    });
+
+    it('should return inverse rate for inverse plan', async () => {
+      await (service as any).ensureCacheLoaded();
+      // RON -> USD is inverse (USDRON=X with rate 4.50) -> 1 / 4.50
+      const ronUsd = service.getHistoricalForexRate('RON', 'USD', '2024-01-02');
+      expect(ronUsd).toBeCloseTo(1 / 4.50, 5);
+    });
+
+    it('should return cross rate via EUR bridge', async () => {
+      await (service as any).ensureCacheLoaded();
+      const rate = service.getHistoricalForexRate('RON', 'CAD', '2024-01-02');
+      expect(rate).toBeCloseTo(1.45 / 4.95, 5);
+    });
+
+    it('should use closest available date rate when exact date is missing (e.g. weekend)', async () => {
+      await (service as any).ensureCacheLoaded();
+      const rate = service.getHistoricalForexRate('EUR', 'USD', '2024-01-03');
+      expect(rate).toBe(1.10);
+
+      const rate2 = service.getHistoricalForexRate('EUR', 'USD', '2024-01-04');
+      expect(rate2).toBe(1.12);
+    });
+
+    it('should return fallback rate or null when quotes are not cached', async () => {
+      await (service as any).ensureCacheLoaded();
+      expect(service.getHistoricalForexRate('GBP', 'JPY', '2024-01-02', 150)).toBe(150);
+      expect(service.getHistoricalForexRate('GBP', 'JPY', '2024-01-02')).toBeNull();
+    });
+  });
+
+  describe('prefetchForexRatesForTransactions', () => {
+    it('should pre-fetch forex pairs for non-base currency cash transactions', async () => {
+      const transactions = [
+        {
+          type: TransactionType.CreditCash,
+          asset: { currency: 'USD', accountDescription: 'Main', accountId: 1 },
+          value: 1000,
+          date: '2024-01-15',
+        } as Transaction,
+        {
+          type: TransactionType.DebitCash,
+          asset: { currency: 'RON', accountDescription: 'Main', accountId: 1 },
+          value: 500,
+          date: '2024-01-10',
+        } as Transaction,
+        {
+          type: TransactionType.CreditCash,
+          asset: { currency: 'EUR', accountDescription: 'Main', accountId: 1 },
+          value: 200,
+          date: '2024-01-20',
+        } as Transaction,
+        {
+          type: TransactionType.Buy,
+          asset: { currency: 'USD', accountDescription: 'Main', accountId: 1 },
+          value: 300,
+          date: '2024-01-01',
+        } as Transaction,
+      ];
+
+      spyOn(service, 'getHistoricalPrices').and.returnValue(Promise.resolve([]));
+
+      await service.prefetchForexRatesForTransactions(transactions, 'EUR');
+
+      expect(service.getHistoricalPrices).toHaveBeenCalled();
+      const [symbols, earliestDate] = (service.getHistoricalPrices as jasmine.Spy).calls.argsFor(0);
+      expect(symbols).toContain('USDEUR=X');
+      expect(symbols).toContain('EURRON=X');
+      expect(earliestDate.toISOString().split('T')[0]).toBe('2024-01-10');
+    });
+  });
+
+  describe('computePortfolioFullTWR with forex conversion', () => {
+    it('should convert foreign currency cash inflows using historical forex rate', async () => {
+      const history: PortfolioHistory = {
+        entries: [
+          { date: '2024-01-01', assets: [{ value: 10000, currency: 'EUR', id: 1 }] },
+          { date: '2024-01-02', assets: [{ value: 12000, currency: 'EUR', id: 1 }] },
+        ],
+      } as any;
+
+      const transactions = [
+        {
+          type: TransactionType.CreditCash,
+          asset: { currency: 'USD', accountDescription: 'Main', accountId: 1 },
+          value: 1000,
+          date: '2024-01-02',
+        } as Transaction,
+      ];
+
+      spyOn(service, 'prefetchForexRatesForTransactions').and.returnValue(Promise.resolve());
+      spyOn(service, 'getHistoricalForexRate').and.callFake((from, to, date) => {
+        if (from === 'USD' && to === 'EUR') return 0.8;
+        return 1;
+      });
+
+      const twrSeries = await service.computePortfolioFullTWR(
+        history,
+        transactions,
+        'EUR',
+        () => 0.5
+      );
+
+      expect(service.getHistoricalForexRate).toHaveBeenCalledWith('USD', 'EUR', '2024-01-02', 0.5);
+      expect(twrSeries.length).toBe(2);
+      expect(twrSeries[1].twr).toBe(11.54);
+    });
+  });
+
+  describe('computePortfolioIRR', () => {
+    it('should return nulls when history is empty or invalid', async () => {
+      const res1 = await service.computePortfolioIRR(null, [], 'EUR');
+      expect(res1).toEqual({ irr: null, totalReturn: null, inaccurateIRR: false });
+
+      const res2 = await service.computePortfolioIRR({ entries: [] } as any, [], 'EUR');
+      expect(res2).toEqual({ irr: null, totalReturn: null, inaccurateIRR: false });
+    });
+
+    it('should return nulls when no entries match minDate', async () => {
+      const history: PortfolioHistory = {
+        entries: [
+          { date: '2023-01-01', assets: [{ value: 10000, currency: 'EUR', id: 1 }] },
+        ],
+      } as any;
+      const res = await service.computePortfolioIRR(history, [], 'EUR', new Date('2024-01-01'));
+      expect(res).toEqual({ irr: null, totalReturn: null, inaccurateIRR: false });
+    });
+
+    it('should compute IRR and total return for base currency transactions', async () => {
+      const history: PortfolioHistory = {
+        entries: [
+          { date: '2024-01-01', assets: [{ value: 10000, currency: 'EUR', id: 1 }] },
+          { date: '2025-01-01', assets: [{ value: 15000, currency: 'EUR', id: 1 }] },
+        ],
+      } as any;
+
+      const transactions: Transaction[] = [
+        {
+          type: TransactionType.CreditCash,
+          asset: { currency: 'EUR', accountDescription: 'Main', accountId: 1 },
+          value: 2000,
+          date: '2024-06-01',
+        } as Transaction,
+      ];
+
+      const res = await service.computePortfolioIRR(history, transactions, 'EUR');
+
+      expect(res.inaccurateIRR).toBeFalse();
+      expect(res.totalReturn).toBeCloseTo(0.3, 2); // (15000 - 2000 - 10000) / 10000 = 0.3
+      expect(res.irr).toBeGreaterThan(0.2); // Annualized IRR should be around 25-28%
+    });
+
+    it('should convert foreign currency transactions using historical forex rate', async () => {
+      const history: PortfolioHistory = {
+        entries: [
+          { date: '2024-01-01', assets: [{ value: 10000, currency: 'EUR', id: 1 }] },
+          { date: '2025-01-01', assets: [{ value: 15000, currency: 'EUR', id: 1 }] },
+        ],
+      } as any;
+
+      const transactions: Transaction[] = [
+        {
+          type: TransactionType.CreditCash,
+          asset: { currency: 'USD', accountDescription: 'Main', accountId: 1 },
+          value: 1000,
+          date: '2024-06-01',
+        } as Transaction,
+      ];
+
+      spyOn(service, 'prefetchForexRatesForTransactions').and.returnValue(Promise.resolve());
+      spyOn(service, 'getHistoricalForexRate').and.returnValue(0.8); // 1000 USD = 800 EUR
+
+      const res = await service.computePortfolioIRR(history, transactions, 'EUR');
+
+      expect(service.getHistoricalForexRate).toHaveBeenCalledWith('USD', 'EUR', '2024-06-01');
+      expect(res.inaccurateIRR).toBeFalse();
+      // Total return: (15000 - 800 - 10000) / 10000 = 0.42
+      expect(res.totalReturn).toBeCloseTo(0.42, 2);
+      expect(res.irr).toBeGreaterThan(0.3);
+    });
+
+    it('should flag inaccurateIRR and use fallback currencyRateFn when historical rate is missing', async () => {
+      const history: PortfolioHistory = {
+        entries: [
+          { date: '2024-01-01', assets: [{ value: 10000, currency: 'EUR', id: 1 }] },
+          { date: '2025-01-01', assets: [{ value: 15000, currency: 'EUR', id: 1 }] },
+        ],
+      } as any;
+
+      const transactions: Transaction[] = [
+        {
+          type: TransactionType.CreditCash,
+          asset: { currency: 'USD', accountDescription: 'Main', accountId: 1 },
+          value: 1000,
+          date: '2024-06-01',
+        } as Transaction,
+      ];
+
+      spyOn(service, 'prefetchForexRatesForTransactions').and.returnValue(Promise.resolve());
+      spyOn(service, 'getHistoricalForexRate').and.returnValue(null);
+
+      const res = await service.computePortfolioIRR(
+        history,
+        transactions,
+        'EUR',
+        null,
+        () => 0.9 // fallback rate
+      );
+
+      expect(res.inaccurateIRR).toBeTrue();
+      // Total return: (15000 - 900 - 10000) / 10000 = 0.41
+      expect(res.totalReturn).toBeCloseTo(0.41, 2);
     });
   });
 });

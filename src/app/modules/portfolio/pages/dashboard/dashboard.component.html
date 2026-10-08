@@ -175,7 +175,7 @@
                 {{portfolioAnnualizedTWR >= 0 ? '+' : ''}}{{portfolioAnnualizedTWR | number:'1.2-2'}}%
                 <span class="perf-stat-pa">p.a.</span>
               </span>
-              <mat-icon *ngIf="inaccurateIRR" color="accent"
+              <mat-icon *ngIf="inaccurateTWR" color="accent"
                 matTooltip="Note: TWR is not accurate because you have non-base currency cash credits/debits, and the app uses the current FX rate for conversion, not the one on the actual transaction date">
                 error_outline
               </mat-icon>

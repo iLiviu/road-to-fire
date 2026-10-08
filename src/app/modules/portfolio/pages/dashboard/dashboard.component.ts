@@ -31,7 +31,6 @@ import { ThemeService } from 'ng2-charts';
 import { ChartOptions, TooltipItem } from 'chart.js';
 import { APP_THEMES, ConfigService } from 'src/app/core/services/config.service';
 import { TransactionType } from '../../models/transaction';
-import * as IRR from 'node-irr';
 import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 import { BenchmarkService } from '../../services/benchmark.service';
 import { BENCHMARK_CURRENCIES, BenchmarkDefinition, TWRDataPoint } from '../../models/benchmark';
@@ -188,6 +187,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   timeFrameIRR: number;
   timeFrameTotalReturn: number;
   inaccurateIRR: boolean;
+  inaccurateTWR: boolean;
   labelCategoriesAllocationCharts: { [categoryId: number]: ChartContext } = {};
   labelCategories: LabelCategory[] = [];
   LABEL_CATEGORY_TILE_PREFIX = LABEL_CATEGORY_TILE_PREFIX;
@@ -1076,67 +1076,25 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    */
   private async computePortfolioPerformance(timeFrame: string) {
     const minDate = this.getStartDateFromTimeFrame(timeFrame);
-    const data = [];
-    let startDate = new Date();
-    let startValue = 0;
-    let endDate = new Date(0, 0, 0);
-    let endValue = 0;
-    // find first and last day for which we have data during given time frame
-    for (const entry of this.allPortfolioHistory.entries) {
-      const entryDate = new Date(entry.date);
-      const assets = entry.assets;
-      // skip dates not in our time frame or without any data
-      if (assets && assets.length > 0 && (!minDate || minDate.getTime() <= entryDate.getTime())) {
-        let portfolioValue = 0;
-        for (const asset of assets) {
-          portfolioValue += asset.value;
-        }
-        if (entryDate.getTime() <= startDate.getTime()) {
-          startDate = entryDate;
-          startValue = portfolioValue;
-        }
-        if (entryDate.getTime() > endDate.getTime()) {
-          endDate = entryDate;
-          endValue = portfolioValue;
-        }
-      }
-    }
-
-    // initial portfolio value
-    data.push({ amount: -startValue, date: startDate });
-    // search for cash debits/credits through all transaction history
     const transactions = await this.portfolioService.getTransactions();
-    let cashFlows = 0;
-    for (const tx of transactions) {
-      const txDate = new Date(tx.date);
-      if (!minDate || minDate.getTime() <= txDate.getTime()) {
-        if (tx.type === TransactionType.CreditCash) {
-          const fxRate = this.getCurrencyRate(tx.asset.currency);
-          const txValue = tx.value * fxRate;
-          cashFlows += txValue;
-          data.push({ amount: -txValue, date: txDate });
-          if (tx.asset.currency !== this.baseCurrency) {
-            this.inaccurateIRR = true;
-          }
-        } else if (tx.type === TransactionType.DebitCash) {
-          const fxRate = this.getCurrencyRate(tx.asset.currency);
-          const txValue = tx.value * fxRate;
-          cashFlows -= txValue;
-          data.push({ amount: txValue, date: txDate });
-          if (tx.asset.currency !== this.baseCurrency) {
-            this.inaccurateIRR = true;
-          }
+
+    const result = await this.benchmarkService.computePortfolioIRR(
+      this.allPortfolioHistory,
+      transactions,
+      this.baseCurrency,
+      minDate,
+      (currency) => {
+        try {
+          return this.getCurrencyRate(currency);
+        } catch {
+          return 1;
         }
       }
-    }
-    // final portfolio value
-    data.push({ amount: endValue, date: endDate });
+    );
 
-    const rate = IRR.xirr(data);
-    const irr = IRR.convertRate(rate.rate, IRR.RateInterval.Year);
-    this.timeFrameIRR = irr;
-
-    this.timeFrameTotalReturn = (endValue - cashFlows - startValue) / (startValue);
+    this.timeFrameIRR = result.irr;
+    this.timeFrameTotalReturn = result.totalReturn;
+    this.inaccurateIRR = result.inaccurateIRR;
   }
 
   /**
@@ -1206,6 +1164,12 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
         transactions,
         this.baseCurrency,
         (currency) => this.getCurrencyRate(currency)
+      );
+
+      this.inaccurateTWR = transactions.some(tx =>
+        (tx.type === TransactionType.CreditCash || tx.type === TransactionType.DebitCash) &&
+        tx.asset && tx.asset.currency && tx.asset.currency.toUpperCase() !== this.baseCurrency.toUpperCase() &&
+        this.benchmarkService.getHistoricalForexRate(tx.asset.currency, this.baseCurrency, tx.date) == null
       );
 
       if (this.fullPortfolioTWR.length === 0) {

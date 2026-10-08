@@ -6,11 +6,13 @@ import {
   BenchmarkDefinition, BENCHMARK_DEFINITIONS, BENCHMARK_CURRENCIES,
   FOREX_BASE_CURRENCIES, ForexConversionPlan,
   HistoricalQuoteResponse, HistoricalPrice, TWRDataPoint,
-  BenchmarksCache, CachedBenchmarkData, PortfolioTWRCache
+  BenchmarksCache, CachedBenchmarkData, PortfolioTWRCache,
+  PortfolioPerformanceResult
 } from '../models/benchmark';
 import { PortfolioHistory } from '../models/portfolio-history';
 import { Transaction, TransactionType } from '../models/transaction';
 import { FloatingMath } from 'src/app/shared/util';
+import * as IRR from 'node-irr';
 import { PortfolioService } from './portfolio.service';
 import { AssetsQuoteService } from './assets-quote.service';
 
@@ -49,6 +51,7 @@ export class BenchmarkService {
   private quoteCache: { [symbol: string]: CachedBenchmarkData } = {};
   private portfolioTWRCache: PortfolioTWRCache = null;
   private benchmarkTWRCache: { [symbol: string]: { series: TWRDataPoint[], hash: string } } = {};
+  private preparedForexSeriesCache: { [symbol: string]: { length: number; series: PreparedForexSeries } } = {};
   private cacheLoaded = false;
 
   constructor(private http: HttpClient, private portfolioService: PortfolioService,
@@ -70,7 +73,7 @@ export class BenchmarkService {
     const standardCurrency = isBaseInMajor ? baseCurrency : 'USD';
 
     return BENCHMARK_DEFINITIONS.filter(b =>
-      b.currency === standardCurrency || !BENCHMARK_CURRENCIES.includes(b.currency)
+      b.currency === standardCurrency
     );
   }
 
@@ -562,6 +565,137 @@ export class BenchmarkService {
     };
 
     delete this.benchmarkTWRCache[item.symbol];
+    delete this.preparedForexSeriesCache[item.symbol];
+  }
+
+  /**
+   * Retrieves or computes the prepared forex series (exact date map + sorted array) for binary search lookup.
+   */
+  private getPreparedSeriesForSymbol(symbol: string): PreparedForexSeries | null {
+    const data = this.quoteCache[symbol]?.data;
+    if (!data?.history?.length) {
+      return null;
+    }
+    const cached = this.preparedForexSeriesCache[symbol];
+    if (cached && cached.length === data.history.length) {
+      return cached.series;
+    }
+    const series = this.prepareForexSeries(data.history);
+    this.preparedForexSeriesCache[symbol] = { length: data.history.length, series };
+    return series;
+  }
+
+  /**
+   * Returns the historical forex exchange rate to convert from fromCurrency to toCurrency
+   * on a given date (or the closest available date in the history).
+   *
+   * @param fromCurrency Source currency
+   * @param toCurrency Target currency (e.g. portfolio base currency)
+   * @param date Date of transaction (Date object or date string)
+   * @param fallbackRate Optional fallback rate if historical quote is not found
+   * @returns Conversion rate (multiply fromCurrency value by this rate to get toCurrency value), or null if unavailable
+   */
+  getHistoricalForexRate(
+    fromCurrency: string,
+    toCurrency: string,
+    date: Date | string,
+    fallbackRate?: number
+  ): number | null {
+    if (!fromCurrency || !toCurrency) {
+      return fallbackRate !== undefined ? fallbackRate : 1;
+    }
+    const fromUpper = fromCurrency.toUpperCase();
+    const toUpper = toCurrency.toUpperCase();
+    if (fromUpper === toUpper) {
+      return 1;
+    }
+
+    const plan = this.getForexConversionPlan(fromUpper, toUpper);
+    if (!plan) {
+      return fallbackRate !== undefined ? fallbackRate : 1;
+    }
+
+    const dateKey = (typeof date === 'string' ? date : date.toISOString()).split('T')[0];
+
+    if (plan.type === 'direct') {
+      const series = this.getPreparedSeriesForSymbol(plan.directPair);
+      if (!series) {
+        return fallbackRate !== undefined ? fallbackRate : null;
+      }
+      const rate = this.getRateOnDate(dateKey, series);
+      return (rate && rate > 0) ? rate : (fallbackRate !== undefined ? fallbackRate : null);
+    }
+
+    if (plan.type === 'inverse') {
+      const series = this.getPreparedSeriesForSymbol(plan.inversePair);
+      if (!series) {
+        return fallbackRate !== undefined ? fallbackRate : null;
+      }
+      const rate = this.getRateOnDate(dateKey, series);
+      return (rate && rate > 0) ? (1 / rate) : (fallbackRate !== undefined ? fallbackRate : null);
+    }
+
+    if (plan.type === 'cross') {
+      const seriesFrom = this.getPreparedSeriesForSymbol(plan.bridgePairFrom);
+      const seriesTo = this.getPreparedSeriesForSymbol(plan.bridgePairTo);
+      if (!seriesFrom || !seriesTo) {
+        return fallbackRate !== undefined ? fallbackRate : null;
+      }
+      const rateFrom = this.getRateOnDate(dateKey, seriesFrom);
+      const rateTo = this.getRateOnDate(dateKey, seriesTo);
+      return (rateFrom && rateFrom > 0 && rateTo && rateTo > 0)
+        ? (rateTo / rateFrom)
+        : (fallbackRate !== undefined ? fallbackRate : null);
+    }
+
+    return fallbackRate !== undefined ? fallbackRate : 1;
+  }
+
+  /**
+   * Pre-fetches historical forex rates in batch for any cash transactions (CreditCash / DebitCash)
+   * that are in a currency different from baseCurrency.
+   */
+  async prefetchForexRatesForTransactions(
+    transactions: Transaction[],
+    baseCurrency: string,
+    now: Date = new Date()
+  ): Promise<void> {
+    if (!transactions || transactions.length === 0 || !baseCurrency) {
+      return;
+    }
+
+    await this.ensureCacheLoaded();
+
+    const neededPairs = new Set<string>();
+    let earliestDate: Date | null = null;
+
+    for (const tx of transactions) {
+      if (
+        (tx.type === TransactionType.CreditCash || tx.type === TransactionType.DebitCash) &&
+        tx.asset &&
+        tx.asset.currency &&
+        tx.asset.currency.toUpperCase() !== baseCurrency.toUpperCase()
+      ) {
+        const plan = this.getForexConversionPlan(tx.asset.currency, baseCurrency);
+        if (plan) {
+          for (const p of plan.pairs) {
+            neededPairs.add(p);
+          }
+          if (tx.date) {
+            const txDate = new Date(tx.date);
+            if (!isNaN(txDate.getTime())) {
+              if (!earliestDate || txDate.getTime() < earliestDate.getTime()) {
+                earliestDate = txDate;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (neededPairs.size > 0 && earliestDate) {
+      await this.getHistoricalPrices(Array.from(neededPairs), earliestDate, now);
+    }
   }
 
   /**
@@ -611,12 +745,27 @@ export class BenchmarkService {
     // Compute fingerprint to detect changes
     const lastEntry = validEntries[validEntries.length - 1];
     const lastTx = transactions.length > 0 ? transactions[transactions.length - 1] : null;
-    const fingerprint = `${baseCurrency}_${validEntries.length}_${lastEntry.date}_${lastEntry.value}_${transactions.length}_${lastTx ? lastTx.date : ''}`;
+    const fingerprint = `v2_${baseCurrency}_${validEntries.length}_${lastEntry.date}_${lastEntry.value}_${transactions.length}_${lastTx ? lastTx.date : ''}`;
 
     // 1. Exact Cache Hit: return immediately in 0ms
     if (this.portfolioTWRCache && this.portfolioTWRCache.fingerprint === fingerprint) {
       return this.portfolioTWRCache.series;
     }
+
+    // Pre-fetch needed historical forex quotes for cash transactions
+    await this.prefetchForexRatesForTransactions(transactions, baseCurrency);
+
+    const getTxFxRate = (tx: Transaction): number => {
+      let fallback = 1;
+      if (currencyRateFn && tx.asset && tx.asset.currency) {
+        fallback = currencyRateFn(tx.asset.currency);
+      }
+      if (!tx.asset || !tx.asset.currency || tx.asset.currency.toUpperCase() === baseCurrency.toUpperCase()) {
+        return 1;
+      }
+      const histRate = this.getHistoricalForexRate(tx.asset.currency, baseCurrency, tx.date, fallback);
+      return histRate != null ? histRate : fallback;
+    };
 
     // 2. Incremental Update: exactly 1 new snapshot was added at the end (e.g. today's entry)
     if (
@@ -638,10 +787,7 @@ export class BenchmarkService {
         for (const tx of transactions) {
           const txTime = new Date(tx.date).getTime();
           if (txTime > prevTime && txTime <= currTime) {
-            let fxRate = 1;
-            if (currencyRateFn && tx.asset && tx.asset.currency) {
-              fxRate = currencyRateFn(tx.asset.currency);
-            }
+            const fxRate = getTxFxRate(tx);
             const val = tx.value * fxRate;
             if (tx.type === TransactionType.CreditCash) {
               periodCashFlow += val;
@@ -672,10 +818,7 @@ export class BenchmarkService {
     const cashFlows: ProcessedCashFlow[] = [];
     for (const tx of transactions) {
       if (tx.type === TransactionType.CreditCash || tx.type === TransactionType.DebitCash) {
-        let fxRate = 1;
-        if (currencyRateFn && tx.asset && tx.asset.currency) {
-          fxRate = currencyRateFn(tx.asset.currency);
-        }
+        const fxRate = getTxFxRate(tx);
         const txValue = tx.value * fxRate;
         cashFlows.push({
           time: new Date(tx.date).getTime(),
@@ -722,6 +865,129 @@ export class BenchmarkService {
     this.portfolioTWRCache = { fingerprint, baseCurrency, series: result };
     await this.persistBenchmarksCache();
     return result;
+  }
+
+  /**
+   * Computes Internal Rate of Return (IRR) and Total Return of the portfolio for a given time frame.
+   *
+   * @param history The portfolio history
+   * @param transactions All transactions
+   * @param baseCurrency User's base currency
+   * @param minDate Optional start date filter (entries / transactions before this date are ignored)
+   * @param currencyRateFn Optional fallback function for spot forex rates when historical rates are unavailable
+   * @returns PortfolioPerformanceResult with annualized IRR, total return, and inaccurateIRR flag
+   */
+  async computePortfolioIRR(
+    history: PortfolioHistory,
+    transactions: Transaction[],
+    baseCurrency: string,
+    minDate?: Date | null,
+    currencyRateFn?: (currency: string) => number
+  ): Promise<PortfolioPerformanceResult> {
+    if (!history || !history.entries || history.entries.length === 0) {
+      return { irr: null, totalReturn: null, inaccurateIRR: false };
+    }
+
+    await this.ensureCacheLoaded();
+
+    let startDate: Date = null;
+    let startValue = 0;
+    let endDate: Date = null;
+    let endValue = 0;
+
+    // Find first and last day for which we have data during given time frame
+    for (const entry of history.entries) {
+      const entryDate = new Date(entry.date);
+      const assets = entry.assets;
+      if (assets && assets.length > 0 && (!minDate || minDate.getTime() <= entryDate.getTime())) {
+        let portfolioValue = 0;
+        for (const asset of assets) {
+          portfolioValue += asset.value;
+        }
+        if (!startDate || entryDate.getTime() <= startDate.getTime()) {
+          startDate = entryDate;
+          startValue = portfolioValue;
+        }
+        if (!endDate || entryDate.getTime() > endDate.getTime()) {
+          endDate = entryDate;
+          endValue = portfolioValue;
+        }
+      }
+    }
+
+    if (!startDate || !endDate) {
+      return { irr: null, totalReturn: null, inaccurateIRR: false };
+    }
+
+    // Pre-fetch needed historical forex quotes for cash transactions
+    if (transactions && transactions.length > 0) {
+      await this.prefetchForexRatesForTransactions(transactions, baseCurrency);
+    }
+
+    const data: { amount: number; date: Date }[] = [];
+    data.push({ amount: -startValue, date: startDate });
+
+    let cashFlows = 0;
+    let inaccurateIRR = false;
+
+    if (transactions && transactions.length > 0) {
+      for (const tx of transactions) {
+        if (!tx.date) {
+          continue;
+        }
+        const txDate = new Date(tx.date);
+        if (!minDate || minDate.getTime() <= txDate.getTime()) {
+          if (tx.type === TransactionType.CreditCash || tx.type === TransactionType.DebitCash) {
+            let fxRate = 1;
+            if (tx.asset && tx.asset.currency && tx.asset.currency.toUpperCase() !== baseCurrency.toUpperCase()) {
+              const histRate = this.getHistoricalForexRate(tx.asset.currency, baseCurrency, tx.date);
+              if (histRate != null) {
+                fxRate = histRate;
+              } else {
+                if (currencyRateFn) {
+                  try {
+                    fxRate = currencyRateFn(tx.asset.currency);
+                  } catch {
+                    fxRate = 1;
+                  }
+                } else {
+                  fxRate = 1;
+                }
+                inaccurateIRR = true;
+              }
+            }
+            const txValue = tx.value * fxRate;
+            if (tx.type === TransactionType.CreditCash) {
+              cashFlows += txValue;
+              data.push({ amount: -txValue, date: txDate });
+            } else {
+              cashFlows -= txValue;
+              data.push({ amount: txValue, date: txDate });
+            }
+          }
+        }
+      }
+    }
+
+    data.push({ amount: endValue, date: endDate });
+
+    let irr: number | null = null;
+    try {
+      const rate = IRR.xirr(data);
+      if (rate && typeof rate.rate === 'number' && !isNaN(rate.rate)) {
+        irr = IRR.convertRate(rate.rate, IRR.RateInterval.Year);
+      }
+    } catch (err) {
+      // Ignore xirr calculation failure
+    }
+
+    const totalReturn = startValue > 0 ? (endValue - cashFlows - startValue) / startValue : null;
+
+    return {
+      irr,
+      totalReturn,
+      inaccurateIRR,
+    };
   }
 
   /**
@@ -863,6 +1129,16 @@ export class BenchmarkService {
 
     const annualizedRatio = Math.pow(totalReturnRatio, 365 / days) - 1;
     return FloatingMath.round2Decimals(annualizedRatio * 100);
+  }
+
+  /**
+   * Clears all in-memory benchmark and forex caches.
+   */
+  clearBenchmarksCache(): void {
+    this.quoteCache = {};
+    this.portfolioTWRCache = null;
+    this.benchmarkTWRCache = {};
+    this.preparedForexSeriesCache = {};
   }
 
   /**

@@ -22,6 +22,12 @@ export interface TWRDataPoint {
   twr: number;
 }
 
+export interface PortfolioPerformanceResult {
+  irr: number | null;
+  totalReturn: number | null;
+  inaccurateIRR: boolean;
+}
+
 export interface CachedBenchmarkData {
   symbol: string;
   lastFetchTime: number;

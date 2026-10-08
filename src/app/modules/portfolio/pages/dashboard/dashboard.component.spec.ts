@@ -38,6 +38,7 @@ import { SAMPLE_ACCOUNTS } from '../../mocks/sample-accounts.mock';
 import { ConfigService } from 'src/app/core/services/config.service';
 import { MockConfigService } from 'src/app/core/mocks/config.service.mock';
 import { BenchmarkService } from '../../services/benchmark.service';
+import { TransactionType } from '../../models/transaction';
 import { Component, Input } from '@angular/core';
 
 @Component({
@@ -78,6 +79,15 @@ class MockBenchmarkService {
   }
   calculateAnnualizedTWR(s: any) {
     return null;
+  }
+  prefetchForexRatesForTransactions() {
+    return Promise.resolve();
+  }
+  getHistoricalForexRate() {
+    return null;
+  }
+  computePortfolioIRR() {
+    return Promise.resolve({ irr: 0.1, totalReturn: 0.15, inaccurateIRR: false });
   }
 }
 
@@ -213,5 +223,45 @@ describe('DashboardComponent', () => {
     tick(); // wait for readConfig async flow
 
     expect((component as any).isConfigLoaded()).toBeTrue();
+  }));
+
+  it('should delegate to benchmarkService.computePortfolioIRR in computePortfolioPerformance', fakeAsync(() => {
+    fixture.detectChanges();
+    tick();
+
+    const benchmarkService = TestBed.inject(BenchmarkService);
+    spyOn(benchmarkService, 'computePortfolioIRR').and.returnValue(Promise.resolve({
+      irr: 0.12,
+      totalReturn: 0.25,
+      inaccurateIRR: false,
+    }));
+
+    component['computePortfolioPerformance']('1Y');
+    tick();
+
+    expect(benchmarkService.computePortfolioIRR).toHaveBeenCalled();
+    expect(component.timeFrameIRR).toBe(0.12);
+    expect(component.timeFrameTotalReturn).toBe(0.25);
+    expect(component.inaccurateIRR).toBeFalse();
+    discardPeriodicTasks();
+  }));
+
+  it('should set inaccurateIRR if computePortfolioIRR returns inaccurateIRR as true', fakeAsync(() => {
+    fixture.detectChanges();
+    tick();
+
+    const benchmarkService = TestBed.inject(BenchmarkService);
+    spyOn(benchmarkService, 'computePortfolioIRR').and.returnValue(Promise.resolve({
+      irr: 0.08,
+      totalReturn: 0.10,
+      inaccurateIRR: true,
+    }));
+
+    component['computePortfolioPerformance']('1Y');
+    tick();
+
+    expect(benchmarkService.computePortfolioIRR).toHaveBeenCalled();
+    expect(component.inaccurateIRR).toBeTrue();
+    discardPeriodicTasks();
   }));
 });
