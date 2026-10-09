@@ -30,7 +30,7 @@ UI Changes
   },
   LONG_DATE_FORMAT: 'L',
   QUOTE_CACHE_TIMEOUT: 60 * 60 * 1, // value in seconds. do not request updated quotes for assets until timeout
-  QUOTE_SERVICE_BASE_URL: 'https://roadtofire.iliviu.me:8443/',
+  QUOTE_SERVICE_BASE_URL: 'https://roadtofire.iliviu.me/asset-quote/',
   SUPPORTED_EXCHANGES: {
     EQUITY: <ExchangeDetails[]>[
       { code: 'ARCX', name: 'NYSE Arca' },
