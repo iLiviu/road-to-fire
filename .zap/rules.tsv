@@ -1,0 +1,15 @@
+# Reglas del escaneo baseline de OWASP ZAP.
+# Formato: identificador de regla <TAB> accion <TAB> comentario opcional
+# Acciones: WARN (informativo), FAIL (detiene), IGNORE (se omite).
+#
+# El DAST esta declarado como control informativo en la Tabla 2, de modo que
+# ninguna regla usa FAIL. Las excepciones que aparecen abajo se registran aqui
+# con su motivo, que es el mismo criterio de gobierno de excepciones del 3.2:
+# la excepcion queda escrita, versionada y atribuible.
+
+10015	WARN	Cabecera Cache-Control ausente en recursos estaticos
+10027	IGNORE	Comentarios informativos en el bundle: no exponen datos del usuario
+10063	WARN	Permissions-Policy: revisar cobertura de directivas
+10109	WARN	Almacenamiento moderno del navegador: la aplicacion usa remoteStorage por diseno
+10098	IGNORE	Cross-Domain Misconfiguration: la aplicacion consulta proveedores externos de cotizaciones
+90005	WARN	Sub Resource Integrity: pendiente de evaluar para los recursos servidos por la propia imagen
