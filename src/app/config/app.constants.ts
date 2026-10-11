@@ -11,18 +11,21 @@ export interface SymbolDetails {
 
 export const APP_CONSTS = {
   TITLE: 'Road To FIRE',
-  VERSION: '1.6.0',
+  VERSION: '2.0.0',
   // text to show when user first loads the current new version
-  WHATS_NEW_TITLE: `What's new in version 1.6.0`,
+  WHATS_NEW_TITLE: `What's new in version 2.0.0`,
   WHATS_NEW:
     `Features
-* Display all future interest payments of a bond in Scheduled Transactions page
-* Filter the Scheduled Transactions that are displayed
-* Top Portfolio Holdings chart on dashboard
+* Add support for labeling assets
+* Autocomplete asset details using existing assets data.
+* Encrypt stored password when biometric authentication is enabled 
+* Faster cloud sync when asset prices are refreshed
+* Portfolio Performance Benchmark chart (compare performance against S&P500, MSCI World, FTSE All-World etc)
+* Use historic forex rate for cashflows when computing IRR/TWR to to avoid having an inaccurate value. 
 
-UI Changes
-* 3Y interval option in Dashboard charts
-* Display total value of both credit & debit transactions in Scheduled Transactions page`,
+Bug fixes
+* If the same asset is present in multiple accounts, only display it once when manually updating quotes
+* Fix spelling and grammar`,
   REPOSITORY_URL: 'https://github.com/iLiviu/road-to-fire',
   STORAGE_API_KEYS: {
     DROPBOX: 'kbwh5504okeu3b9',

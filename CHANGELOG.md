@@ -1,4 +1,4 @@
-## Master
+## 2.0.0
 
 ### Features
 * Add support for labeling assets
