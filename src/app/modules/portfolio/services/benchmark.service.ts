@@ -73,7 +73,7 @@ export class BenchmarkService {
     const standardCurrency = isBaseInMajor ? baseCurrency : 'USD';
 
     return BENCHMARK_DEFINITIONS.filter(b =>
-      b.currency === standardCurrency
+      b.currency === standardCurrency || !BENCHMARK_CURRENCIES.includes(b.currency)
     );
   }
 
