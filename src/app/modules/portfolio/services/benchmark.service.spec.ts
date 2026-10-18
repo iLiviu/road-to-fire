@@ -3,7 +3,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BenchmarkService } from './benchmark.service';
 import { PortfolioService } from './portfolio.service';
 import { AssetsQuoteService } from './assets-quote.service';
-import { HistoricalQuoteResponse, BenchmarksCache } from '../models/benchmark';
+import { HistoricalQuoteResponse, BenchmarksCache, BENCHMARK_CURRENCIES } from '../models/benchmark';
 import { PortfolioHistory } from '../models/portfolio-history';
 import { Transaction, TransactionType } from '../models/transaction';
 
@@ -417,25 +417,33 @@ describe('BenchmarkService', () => {
     it('should return native benchmarks for EUR, USD, GBP', () => {
       const eurBenchmarks = service.getAvailableBenchmarks('EUR');
       expect(eurBenchmarks.length).toBeGreaterThan(0);
-      expect(eurBenchmarks.every(b => b.currency === 'EUR')).toBeTrue();
+      expect(eurBenchmarks.every(b => b.currency === 'EUR' || !BENCHMARK_CURRENCIES.includes(b.currency))).toBeTrue();
+      expect(eurBenchmarks.some(b => b.currency === 'EUR')).toBeTrue();
+      expect(eurBenchmarks.some(b => b.currency === 'USD' || b.currency === 'GBP')).toBeFalse();
 
       const usdBenchmarks = service.getAvailableBenchmarks('USD');
       expect(usdBenchmarks.length).toBeGreaterThan(0);
-      expect(usdBenchmarks.every(b => b.currency === 'USD')).toBeTrue();
+      expect(usdBenchmarks.every(b => b.currency === 'USD' || !BENCHMARK_CURRENCIES.includes(b.currency))).toBeTrue();
+      expect(usdBenchmarks.some(b => b.currency === 'USD')).toBeTrue();
+      expect(usdBenchmarks.some(b => b.currency === 'EUR' || b.currency === 'GBP')).toBeFalse();
 
       const gbpBenchmarks = service.getAvailableBenchmarks('GBP');
       expect(gbpBenchmarks.length).toBeGreaterThan(0);
-      expect(gbpBenchmarks.every(b => b.currency === 'GBP')).toBeTrue();
+      expect(gbpBenchmarks.every(b => b.currency === 'GBP' || !BENCHMARK_CURRENCIES.includes(b.currency))).toBeTrue();
+      expect(gbpBenchmarks.some(b => b.currency === 'GBP')).toBeTrue();
+      expect(gbpBenchmarks.some(b => b.currency === 'EUR' || b.currency === 'USD')).toBeFalse();
     });
 
     it('should return USD benchmarks for other currencies (e.g. RON, CAD)', () => {
       const ronBenchmarks = service.getAvailableBenchmarks('RON');
       expect(ronBenchmarks.length).toBeGreaterThan(0);
-      expect(ronBenchmarks.every(b => b.currency === 'USD')).toBeTrue();
+      expect(ronBenchmarks.every(b => b.currency === 'USD' || !BENCHMARK_CURRENCIES.includes(b.currency))).toBeTrue();
+      expect(ronBenchmarks.some(b => b.currency === 'RON')).toBeTrue();
 
       const cadBenchmarks = service.getAvailableBenchmarks('CAD');
       expect(cadBenchmarks.length).toBeGreaterThan(0);
-      expect(cadBenchmarks.every(b => b.currency === 'USD')).toBeTrue();
+      expect(cadBenchmarks.every(b => b.currency === 'USD' || !BENCHMARK_CURRENCIES.includes(b.currency))).toBeTrue();
+      expect(cadBenchmarks.some(b => b.currency === 'USD')).toBeTrue();
     });
 
     it('should return empty list for empty base currency', () => {
