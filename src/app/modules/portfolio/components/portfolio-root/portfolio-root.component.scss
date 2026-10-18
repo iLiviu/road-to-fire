@@ -1,10 +1,145 @@
+// Default base width: 60px so Angular Material always measures 60px on desktop
 .sidenav {
+  width: 60px;
+  overflow-x: hidden;
+}
+
+// Mini-rail variant for desktop (mode="side")
+.sidenav.mat-drawer-side {
+  width: 60px;
+  overflow-x: hidden;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.12);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  ::ng-deep {
+    .mat-drawer-inner-container {
+      overflow-x: hidden;
+    }
+
+    .mat-list-item-content {
+      padding: 0 18px !important;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .routeIcon {
+      min-width: 24px !important;
+      width: 24px !important;
+      height: 24px !important;
+      font-size: 24px !important;
+      flex-shrink: 0 !important;
+      margin-right: 0 !important;
+    }
+
+    .item-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0;
+      width: 0;
+      margin-left: 0;
+      display: inline-block;
+      transition: opacity 0.2s ease-in-out, width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .expand-indicator {
+      opacity: 0;
+      display: none;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    // Hide nested child items when the rail is collapsed
+    app-menu-list-item app-menu-list-item {
+      display: none;
+    }
+  }
+
+  .sidenav-footer {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  // Hover state: expand over content
+  &:hover {
     width: 260px;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.24);
+
+    ::ng-deep {
+      .mat-list-item-content {
+        padding: 0 16px !important;
+      }
+
+      .routeIcon {
+        margin-right: 16px !important;
+      }
+
+      .item-title {
+        opacity: 1;
+        width: auto;
+      }
+
+      .expand-indicator {
+        opacity: 1;
+        display: flex;
+      }
+
+      // Show nested child items when hovered
+      app-menu-list-item app-menu-list-item {
+        display: block;
+      }
+    }
+
+    .sidenav-footer {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
+// Handset / Mobile drawer (mode="over")
+.sidenav.mat-drawer-over {
+  width: 260px;
+
+  ::ng-deep {
+    .mat-list-item-content {
+      padding: 0 16px !important;
+    }
+
+    .routeIcon {
+      margin-right: 16px !important;
+    }
+
+    .item-title {
+      opacity: 1 !important;
+      width: auto !important;
+    }
+
+    .expand-indicator {
+      opacity: 1 !important;
+      display: flex !important;
+    }
+
+    app-menu-list-item app-menu-list-item {
+      display: block !important;
+    }
+  }
+
+  .sidenav-footer {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+
+.sidenav-footer {
+  transition: opacity 0.2s ease-in-out;
+  padding: 12px 0;
 }
 
 .app-container {    
-    min-width: 100%;
-    min-height: 100%;
-    height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  height: 100%;
 }
-

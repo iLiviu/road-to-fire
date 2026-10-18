@@ -9,14 +9,14 @@
         <mat-divider></mat-divider>
         <a mat-list-item class="level0" *ngIf="canInstallApp" (click)="installApp()">
           <mat-icon class="routeIcon">get_app</mat-icon>
-          Install as App
+          <span class="item-title">Install as App</span>
         </a>
         <a mat-list-item *ngIf="loggedIn" class="level0" (click)="logout()">
           <mat-icon class="routeIcon">exit_to_app</mat-icon>
-          Logout
+          <span class="item-title">Logout</span>
         </a>
       </mat-nav-list>
-      <div fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="center">
+      <div class="sidenav-footer" fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="center">
         <span><a [routerLink]="['/portfolio/privacy']">Privacy</a></span>
         <span><a [routerLink]="['/portfolio/about']">About</a></span>
       </div>

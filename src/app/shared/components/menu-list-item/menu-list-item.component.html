@@ -2,8 +2,8 @@
               [ngClass]="{'active': isRouteActive(item), 'expanded': expanded}">
   <mat-icon *ngIf="item.icon" class="routeIcon">{{item.icon}}</mat-icon>
   <mat-icon *ngIf="item.svgIcon" class="routeIcon" svgIcon="{{item.svgIcon}}"></mat-icon>
-  {{item.title}}
-  <span fxFlex *ngIf="item.children && item.children.length">
+  <span class="item-title">{{item.title}}</span>
+  <span class="expand-indicator" fxFlex *ngIf="item.children && item.children.length">
     <span fxFlex></span>
     <mat-icon [@indicatorRotate]="expanded ? 'expanded': 'collapsed'">expand_more</mat-icon>
   </span>

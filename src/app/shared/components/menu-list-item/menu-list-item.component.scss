@@ -8,6 +8,17 @@
 
   .routeIcon {
     margin-right: 20px;
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .item-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
