@@ -56,4 +56,8 @@ export class MockDialogsService {
   showModal(dialogComponent: any, data: any) {
     return Promise.resolve(this.modalResponse);
   }
+
+  showAdaptableScreenModal(dialogComponent: any, data: any, disableClose: boolean = true) {
+    return Promise.resolve(this.modalResponse);
+  }
 }

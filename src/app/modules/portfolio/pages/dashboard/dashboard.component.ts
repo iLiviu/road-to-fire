@@ -63,6 +63,16 @@ export interface BenchmarkAnnualizedStat {
   twr: number;
 }
 
+export interface DashboardGoalProgress {
+  title: string;
+  targetValue: number;
+  currentValue: number;
+  progressRatio: number;
+  clampedPercent: number;
+  remainingValue: number;
+  isCompleted: boolean;
+}
+
 interface ChartDataSet {
   label?: string;
   data: number[];
@@ -148,6 +158,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   hasDebt: boolean;
   goals: ChartDataSet[] = [];
   goalsDatasets: ChartDataSet[] = [];
+  goalsProgress: DashboardGoalProgress[] = [];
   gridVisibility: Dictionary<boolean>;
   mainGridRowHeight = MULTI_COL_GRID_ROW_HEIGHT;
   monthlySpendLimit: number;
@@ -417,6 +428,46 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.cdr.markForCheck();
   }
 
+  get hasVisibleAnalytics(): boolean {
+    if (!this.gridVisibility) {
+      return false;
+    }
+    return !!(
+      this.gridVisibility[this.GridTiles.PortfolioHistory] ||
+      this.gridVisibility[this.GridTiles.PerformanceBenchmark] ||
+      this.gridVisibility[this.GridTiles.UnrealizedPLHistory]
+    );
+  }
+
+  get completedGoalsCount(): number {
+    return this.goalsProgress.filter(g => g.isCompleted).length;
+  }
+
+  get hasVisibleBreakdowns(): boolean {
+    if (!this.gridVisibility) {
+      return false;
+    }
+    return !!(
+      (this.gridVisibility[this.GridTiles.PortfolioAllocation] && this.assetAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.PortfolioTopHoldings] && this.topPortfolioHoldingsChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.CurrencyAllocation] && this.currencyAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.StocksAllocation] && this.stockAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.StocksGeoAllocation] && this.stockGeoAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.StockCurrencyAllocation] && this.stockCurrencyAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.BondsAllocation] && this.bondAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.BondsGeoAllocation] && this.bondGeoAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.BondCurrencyAllocation] && this.bondCurrencyAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.CommodityAllocation] && this.commodityAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.CryptoAllocation] && this.cryptoAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.P2PAllocation] && this.p2pAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.P2PGeoAllocation] && this.p2pGeoAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.P2PCurrencyAllocation] && this.p2pCurrencyAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.CashAllocation] && this.cashAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.DebtAllocation] && this.debtAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.labelCategories && this.labelCategories.some(c => this.gridVisibility[this.LABEL_CATEGORY_TILE_PREFIX + c.id] && this.labelCategoriesAllocationCharts[c.id]?.datasets[0]?.data?.length > 0))
+    );
+  }
+
   /**
    * Prompt user to manually add the value of the portfolio for a given date and store the result.
    */
@@ -473,7 +524,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   }
 
   async changeDisplaySettings() {
-    await this.dialogService.showModal(DashboardGridTileEditorComponent, this.gridVisibility, false);
+    await this.dialogService.showAdaptableScreenModal(DashboardGridTileEditorComponent, this.gridVisibility, false);
     this.portfolioConfig.dashboardGridVisibility = this.gridVisibility;
     this.portfolioService.saveConfig(this.portfolioConfig);
     this.cdr.markForCheck();
@@ -583,6 +634,11 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
    */
   private computeGoals() {
     this.goals = [];
+    this.goalsProgress = [];
+    if (!this.portfolioConfig?.goals) {
+      return;
+    }
+
     for (const goal of this.portfolioConfig.goals) {
       if (goal.value > 0) {
         const pDone = FloatingMath.round2Decimals(Math.min(100, this.portfolioValue / goal.value * 100));
@@ -590,6 +646,20 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
           label: goal.title,
           data: [pDone, FloatingMath.round2Decimals(100 - pDone)],
           backgroundColor: this.goalChartColors,
+        });
+
+        const rawRatio = this.portfolioValue > 0 ? (this.portfolioValue / goal.value) : 0;
+        const clampedPercent = Math.max(0, pDone);
+        const remaining = Math.max(0, goal.value - (this.portfolioValue || 0));
+        const isCompleted = (this.portfolioValue || 0) >= goal.value;
+        this.goalsProgress.push({
+          title: goal.title,
+          targetValue: goal.value,
+          currentValue: this.portfolioValue || 0,
+          progressRatio: rawRatio,
+          clampedPercent,
+          remainingValue: remaining,
+          isCompleted,
         });
       }
     }

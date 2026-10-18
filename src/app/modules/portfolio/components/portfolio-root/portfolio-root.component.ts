@@ -31,9 +31,9 @@ const MENU_ROUTES: NavItem[] = [
       { path: 'assets/bonds', title: 'Bonds & Bond ETFs', svgIcon: 'certificate' },
       { path: 'assets/cash', title: 'Cash & Equivalents', icon: 'local_atm' },
       { path: 'assets/commodities', title: 'Commodities', svgIcon: 'commodity' },
-      { path: 'assets/crypto', title: 'Cryptocurrencies', svgIcon: 'bitcoin' },
+      { path: 'assets/crypto', title: 'Cryptocurrencies', icon: 'currency_bitcoin' },
       { path: 'assets/debt', title: 'Debt', icon: 'credit_card' },
-      { path: 'assets/p2p', title: 'P2P Loans', icon: 'group' },
+      { path: 'assets/p2p', title: 'P2P Loans', icon: 'handshake' },
       { path: 'assets/real-estate', title: 'Real Estate', icon: 'home' },
       { path: 'assets/stocks', title: 'Stocks', icon: 'trending_up' },
     ]

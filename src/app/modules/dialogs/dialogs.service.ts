@@ -209,8 +209,8 @@ export class DialogsService {
    * @param data data to pass to the dialog component on initialization
    * @return Promise that resolves when the dialog is closed.
    */
-  async showAdaptableScreenModal(dialogComponent: any, data: any): Promise<any> {
-    const dialogRef = this.openAdaptableScreenDialog(dialogComponent, data);
+  async showAdaptableScreenModal(dialogComponent: any, data: any, disableClose: boolean = true): Promise<any> {
+    const dialogRef = this.openAdaptableScreenDialog(dialogComponent, data, disableClose);
     const promise = await dialogRef.afterClosed().toPromise();
     return promise;
   }
@@ -221,10 +221,11 @@ export class DialogsService {
    * On mobile, it displays a full screen dialog. On desktop, it displays a regular dialog.
    * @param dialogComponent dialog component to display
    * @param data data to pass to the dialog component on initialization
+   * @param disableClose if true does not hide dialog when user clicks outside of it
    */
-  private openAdaptableScreenDialog(dialogComponent: any, data: any) {
+  private openAdaptableScreenDialog(dialogComponent: any, data: any, disableClose: boolean = true) {
     return this.dialog.open(dialogComponent, {
-      disableClose: true,
+      disableClose,
       panelClass: this.isHandset ? 'full-screen-dialog' : 'desktop-dialog',
       data: data
     });

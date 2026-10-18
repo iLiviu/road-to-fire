@@ -11,158 +11,283 @@
       <app-notifications-button></app-notifications-button>
     </div>
   </app-top-toolbar>
-  <div class="page-content">
-    <mat-grid-list [responsiveCols]="{xs: 1, sm: 1, md: 2, lg: 2, xl: 2}" (colsChanged)="gridColsChanged($event)"
-      [rowHeight]="mainGridRowHeight">
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.Stats]">
-        <mat-card class="grid-card">
-          <mat-card-title>Stats</mat-card-title>
 
-          <mat-card-content>
-            <div>
-              Portfolio value:
-              <span [ngClass]="{'negative':portfolioValue < 0}">{{ portfolioValue | currency:baseCurrency}}</span>
+  <div class="page-content dashboard-content">
+    <!-- SECTION 1: Key Performance Indicators & Summary -->
+    <section class="dashboard-section"
+      *ngIf="gridVisibility[GridTiles.Stats] || (gridVisibility[GridTiles.Goals] && goalsProgress.length > 0)">
+      <div class="kpi-grid"
+        *ngIf="gridVisibility[GridTiles.Stats] || (gridVisibility[GridTiles.Goals] && goalsProgress.length === 1)">
+        <!-- Portfolio Value Card -->
+        <mat-card class="kpi-card" *ngIf="gridVisibility[GridTiles.Stats]">
+          <div class="kpi-header">
+            <span class="kpi-title">Portfolio Value</span>
+            <div class="kpi-icon-wrapper primary-icon">
+              <mat-icon>account_balance_wallet</mat-icon>
             </div>
+          </div>
+          <div class="kpi-value" [ngClass]="{'negative': portfolioValue < 0}">
+            {{ portfolioValue | currency:baseCurrency }}
+          </div>
+          <div class="kpi-footer" *ngIf="liabilitiesValue">
+            <span class="kpi-subtext">Assets: <strong [ngClass]="{'negative': assetsValue < 0}">{{ assetsValue |
+                currency:baseCurrency }}</strong></span>
+          </div>
+          <div class="kpi-footer" *ngIf="!liabilitiesValue">
+            <span class="kpi-subtext">&nbsp;</span>
+          </div>
+        </mat-card>
 
-            <div *ngIf="liabilitiesValue">
-              Assets value:
-              <span [ngClass]="{'negative':assetsValue < 0}">{{ assetsValue | currency:baseCurrency}}</span>
+        <!-- Unrealized P/L Card -->
+        <mat-card class="kpi-card" *ngIf="gridVisibility[GridTiles.Stats]">
+          <div class="kpi-header">
+            <span class="kpi-title">Unrealized P/L</span>
+            <div class="kpi-icon-wrapper" [ngClass]="portfolioUnrealizedPL >= 0 ? 'positive-icon' : 'negative-icon'">
+              <mat-icon>{{ portfolioUnrealizedPL >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
             </div>
+          </div>
+          <div class="kpi-value" [ngClass]="portfolioUnrealizedPL < 0 ? 'negative' : 'positive'">
+            {{ portfolioUnrealizedPL | currency:baseCurrency }}
+          </div>
+          <div class="kpi-footer" *ngIf="portfolioValue > 0">
+            <span class="kpi-badge" [ngClass]="portfolioUnrealizedPL < 0 ? 'badge-negative' : 'badge-positive'">
+              {{ (portfolioUnrealizedPL >= 0 ? '+' : '') }}{{ portfolioUnrealizedPL / portfolioValue | percent:'1.02' }}
+            </span>
+          </div>
+        </mat-card>
 
-            <div>Unrealized P/L:
-              <span [ngClass]="(portfolioUnrealizedPL < 0)? 'negative':'positive'">
-                {{ portfolioUnrealizedPL | currency:baseCurrency}}
-                <ng-container *ngIf="portfolioValue > 0">
-                  ({{ portfolioUnrealizedPL / portfolioValue | percent:'1.02'}})
-                </ng-container>
+        <!-- Monthly Spending Limit (FIRE) Card -->
+        <mat-card class="kpi-card" *ngIf="gridVisibility[GridTiles.Stats]">
+          <div class="kpi-header">
+            <span class="kpi-title" matTooltip="Based on Yearly Withdrawal Rate">Monthly Spending Limit</span>
+            <div class="kpi-icon-wrapper accent-icon">
+              <mat-icon>local_fire_department</mat-icon>
+            </div>
+          </div>
+          <div class="kpi-value" [ngClass]="{'negative': monthlySpendLimit < 0}">
+            {{ monthlySpendLimit | currency:baseCurrency }}
+          </div>
+          <div class="kpi-footer">
+            <span class="kpi-subtext">Safe withdrawal limit</span>
+          </div>
+        </mat-card>
+
+        <!-- Debt Ratio or Asset Overview Card -->
+        <mat-card class="kpi-card" *ngIf="gridVisibility[GridTiles.Stats] && liabilitiesValue">
+          <div class="kpi-header">
+            <span class="kpi-title">Loan to Assets</span>
+            <div class="kpi-icon-wrapper warning-icon">
+              <mat-icon>account_balance</mat-icon>
+            </div>
+          </div>
+          <div class="kpi-value">
+            {{ currentDebtRatio | percent:'1.0-2' }}
+          </div>
+          <div class="kpi-footer">
+            <span class="kpi-subtext">Liabilities: <strong class="negative">{{ liabilitiesValue | currency:baseCurrency
+                }}</strong></span>
+          </div>
+        </mat-card>
+
+        <mat-card class="kpi-card" *ngIf="gridVisibility[GridTiles.Stats] && !liabilitiesValue">
+          <div class="kpi-header">
+            <span class="kpi-title">Total Assets</span>
+            <div class="kpi-icon-wrapper primary-icon">
+              <mat-icon>pie_chart</mat-icon>
+            </div>
+          </div>
+          <div class="kpi-value" [ngClass]="{'negative': assetsValue < 0}">
+            {{ assetsValue | currency:baseCurrency }}
+          </div>
+          <div class="kpi-footer">
+            <span class="kpi-subtext">No liabilities recorded</span>
+          </div>
+        </mat-card>
+        <!-- Single Goal KPI Card (5th KPI Card) -->
+        <mat-card class="kpi-card" *ngIf="gridVisibility[GridTiles.Goals] && goalsProgress.length === 1">
+          <div class="kpi-header">
+            <span class="kpi-title" [matTooltip]="goalsProgress[0].title">
+              {{ goalsProgress[0].title }}
+            </span>
+            <div class="kpi-icon-wrapper" [ngClass]="goalsProgress[0].isCompleted ? 'positive-icon' : 'primary-icon'">
+              <mat-icon>{{ goalsProgress[0].isCompleted ? 'emoji_events' : 'flag' }}</mat-icon>
+            </div>
+          </div>
+          <div class="kpi-value" [ngClass]="{'positive': goalsProgress[0].isCompleted}">
+            {{ goalsProgress[0].progressRatio | percent:'1.0-1' }}
+          </div>
+          <div class="goal-kpi-progress">
+            <div class="goal-progress-track">
+              <div class="goal-progress-fill" [style.width.%]="goalsProgress[0].clampedPercent"
+                [ngClass]="goalsProgress[0].isCompleted ? 'fill-completed' : 'fill-in-progress'"></div>
+            </div>
+          </div>
+          <div class="kpi-footer">
+            <span class="kpi-subtext" *ngIf="!goalsProgress[0].isCompleted"
+              [matTooltip]="(goalsProgress[0].remainingValue | currency:baseCurrency) + ' remaining to reach ' + (goalsProgress[0].targetValue | currency:baseCurrency)">
+              <strong>{{ goalsProgress[0].remainingValue | currency:baseCurrency }}</strong> to go
+            </span>
+            <span class="kpi-badge badge-positive" *ngIf="goalsProgress[0].isCompleted">
+              Reached
+            </span>
+          </div>
+        </mat-card>
+      </div>
+
+      <div class="kpi-grid">
+        <!-- Goals Executive Card (when multiple goals exist) -->
+        <mat-card class="kpi-card" *ngIf="gridVisibility[GridTiles.Goals] && goalsProgress.length > 1">
+          <div class="goals-header">
+            <div class="goals-title-group">
+              <div class="goals-icon-wrapper">
+                <mat-icon>flag</mat-icon>
+              </div>
+              <div>
+                <span class="goals-title">Goals Progress</span>
+                <span class="goals-subtitle" *ngIf="goalsProgress.length > 1">
+                  {{ completedGoalsCount }} of {{ goalsProgress.length }} milestones reached
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="goals-list">
+            <div class="goal-item" *ngFor="let goal of goalsProgress" [class.goal-completed]="goal.isCompleted">
+              <div class="goal-info-row">
+                <div class="goal-title-wrapper">
+                  <span class="goal-title">{{ goal.title }}</span>
+                  <span class="goal-badge" [ngClass]="goal.isCompleted ? 'badge-completed' : 'badge-in-progress'">
+                    <mat-icon *ngIf="goal.isCompleted">check</mat-icon>
+                    <span>{{ goal.isCompleted ? 'Reached' : (goal.progressRatio | percent:'1.0-1') }}</span>
+                  </span>
+                </div>
+                <div class="goal-values">
+                  <span class="goal-remaining" *ngIf="!goal.isCompleted">
+                    {{ goal.remainingValue | currency:baseCurrency }} to go
+                  </span>
+                </div>
+              </div>
+
+              <div class="goal-progress-track">
+                <div class="goal-progress-fill" [style.width.%]="goal.clampedPercent"
+                  [ngClass]="goal.isCompleted ? 'fill-completed' : 'fill-in-progress'"></div>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+
+        <!-- Asset Allocation Chips from original Stats -->
+        <mat-card class="allocation-summary-card"
+          *ngIf="gridVisibility[GridTiles.Stats] && (assetsTotalValue | keyvalue).length > 0">
+          <div class="allocation-summary-header">
+            <span>Allocation by Asset Class</span>
+          </div>
+          <div class="allocation-chips">
+            <div class="allocation-chip" *ngFor="let assetValue of assetsTotalValue | keyvalue">
+              <span class="chip-label">{{assetTypeLabels[assetValue.key]}}:</span>
+              <span class="chip-val" [ngClass]="{'negative': assetValue.value < 0}">
+                {{assetValue.value | currency:baseCurrency}}
               </span>
             </div>
-
-            <div>
-              <span matTooltip="Based on Yearly Withdrawal Rate">Monthly spending limit:
-                <span [ngClass]="{'negative':monthlySpendLimit < 0}">
-                  {{ monthlySpendLimit | currency:baseCurrency}}
-                </span>
-              </span>
-            </div>
-
-            <div>Allocation: </div>
-            <ul class="allocation-list">
-              <li *ngFor="let assetValue of assetsTotalValue | keyvalue">
-                {{assetTypeLabels[assetValue.key]}}:
-                <span [ngClass]="{'negative':assetValue.value < 0}">
-                  {{assetValue.value | currency:this.baseCurrency}}
-                </span>
-              </li>
-            </ul>
-
-            <div *ngIf="liabilitiesValue">
-              Loan to assets value: {{currentDebtRatio | percent:'1.0-2'}}
-            </div>
-          </mat-card-content>
+          </div>
         </mat-card>
-      </mat-grid-tile>
+      </div>
+    </section>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.Goals]">
-        <mat-card class="grid-card">
-          <mat-card-title>Goals</mat-card-title>
+    <!-- SECTION 2: Analytics & Performance History -->
+    <section class="dashboard-section" *ngIf="hasVisibleAnalytics">
+      <div class="section-header">
+        <mat-icon>show_chart</mat-icon>
+        <h3>Performance & History</h3>
+      </div>
 
-          <mat-card-content>
-            <canvas baseChart width="150" [datasets]="goals" [labels]="goalChartLabels" [options]="goalChartOptions"
-              type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.PortfolioHistory]">
-        <mat-card class="grid-card">
-          <mat-card-title fxLayout="row">
-            <span fxFlex>Portfolio History</span>
-
-            <button mat-button [matMenuTriggerFor]="timeFramePicker" matTooltip="Time Frame">
-              {{phTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
-            </button>
-
-            <mat-menu #timeFramePicker="matMenu">
-              <button mat-menu-item (click)="onPHTimeFrameChanged('Max')">Max</button>
-              <button mat-menu-item (click)="onPHTimeFrameChanged('YTD')">YTD</button>
-              <button mat-menu-item (click)="onPHTimeFrameChanged('1Y')">1Y</button>
-              <button mat-menu-item (click)="onPHTimeFrameChanged('3Y')">3Y</button>
-              <button mat-menu-item (click)="onPHTimeFrameChanged('5Y')">5Y</button>
-              <button mat-menu-item (click)="onPHTimeFrameChanged('10Y')">10Y</button>
-            </mat-menu>
-
-            <button type="button" mat-icon-button (click)="addPortfolioHistory()"
-              matTooltip="Manually add history data">
-              <mat-icon aria-label="Manually add history data">add_circle_outline</mat-icon>
-            </button>
+      <div class="analytics-grid">
+        <!-- Portfolio History -->
+        <mat-card class="analytics-card" *ngIf="gridVisibility[GridTiles.PortfolioHistory]">
+          <mat-card-title fxLayout="row" fxLayoutAlign="space-between center">
+            <span class="card-heading">Portfolio History</span>
+            <div class="card-actions">
+              <button mat-button [matMenuTriggerFor]="timeFramePicker" matTooltip="Time Frame" class="timeframe-btn">
+                {{phTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
+              </button>
+              <mat-menu #timeFramePicker="matMenu">
+                <button mat-menu-item (click)="onPHTimeFrameChanged('Max')">Max</button>
+                <button mat-menu-item (click)="onPHTimeFrameChanged('YTD')">YTD</button>
+                <button mat-menu-item (click)="onPHTimeFrameChanged('1Y')">1Y</button>
+                <button mat-menu-item (click)="onPHTimeFrameChanged('3Y')">3Y</button>
+                <button mat-menu-item (click)="onPHTimeFrameChanged('5Y')">5Y</button>
+                <button mat-menu-item (click)="onPHTimeFrameChanged('10Y')">10Y</button>
+              </mat-menu>
+              <button type="button" mat-icon-button (click)="addPortfolioHistory()"
+                matTooltip="Manually add history data">
+                <mat-icon aria-label="Manually add history data">add_circle_outline</mat-icon>
+              </button>
+            </div>
           </mat-card-title>
-          <mat-card-subtitle *ngIf="timeFrameIRR" fxLayoutAlign="start center" fxLayoutAlign="row"
-            class="perf-subtitle">
 
+          <mat-card-subtitle *ngIf="timeFrameIRR" class="perf-subtitle" fxLayout="row wrap"
+            fxLayoutAlign="start center">
             <span class="perf-stat-item" matTooltip="Internal Rate of Return (IRR) for the selected period">
-
               <span class="perf-stat-name">IRR:</span>
-              <span class="perf-stat-val" [class.positive]="timeFrameIRR >= 0"
-                [class.negative]="timeFrameIRR < 0">{{timeFrameIRR | percent:'1.02'}}
-                <span class="perf-stat-pa">p.a.</span>
+              <span class="perf-stat-val" [class.positive]="timeFrameIRR >= 0" [class.negative]="timeFrameIRR < 0">
+                {{timeFrameIRR | percent:'1.02'}} <span class="perf-stat-pa">p.a.</span>
               </span>
               <mat-icon *ngIf="inaccurateIRR" color="accent"
                 matTooltip="Note: IRR is not accurate because you have non-base currency cash credits/debits, and the app uses the current FX rate for conversion, not the one on the actual transaction date">
                 error_outline
               </mat-icon>
             </span>
-            <div fxFlex> </div>
+            <div fxFlex></div>
             <span class="perf-stat-item" matTooltip="Total return for the selected period">
               <span class="perf-stat-name">Total Return:</span>
               <span class="perf-stat-val" [class.positive]="timeFrameTotalReturn >= 0"
-                [class.negative]="timeFrameTotalReturn < 0">{{timeFrameTotalReturn | percent:'1.02'}}
+                [class.negative]="timeFrameTotalReturn < 0">
+                {{timeFrameTotalReturn | percent:'1.02'}}
               </span>
             </span>
-
           </mat-card-subtitle>
 
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas *ngIf="portfolioHistoryChart.datasets.length > 0" baseChart
-              [datasets]="portfolioHistoryChart.datasets" [labels]="portfolioHistoryChart.labels"
-              [options]="portfolioHistoryChartOptions" type="line"></canvas>
-            <p class="warning align-center"
-              *ngIf="(!portfolioHistoryChart.datasets || portfolioHistoryChart.datasets.length === 0)">
-              No portfolio history available for the selected time frame.
-            </p>
+          <mat-card-content class="chart-content">
+            <div class="line-chart-wrapper">
+              <canvas *ngIf="portfolioHistoryChart.datasets.length > 0" baseChart
+                [datasets]="portfolioHistoryChart.datasets" [labels]="portfolioHistoryChart.labels"
+                [options]="portfolioHistoryChartOptions" type="line"></canvas>
+              <p class="warning align-center empty-chart-msg"
+                *ngIf="(!portfolioHistoryChart.datasets || portfolioHistoryChart.datasets.length === 0)">
+                No portfolio history available for the selected time frame.
+              </p>
+            </div>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.PerformanceBenchmark]">
-        <mat-card class="grid-card">
-          <mat-card-title fxLayout="row">
-            <span fxFlex>Performance</span>
-
-            <button mat-button [matMenuTriggerFor]="benchmarkTimeFramePicker" matTooltip="Time Frame">
-              {{benchmarkTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
-            </button>
-
-            <mat-menu #benchmarkTimeFramePicker="matMenu">
-              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('Max')">Max</button>
-              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('YTD')">YTD</button>
-              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('1Y')">1Y</button>
-              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('3Y')">3Y</button>
-              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('5Y')">5Y</button>
-              <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('10Y')">10Y</button>
-            </mat-menu>
-
-            <button *ngIf="availableBenchmarks.length > 0" mat-icon-button [matMenuTriggerFor]="benchmarkSelector"
-              matTooltip="Select benchmarks">
-              <mat-icon>tune</mat-icon>
-            </button>
-
-            <mat-menu #benchmarkSelector="matMenu">
-              <button mat-menu-item *ngFor="let bm of availableBenchmarks" (click)="toggleBenchmark(bm.id)">
-                <mat-icon>{{isBenchmarkSelected(bm.id) ? 'check_box' : 'check_box_outline_blank'}}</mat-icon>
-                <span>{{bm.name}}</span>
+        <!-- Performance Benchmark -->
+        <mat-card class="analytics-card" *ngIf="gridVisibility[GridTiles.PerformanceBenchmark]">
+          <mat-card-title fxLayout="row" fxLayoutAlign="space-between center">
+            <span class="card-heading">Performance</span>
+            <div class="card-actions">
+              <button mat-button [matMenuTriggerFor]="benchmarkTimeFramePicker" matTooltip="Time Frame"
+                class="timeframe-btn">
+                {{benchmarkTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
               </button>
-            </mat-menu>
+              <mat-menu #benchmarkTimeFramePicker="matMenu">
+                <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('Max')">Max</button>
+                <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('YTD')">YTD</button>
+                <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('1Y')">1Y</button>
+                <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('3Y')">3Y</button>
+                <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('5Y')">5Y</button>
+                <button mat-menu-item (click)="onBenchmarkTimeFrameChanged('10Y')">10Y</button>
+              </mat-menu>
+              <button *ngIf="availableBenchmarks.length > 0" mat-icon-button [matMenuTriggerFor]="benchmarkSelector"
+                matTooltip="Select benchmarks">
+                <mat-icon>tune</mat-icon>
+              </button>
+              <mat-menu #benchmarkSelector="matMenu">
+                <button mat-menu-item *ngFor="let bm of availableBenchmarks" (click)="toggleBenchmark(bm.id)">
+                  <mat-icon>{{isBenchmarkSelected(bm.id) ? 'check_box' : 'check_box_outline_blank'}}</mat-icon>
+                  <span>{{bm.name}}</span>
+                </button>
+              </mat-menu>
+            </div>
           </mat-card-title>
 
           <mat-card-subtitle *ngIf="portfolioAnnualizedTWR !== null" class="perf-subtitle" fxLayout="row wrap"
@@ -172,19 +297,18 @@
               <span class="perf-stat-name">Portfolio TWR:</span>
               <span class="perf-stat-val" [class.positive]="portfolioAnnualizedTWR >= 0"
                 [class.negative]="portfolioAnnualizedTWR < 0">
-                {{portfolioAnnualizedTWR >= 0 ? '+' : ''}}{{portfolioAnnualizedTWR | number:'1.2-2'}}%
-                <span class="perf-stat-pa">p.a.</span>
+                {{portfolioAnnualizedTWR >= 0 ? '+' : ''}}{{portfolioAnnualizedTWR | number:'1.2-2'}}% <span
+                  class="perf-stat-pa">p.a.</span>
               </span>
               <mat-icon *ngIf="inaccurateTWR" color="accent"
                 matTooltip="Note: TWR is not accurate because you have non-base currency cash credits/debits, and the app uses the current FX rate for conversion, not the one on the actual transaction date">
                 error_outline
               </mat-icon>
-
             </span>
-
-            <ng-container *ngFor="let bm of benchmarkAnnualizedStats" class="perf-stat-item">
-              <div fxFlex> </div>
-              <span [matTooltip]="'Annualized Time-Weighted Return (TWR) for ' + bm.name + ' over the selected period'">
+            <ng-container *ngFor="let bm of benchmarkAnnualizedStats">
+              <div fxFlex></div>
+              <span class="perf-stat-item"
+                [matTooltip]="'Annualized Time-Weighted Return (TWR) for ' + bm.name + ' over the selected period'">
                 <span class="perf-stat-name">{{bm.name}}:</span>
                 <span class="perf-stat-val" [class.positive]="bm.twr >= 0" [class.negative]="bm.twr < 0">
                   {{bm.twr >= 0 ? '+' : ''}}{{bm.twr | number:'1.2-2'}}%
@@ -193,297 +317,332 @@
             </ng-container>
           </mat-card-subtitle>
 
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <mat-progress-spinner *ngIf="benchmarkDataLoading" mode="indeterminate" diameter="40">
-            </mat-progress-spinner>
-            <canvas *ngIf="!benchmarkDataLoading && benchmarkChart.datasets.length > 0" baseChart
-              [datasets]="benchmarkChart.datasets" [labels]="benchmarkChart.labels" [options]="benchmarkChartOptions"
-              type="line"></canvas>
-            <p class="warning align-center"
-              *ngIf="!benchmarkDataLoading && (!benchmarkChart.labels || benchmarkChart.labels.length === 0)">
-              No portfolio history available for the selected time frame.
-            </p>
-            <p
-              *ngIf="!benchmarkDataLoading && benchmarkChart.labels && benchmarkChart.labels.length > 0 &&  availableBenchmarks.length > 0 && selectedBenchmarkIds.length === 0">
-              Select at least one benchmark from the options menu above to compare against your portfolio.
-            </p>
-            <p class="warning align-center"
-              *ngIf="!benchmarkDataLoading && benchmarkChart.labels && benchmarkChart.labels.length > 0 &&  availableBenchmarks.length === 0">
-              Benchmarks are only available if your base currency is one of the following:
-              <ng-container *ngFor="let currency of BENCHMARK_CURRENCIES">{{currency}} </ng-container>
-            </p>
-
+          <mat-card-content class="chart-content">
+            <mat-progress-spinner *ngIf="benchmarkDataLoading" mode="indeterminate"
+              diameter="40"></mat-progress-spinner>
+            <div class="line-chart-wrapper" *ngIf="!benchmarkDataLoading">
+              <canvas *ngIf="benchmarkChart.datasets.length > 0" baseChart [datasets]="benchmarkChart.datasets"
+                [labels]="benchmarkChart.labels" [options]="benchmarkChartOptions" type="line"></canvas>
+              <p class="warning align-center empty-chart-msg"
+                *ngIf="(!benchmarkChart.labels || benchmarkChart.labels.length === 0)">
+                No portfolio history available for the selected time frame.
+              </p>
+              <p
+                *ngIf="benchmarkChart.labels && benchmarkChart.labels.length > 0 && availableBenchmarks.length > 0 && selectedBenchmarkIds.length === 0">
+                Select at least one benchmark from the options menu above to compare against your portfolio.
+              </p>
+              <p class="warning align-center"
+                *ngIf="benchmarkChart.labels && benchmarkChart.labels.length > 0 && availableBenchmarks.length === 0">
+                Benchmarks are only available if your base currency is one of the following:
+                <ng-container *ngFor="let currency of BENCHMARK_CURRENCIES">{{currency}} </ng-container>
+              </p>
+            </div>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.UnrealizedPLHistory]">
-        <mat-card class="grid-card">
-          <mat-card-title fxLayout="row">
-            <span fxFlex>Unrealized P/L History</span>
-
-            <button mat-button [matMenuTriggerFor]="uphTimeFramePicker" matTooltip="Time Frame">
-              {{plhTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
-            </button>
-
-            <mat-menu #uphTimeFramePicker="matMenu">
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('Max')">Max</button>
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('YTD')">YTD</button>
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('1Y')">1Y</button>
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('3Y')">3Y</button>
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('5Y')">5Y</button>
-              <button mat-menu-item (click)="onPLHTimeFrameChanged('10Y')">10Y</button>
-            </mat-menu>
-
-            <button type="button" mat-icon-button (click)="addUnrealizedPLHistory()"
-              matTooltip="Manually add history data">
-              <mat-icon aria-label="Manually add history data">add_circle_outline</mat-icon>
-            </button>
+        <!-- Unrealized P/L History -->
+        <mat-card class="analytics-card" *ngIf="gridVisibility[GridTiles.UnrealizedPLHistory]">
+          <mat-card-title fxLayout="row" fxLayoutAlign="space-between center">
+            <span class="card-heading">Unrealized P/L History</span>
+            <div class="card-actions">
+              <button mat-button [matMenuTriggerFor]="uphTimeFramePicker" matTooltip="Time Frame" class="timeframe-btn">
+                {{plhTimeFrame}}<mat-icon>arrow_drop_down</mat-icon>
+              </button>
+              <mat-menu #uphTimeFramePicker="matMenu">
+                <button mat-menu-item (click)="onPLHTimeFrameChanged('Max')">Max</button>
+                <button mat-menu-item (click)="onPLHTimeFrameChanged('YTD')">YTD</button>
+                <button mat-menu-item (click)="onPLHTimeFrameChanged('1Y')">1Y</button>
+                <button mat-menu-item (click)="onPLHTimeFrameChanged('3Y')">3Y</button>
+                <button mat-menu-item (click)="onPLHTimeFrameChanged('5Y')">5Y</button>
+                <button mat-menu-item (click)="onPLHTimeFrameChanged('10Y')">10Y</button>
+              </mat-menu>
+              <button type="button" mat-icon-button (click)="addUnrealizedPLHistory()"
+                matTooltip="Manually add history data">
+                <mat-icon aria-label="Manually add history data">add_circle_outline</mat-icon>
+              </button>
+            </div>
           </mat-card-title>
 
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas *ngIf="unrealizedPLHistoryChart.datasets.length > 0" baseChart
-              [datasets]="unrealizedPLHistoryChart.datasets" [labels]="unrealizedPLHistoryChart.labels"
-              [options]="portfolioHistoryChartOptions" type="line"></canvas>
-            <p class="warning align-center"
-              *ngIf="(!unrealizedPLHistoryChart.datasets || unrealizedPLHistoryChart.datasets.length === 0)">
-              No portfolio history available for the selected time frame.
-            </p>
-
+          <mat-card-content class="chart-content">
+            <div class="line-chart-wrapper">
+              <canvas *ngIf="unrealizedPLHistoryChart.datasets.length > 0" baseChart
+                [datasets]="unrealizedPLHistoryChart.datasets" [labels]="unrealizedPLHistoryChart.labels"
+                [options]="portfolioHistoryChartOptions" type="line"></canvas>
+              <p class="warning align-center empty-chart-msg"
+                *ngIf="(!unrealizedPLHistoryChart.datasets || unrealizedPLHistoryChart.datasets.length === 0)">
+                No portfolio history available for the selected time frame.
+              </p>
+            </div>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
+      </div>
+    </section>
 
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.PortfolioAllocation] && assetAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Portfolio Allocation</mat-card-title>
+    <!-- SECTION 3: Allocations & Breakdowns Grid (3 to 4 columns on large screens) -->
+    <section class="dashboard-section" *ngIf="hasVisibleBreakdowns">
+      <div class="section-header">
+        <mat-icon>pie_chart</mat-icon>
+        <h3>Allocations & Breakdown</h3>
+      </div>
 
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="assetAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+      <div class="breakdown-grid">
+        <!-- Portfolio Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.PortfolioAllocation] && assetAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Portfolio Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="assetAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
 
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.PortfolioTopHoldings] && topPortfolioHoldingsChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Top Portfolio Holdings</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="topPortfolioHoldingsChart" [options]="pieChartOptions" type="doughnut"></canvas>
+        <!-- Top Portfolio Holdings -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.PortfolioTopHoldings] && topPortfolioHoldingsChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Top Portfolio Holdings</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="topPortfolioHoldingsChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
 
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.CurrencyAllocation] && currencyAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Currency Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="currencyAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+        <!-- Currency Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.CurrencyAllocation] && currencyAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Currency Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="currencyAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
 
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.StocksAllocation] && stockAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Top Stock Holdings</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="stockAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+        <!-- Top Stock Holdings -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.StocksAllocation] && stockAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Top Stock Holdings</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="stockAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
 
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.StocksGeoAllocation] && stockGeoAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Stocks Geo Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="stockGeoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+        <!-- Stocks Geo Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.StocksGeoAllocation] && stockGeoAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Stocks Geo Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="stockGeoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
 
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.StockCurrencyAllocation] && stockCurrencyAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Stock Currency Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="stockCurrencyAllocationChart" [options]="pieChartOptions"
-              type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.BondsAllocation] && bondAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Top Bond Holdings</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="bondAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.BondsGeoAllocation] && bondGeoAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Bonds Geo Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="bondGeoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.BondCurrencyAllocation] && bondCurrencyAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Bond Currency Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="bondCurrencyAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.CommodityAllocation] && commodityAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Commodity Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="commodityAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.CryptoAllocation] && cryptoAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Cryptocurrency Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="cryptoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.P2PAllocation] && p2pAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Top P2P Holdings</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="p2pAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.P2PGeoAllocation] && p2pGeoAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>P2P Geo Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="p2pGeoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.P2PCurrencyAllocation] && p2pCurrencyAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>P2P Currency Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="p2pCurrencyAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.CashAllocation] && cashAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Cash Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="cashAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <mat-grid-tile
-        *ngIf="gridVisibility[GridTiles.DebtAllocation] && debtAllocationChart.datasets[0].data.length > 0">
-        <mat-card class="grid-card">
-          <mat-card-title>Debt Allocation</mat-card-title>
-
-          <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-            <canvas baseChart [data]="debtAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <ng-container *ngFor="let category of labelCategories">
-        <mat-grid-tile
-          *ngIf="gridVisibility[LABEL_CATEGORY_TILE_PREFIX + category.id] && labelCategoriesAllocationCharts[category.id] && labelCategoriesAllocationCharts[category.id].datasets[0].data.length > 0">
-          <mat-card class="grid-card">
-            <mat-card-title>{{category.name}} Allocation</mat-card-title>
-
-            <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxFill class="grid-card-content">
-              <canvas baseChart [data]="labelCategoriesAllocationCharts[category.id]" [options]="pieChartOptions"
+        <!-- Stock Currency Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.StockCurrencyAllocation] && stockCurrencyAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Stock Currency Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="stockCurrencyAllocationChart" [options]="pieChartOptions"
                 type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Top Bond Holdings -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.BondsAllocation] && bondAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Top Bond Holdings</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="bondAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Bonds Geo Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.BondsGeoAllocation] && bondGeoAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Bonds Geo Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="bondGeoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Bond Currency Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.BondCurrencyAllocation] && bondCurrencyAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Bond Currency Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="bondCurrencyAllocationChart" [options]="pieChartOptions"
+                type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Commodity Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.CommodityAllocation] && commodityAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Commodity Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="commodityAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Cryptocurrency Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.CryptoAllocation] && cryptoAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Cryptocurrency Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="cryptoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Top P2P Holdings -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.P2PAllocation] && p2pAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Top P2P Holdings</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="p2pAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- P2P Geo Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.P2PGeoAllocation] && p2pGeoAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">P2P Geo Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="p2pGeoAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- P2P Currency Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.P2PCurrencyAllocation] && p2pCurrencyAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">P2P Currency Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="p2pCurrencyAllocationChart" [options]="pieChartOptions"
+                type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Cash Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.CashAllocation] && cashAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Cash Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="cashAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Debt Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.DebtAllocation] && debtAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Debt Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="debtAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Label Categories Allocation -->
+        <ng-container *ngFor="let category of labelCategories">
+          <mat-card class="breakdown-card"
+            *ngIf="gridVisibility[LABEL_CATEGORY_TILE_PREFIX + category.id] && labelCategoriesAllocationCharts[category.id] && labelCategoriesAllocationCharts[category.id].datasets[0].data.length > 0">
+            <mat-card-title class="card-heading">{{category.name}} Allocation</mat-card-title>
+            <mat-card-content class="doughnut-content">
+              <div class="doughnut-chart-wrapper">
+                <canvas baseChart [data]="labelCategoriesAllocationCharts[category.id]" [options]="pieChartOptions"
+                  type="doughnut"></canvas>
+              </div>
             </mat-card-content>
           </mat-card>
-        </mat-grid-tile>
-      </ng-container>
+        </ng-container>
+      </div>
+    </section>
 
-      <mat-grid-tile *ngIf="gridVisibility[GridTiles.Rebalancing]">
-        <mat-card class="grid-card">
-          <mat-card-title>Rebalancing</mat-card-title>
-          <mat-card-content>
-            <p *ngIf="!rebalancingSetup" class="negative">
-              You need to configure your desired portfolio allocation first! (see the Settings page)
-            </p>
+    <!-- SECTION 4: Rebalancing -->
+    <section class="dashboard-section" *ngIf="gridVisibility[GridTiles.Rebalancing]">
+      <div class="section-header">
+        <mat-icon>balance</mat-icon>
+        <h3>Portfolio Rebalancing</h3>
+      </div>
 
-            <p class="positive" *ngIf="rebalancingSetup && (rebalancingSteps.length === 0)">No rebalancing needed!</p>
+      <mat-card class="rebalancing-card">
+        <mat-card-content class="rebalancing-content">
+          <div *ngIf="!rebalancingSetup" class="rebalancing-banner warning-banner">
+            <mat-icon>info</mat-icon>
+            <span>You need to configure your desired portfolio allocation first! (see the Settings page)</span>
+          </div>
 
-            <ol *ngIf="rebalancingSetup">
-              <li *ngFor="let step of rebalancingSteps">
-                <span *ngIf="step.percentage < 0" class="negative">Sell {{step.value * -1 |
-                  currency:this.baseCurrency}} ({{ step.percentage | percent:'1.0-2'}}) of {{step.assetName}} </span>
-                <span *ngIf="step.percentage > 0" class="positive">Buy {{step.value | currency:this.baseCurrency}} of
-                  {{step.assetName}} </span>
-              </li>
-            </ol>
+          <div *ngIf="rebalancingSetup && (rebalancingSteps.length === 0)" class="rebalancing-banner success-banner">
+            <mat-icon>check_circle</mat-icon>
+            <span>Your portfolio is balanced! No rebalancing needed.</span>
+          </div>
 
-            <ng-container *ngIf="currentDebtRatio > 0 || portfolioConfig.loanToValueRatio > 0">
-              <h3>Debt adjustment</h3>
-              <span class="positive" *ngIf="debtToAcquire > 0">
-                You are underleveraged. You can get into {{ debtToAcquire | currency:this.baseCurrency}} additional debt
-              </span>
+          <div *ngIf="rebalancingSetup && rebalancingSteps.length > 0" class="rebalance-steps-grid">
+            <div class="rebalance-step-item" *ngFor="let step of rebalancingSteps"
+              [ngClass]="step.percentage < 0 ? 'step-sell' : 'step-buy'">
+              <div class="step-badge">{{ step.percentage < 0 ? 'SELL' : 'BUY' }}</div>
+                  <div class="step-info">
+                    <div class="step-asset">{{ step.assetName }}</div>
+                    <div class="step-desc">
+                      <span *ngIf="step.percentage < 0" class="negative">
+                        {{step.value * -1 | currency:baseCurrency}} ({{ step.percentage | percent:'1.0-2'}})
+                      </span>
+                      <span *ngIf="step.percentage > 0" class="positive">
+                        {{step.value | currency:baseCurrency}} ({{ step.percentage | percent:'1.0-2'}})
+                      </span>
+                    </div>
+                  </div>
+              </div>
+            </div>
 
-              <span class="negative" *ngIf="debtToAcquire < 0">
-                You are overleveraged. Pay {{ debtToAcquire * - 1 | currency:this.baseCurrency}} of your debt.
-              </span>
-
-              <span *ngIf="debtToAcquire === 0">
-                Your debt-to-value ratio is spot on!
-              </span>
-            </ng-container>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-    </mat-grid-list>
-
+            <div *ngIf="currentDebtRatio > 0 || portfolioConfig?.loanToValueRatio > 0" class="debt-adjustment-panel">
+              <div class="debt-adj-title">
+                <mat-icon>account_balance</mat-icon>
+                <span>Debt Adjustment</span>
+              </div>
+              <div class="debt-adj-content">
+                <div class="rebalancing-banner info-banner" *ngIf="debtToAcquire > 0">
+                  <mat-icon>add_circle</mat-icon>
+                  <span>You are underleveraged. You can take on {{ debtToAcquire | currency:baseCurrency }} in
+                    additional debt.</span>
+                </div>
+                <div class="rebalancing-banner warning-banner" *ngIf="debtToAcquire < 0">
+                  <mat-icon>remove_circle</mat-icon>
+                  <span>You are overleveraged. Pay {{ debtToAcquire * -1 | currency:baseCurrency }} of your debt.</span>
+                </div>
+                <div class="rebalancing-banner success-banner" *ngIf="debtToAcquire === 0">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Your debt-to-value ratio is spot on!</span>
+                </div>
+              </div>
+            </div>
+        </mat-card-content>
+      </mat-card>
+    </section>
   </div>
-
 </ng-container>
 
 <div *ngIf="!dataLoaded" class="page-content" fxLayoutAlign="center center" fxLayout="column">

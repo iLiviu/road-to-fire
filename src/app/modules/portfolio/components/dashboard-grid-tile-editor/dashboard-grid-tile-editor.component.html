@@ -1,10 +1,127 @@
-<h2 mat-dialog-title>Grid Tiles Visibility</h2>
-<mat-dialog-content>
-  <div fxLayout="column" fxLayoutGap="16px">
-    <mat-slide-toggle *ngFor="let tile of gridTilesLabels" [(ngModel)]="gridVisibility[tile[0]]">
-      {{tile[1]}}</mat-slide-toggle>
+<!-- Shared Content Template for both Mobile & Desktop -->
+<ng-template #dialogContent>
+  <!-- Search box & batch action controls -->
+  <div class="controls-bar" [class.mobile-controls]="isHandset">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="cdr.markForCheck()"
+        placeholder="Search charts by name..." class="search-input" />
+      <button *ngIf="searchQuery" type="button" mat-icon-button class="clear-search-btn" (click)="clearSearch()"
+        matTooltip="Clear search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="batch-bar">
+      <div class="active-badge" matTooltip="Active charts on dashboard">
+        <mat-icon class="badge-icon">visibility</mat-icon>
+        <span>{{ getTotalActiveCount() }} / {{ getTotalTilesCount() }} Active</span>
+      </div>
+      <div class="batch-buttons">
+        <button type="button" mat-stroked-button (click)="selectAll()" class="action-btn"
+          matTooltip="Enable all charts">
+          Select All
+        </button>
+        <button type="button" mat-stroked-button (click)="clearAll()" class="action-btn"
+          matTooltip="Disable all charts">
+          Clear All
+        </button>
+        <button *ngIf="isHandset" type="button" mat-stroked-button (click)="resetDefaults()" class="action-btn"
+          matTooltip="Reset to defaults">
+          Reset
+        </button>
+      </div>
+    </div>
   </div>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Close</button>
-</mat-dialog-actions>
+
+  <!-- Grouped Categories List -->
+  <div class="categories-list">
+    <ng-container *ngFor="let category of categories">
+      <div class="category-group-box" *ngIf="isCategoryVisible(category)">
+        <!-- Group Header -->
+        <div class="category-header">
+          <div class="category-title-group">
+            <mat-icon class="category-icon">{{ category.icon }}</mat-icon>
+            <span class="category-title">{{ category.title }}</span>
+            <span class="category-count">({{ getCategoryActiveCount(category) }}/{{ category.items.length }})</span>
+          </div>
+
+          <button type="button" mat-button class="group-toggle-btn" (click)="toggleCategory(category)">
+            {{ isCategoryAllActive(category) ? 'Disable All' : 'Enable All' }}
+          </button>
+        </div>
+
+        <!-- Group Items: Clean Single-line Rows -->
+        <div class="tiles-grid" [class.mobile-grid]="isHandset">
+          <div class="tile-row" *ngFor="let item of getFilteredItems(category)" (click)="toggleTile(item)"
+            [class.active]="gridVisibility[item.id]">
+            <div class="tile-info">
+              <mat-icon *ngIf="item.icon" class="tile-icon" [class.active-icon]="gridVisibility[item.id]">{{ item.icon
+                }}</mat-icon>
+              <mat-icon *ngIf="item.svgIcon" class="tile-icon" [class.active-icon]="gridVisibility[item.id]"
+                svgIcon="{{item.svgIcon}}"></mat-icon>
+              <span class="tile-label">{{ item.label }}</span>
+            </div>
+            <mat-slide-toggle [checked]="!!gridVisibility[item.id]" (click)="$event.stopPropagation()"
+              (change)="onToggleChange(item, $event.checked)" color="primary">
+            </mat-slide-toggle>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Empty search state -->
+    <div class="no-results" *ngIf="isSearchEmpty()">
+      <mat-icon class="no-results-icon">search_off</mat-icon>
+      <p class="no-results-title">No matching dashboard charts found</p>
+      <p class="no-results-subtitle">No charts match "{{ searchQuery }}"</p>
+      <button mat-stroked-button color="primary" (click)="clearSearch()">
+        Clear search query
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+
+<!-- MOBILE LAYOUT: Full-Screen Presentation -->
+<div class="mobile-container" *ngIf="isHandset">
+  <mat-toolbar color="primary" class="mobile-toolbar mat-elevation-z4">
+    <button type="button" mat-icon-button (click)="dialogRef.close(true)" aria-label="Close" matTooltip="Done">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span class="mobile-toolbar-title">Display Settings</span>
+    <span class="mobile-spacer"></span>
+    <button type="button" mat-button (click)="dialogRef.close(true)" class="mobile-done-btn">
+      Done
+    </button>
+  </mat-toolbar>
+
+  <div class="mobile-content">
+    <ng-container *ngTemplateOutlet="dialogContent"></ng-container>
+  </div>
+</div>
+
+
+<!-- DESKTOP LAYOUT: Modal Dialog Presentation -->
+<div class="desktop-container" *ngIf="!isHandset">
+  <div class="desktop-header">
+    <h2 mat-dialog-title class="dialog-title">Dashboard Display Settings</h2>
+    <p class="dialog-subtitle">Choose which cards and charts appear on your dashboard</p>
+  </div>
+
+  <mat-dialog-content class="desktop-dialog-content">
+    <ng-container *ngTemplateOutlet="dialogContent"></ng-container>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <div class="actions-wrapper">
+      <button type="button" mat-button (click)="resetDefaults()" class="reset-defaults-btn">
+        <mat-icon>restart_alt</mat-icon>
+        <span>Reset Defaults</span>
+      </button>
+      <button type="button" mat-flat-button color="primary" [mat-dialog-close]="true" cdkFocusInitial class="done-btn">
+        Done
+      </button>
+    </div>
+  </mat-dialog-actions>
+</div>

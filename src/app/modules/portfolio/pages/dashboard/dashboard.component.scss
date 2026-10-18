@@ -1,27 +1,608 @@
-.dashboard-card {
-  width: 100%;
-  margin: 10px;
-  height: 100%;
+.dashboard-content {
+  padding: 16px 20px 32px 20px;
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
-
-.grid-card {
-  width: calc(100% - 64px);
-  height: calc(100% - 64px);
+@media (max-width: 600px) {
+  .dashboard-content {
+    padding: 12px 12px 24px 12px;
+  }
 }
 
-.grid-card-content {
-  padding-bottom: 76px;
+/* Section Containers & Headers */
+.dashboard-section {
+  margin-bottom: 24px;
 }
 
-.allocation-list {
-  margin: 0px;
-}
-
-.vertical-center {
+.section-header {
+  display: flex;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+
+  h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
+  }
 }
 
+/* KPI Hero Cards Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.kpi-card {
+  padding: 16px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.kpi-title {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 8px;
+}
+
+.kpi-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &.primary-icon {
+    background: rgba(3, 169, 244, 0.12);
+    color: #0288d1;
+  }
+
+  &.positive-icon {
+    background: rgba(76, 175, 80, 0.12);
+    color: #388e3c;
+  }
+
+  &.negative-icon {
+    background: rgba(244, 67, 54, 0.12);
+    color: #d32f2f;
+  }
+
+  &.accent-icon {
+    background: rgba(255, 152, 0, 0.12);
+    color: #f57c00;
+  }
+
+  &.warning-icon {
+    background: rgba(156, 39, 176, 0.12);
+    color: #7b1fa2;
+  }
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.kpi-unit {
+  font-size: 15px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.kpi-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.kpi-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+
+  &.badge-positive {
+    background: rgba(76, 175, 80, 0.15);
+    color: #2e7d32;
+  }
+
+  &.badge-negative {
+    background: rgba(244, 67, 54, 0.15);
+    color: #c62828;
+  }
+}
+
+.kpi-subtext {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.goal-kpi-progress {
+  margin: 2px 0 8px 0;
+
+  .goal-progress-track {
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  .goal-progress-fill {
+    border-radius: 3px;
+  }
+}
+
+/* Executive Goals Card */
+.goals-card {
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+.goals-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.goals-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.goals-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 169, 244, 0.12);
+  color: #0288d1;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.goals-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+  display: block;
+}
+
+.goals-subtitle {
+  font-size: 11px;
+  opacity: 0.65;
+  display: block;
+}
+
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.goal-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.goal-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.goal-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goal-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.goal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+
+  &.badge-in-progress {
+    background: rgba(3, 169, 244, 0.12);
+    color: #0288d1;
+  }
+
+  &.badge-completed {
+    background: rgba(76, 175, 80, 0.15);
+    color: #2e7d32;
+  }
+}
+
+.goal-values {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.goal-current {
+  font-weight: 600;
+}
+
+.goal-separator {
+  opacity: 0.4;
+}
+
+.goal-target {
+  opacity: 0.75;
+}
+
+.goal-remaining {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-left: 2px;
+}
+
+.goal-progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(128, 128, 128, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.goal-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease-out;
+
+  &.fill-in-progress {
+    background: linear-gradient(90deg, #0288d1, #29b6f6);
+  }
+
+  &.fill-completed {
+    background: linear-gradient(90deg, #2e7d32, #4caf50);
+  }
+}
+
+/* Allocation summary chip bar */
+.allocation-summary-card {
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.allocation-summary-header {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.allocation-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.allocation-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(128, 128, 128, 0.08);
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 13px;
+
+  .chip-label {
+    opacity: 0.8;
+  }
+
+  .chip-val {
+    font-weight: 600;
+  }
+}
+
+/* Analytics Line Charts Grid */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 540px), 1fr));
+  gap: 16px;
+}
+
+.analytics-card {
+  border-radius: 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-heading {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timeframe-btn {
+  font-size: 13px;
+  padding: 0 8px;
+  height: 32px;
+  line-height: 32px;
+
+  mat-icon {
+    margin-left: 2px;
+  }
+}
+
+.chart-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.line-chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 320px;
+}
+
+.empty-chart-msg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  margin: 0;
+}
+
+/* Allocations & Breakdown Grid: 3-4 columns on large screens */
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+@media (min-width: 1280px) {
+  .breakdown-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+.breakdown-card {
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  height: 340px;
+}
+
+.doughnut-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px 16px;
+}
+
+.doughnut-chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Rebalancing Card */
+.rebalancing-card {
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.section-title-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.rebalancing-content {
+  padding: 8px 16px 16px;
+}
+
+.rebalancing-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  &.warning-banner {
+    background: rgba(255, 152, 0, 0.12);
+    color: #e65100;
+  }
+
+  &.success-banner {
+    background: rgba(76, 175, 80, 0.12);
+    color: #2e7d32;
+  }
+
+  &.info-banner {
+    background: rgba(3, 169, 244, 0.12);
+    color: #0277bd;
+  }
+}
+
+.rebalance-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.rebalance-step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: rgba(128, 128, 128, 0.06);
+  border-left: 4px solid transparent;
+
+  &.step-buy {
+    border-left-color: #4caf50;
+
+    .step-badge {
+      background: rgba(76, 175, 80, 0.15);
+      color: #2e7d32;
+    }
+  }
+
+  &.step-sell {
+    border-left-color: #f44336;
+
+    .step-badge {
+      background: rgba(244, 67, 54, 0.15);
+      color: #c62828;
+    }
+  }
+}
+
+.step-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.step-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.step-asset {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.step-desc {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.debt-adjustment-panel {
+  margin-top: 16px;
+  border-top: 1px solid rgba(128, 128, 128, 0.15);
+  padding-top: 16px;
+}
+
+.debt-adj-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  opacity: 0.85;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Performance stats in card subtitle (from original) */
 .perf-subtitle {
   margin-top: 4px;
   margin-bottom: 6px;
@@ -39,22 +620,94 @@
   cursor: default;
 }
 
-.perf-stat-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
 .perf-stat-name {
   opacity: 0.85;
 }
-
-.perf-stat-val {}
 
 .perf-stat-pa {
   font-size: 11px;
   opacity: 0.75;
   font-weight: normal;
+}
+
+/* Dark theme overrides for contrast */
+:host-context(.dark-theme) {
+  .kpi-icon-wrapper.primary-icon {
+    background: rgba(3, 169, 244, 0.2);
+    color: #81d4fa;
+  }
+
+  .kpi-icon-wrapper.positive-icon,
+  .kpi-badge.badge-positive,
+  .step-buy .step-badge {
+    background: rgba(76, 175, 80, 0.2);
+    color: #81c784;
+  }
+
+  .kpi-icon-wrapper.negative-icon,
+  .kpi-badge.badge-negative,
+  .step-sell .step-badge {
+    background: rgba(244, 67, 54, 0.2);
+    color: #e57373;
+  }
+
+  .kpi-icon-wrapper.accent-icon {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ffb74d;
+  }
+
+  .kpi-icon-wrapper.warning-icon {
+    background: rgba(156, 39, 176, 0.2);
+    color: #ba68c8;
+  }
+
+  .rebalancing-banner.warning-banner {
+    background: rgba(255, 152, 0, 0.15);
+    color: #ffb74d;
+  }
+
+  .rebalancing-banner.success-banner {
+    background: rgba(76, 175, 80, 0.15);
+    color: #81c784;
+  }
+
+  .rebalancing-banner.info-banner {
+    background: rgba(3, 169, 244, 0.15);
+    color: #81d4fa;
+  }
+
+  .allocation-chip {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .rebalance-step-item {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .goals-icon-wrapper {
+    background: rgba(3, 169, 244, 0.2);
+    color: #81d4fa;
+  }
+
+  .goal-badge.badge-in-progress {
+    background: rgba(3, 169, 244, 0.2);
+    color: #81d4fa;
+  }
+
+  .goal-badge.badge-completed {
+    background: rgba(76, 175, 80, 0.2);
+    color: #81c784;
+  }
+
+  .goal-progress-track {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .goal-progress-fill.fill-in-progress {
+    background: linear-gradient(90deg, #0288d1, #4fc3f7);
+  }
+
+  .goal-progress-fill.fill-completed {
+    background: linear-gradient(90deg, #388e3c, #81c784);
+  }
 }

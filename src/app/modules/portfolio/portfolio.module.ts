@@ -240,8 +240,6 @@ export class PortfolioModule {
       sanitizer.bypassSecurityTrustResourceUrl('assets/img/certificate.svg'));
     iconRegistry.addSvgIcon('commodity',
       sanitizer.bypassSecurityTrustResourceUrl('assets/img/commodity.svg'));
-    iconRegistry.addSvgIcon('bitcoin',
-      sanitizer.bypassSecurityTrustResourceUrl('assets/img/bitcoin.svg'));
     iconRegistry.addSvgIcon('tax',
       sanitizer.bypassSecurityTrustResourceUrl('assets/img/tax.svg'));
     iconRegistry.addSvgIcon('forex',
