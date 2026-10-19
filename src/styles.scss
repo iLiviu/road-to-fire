@@ -166,3 +166,53 @@ html, body {
   [hidden] {
   display: none !important;
 }
+
+/* ==========================================================================
+   Modern App Scrollbar Styling (Cross-browser, Light & Dark Theme)
+   ========================================================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(2, 136, 209, 0.65);
+  }
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark Theme Scrollbar */
+body.dark-theme,
+.dark-theme {
+  * {
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+
+    &:hover {
+      background: rgba(3, 169, 244, 0.7);
+    }
+  }
+}
