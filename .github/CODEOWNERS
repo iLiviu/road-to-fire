@@ -1,0 +1,12 @@
+# Exige revision antes de fusionar cambios sobre la definicion del pipeline.
+# Sin este archivo, cualquier control descrito en la Seccion 3 puede
+# desactivarse editando el archivo que lo define.
+#
+# Reemplazar @GabrielSanzana por el equipo responsable del proyecto de politicas.
+
+/.github/workflows/   @GabrielSanzana
+/.github/CODEOWNERS   @GabrielSanzana
+/Dockerfile           @GabrielSanzana
+/nginx.conf           @GabrielSanzana
+/.zap/                @GabrielSanzana
+/sonar-project.properties @GabrielSanzana

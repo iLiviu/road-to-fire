@@ -1,0 +1,364 @@
+name: Pipeline seguro
+
+# Caso: road-to-fire (Angular 14 + TypeScript, npm con package-lock.json).
+# Cada job corresponde a un control de la Tabla 1 y su caracter bloqueante o
+# informativo corresponde a la Tabla 2 de la Seccion 3.
+# Todas las acciones de terceros estan fijadas por hash completo de commit.
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+# Permiso minimo por defecto. Cada job eleva solo lo que necesita.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "18.20.4"
+  IMAGE: road-to-fire:ci
+
+jobs:
+
+  # ---------------------------------------------------------------- 1
+  # Deteccion de secretos. Insumo: el contenido del commit.
+  # Caracter: BLOQUEANTE ante cualquier hallazgo.
+  secretos:
+    name: 1 · Deteccion de secretos
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # el historial completo es necesario para revisar commits anteriores
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------- 2
+  # SAST. Insumo: el codigo fuente. Corre en paralelo con el analisis de IaC.
+  # Caracter: BLOQUEANTE ante hallazgo de severidad alta o critica.
+  sast-semgrep:
+    name: 2 · SAST (Semgrep)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Instalar Semgrep
+        run: pipx install semgrep==1.177.0
+
+      - name: Semgrep
+        run: |
+          semgrep scan \
+            --config p/typescript \
+            --config p/javascript \
+            --config p/security-audit \
+            --config p/secrets \
+            --sarif --output semgrep.sarif \
+            --severity ERROR \
+            --error \
+            --metrics off
+
+      - name: Publicar hallazgos
+        if: always()
+        uses: github/codeql-action/upload-sarif@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  sast-codeql:
+    name: 2 · SAST (CodeQL)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: github/codeql-action/init@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - uses: github/codeql-action/analyze@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        with:
+          category: codeql
+
+  # ---------------------------------------------------------------- 3
+  # Analisis de infraestructura como codigo. Insumo: archivos de configuracion.
+  # Caracter: BLOQUEANTE ante hallazgo critico.
+  iac:
+    name: 3 · Infraestructura como codigo (Trivy config)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Trivy config
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          format: sarif
+          output: trivy-iac.sarif
+
+      - name: Publicar hallazgos
+        if: always()
+        uses: github/codeql-action/upload-sarif@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        with:
+          sarif_file: trivy-iac.sarif
+          category: trivy-iac
+
+  # ---------------------------------------------------------------- 4
+  # SCA. Insumo: el arbol de dependencias resuelto.
+  # Caracter: BLOQUEANTE si hay vulnerabilidad critica CON correccion disponible.
+  #           INFORMATIVO si no existe correccion (ignore-unfixed).
+  sca:
+    name: 4 · SCA (dependencias)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      # npm ci exige package-lock.json e instala el arbol exacto registrado en el
+      - name: Instalar dependencias desde el archivo de bloqueo
+        run: npm ci
+
+      - name: Trivy fs · puerta bloqueante (solo lo corregible)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Trivy fs · registro informativo (todo lo detectado)
+        if: always()
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: CRITICAL,HIGH,MEDIUM
+          ignore-unfixed: false
+          exit-code: "0"
+          format: sarif
+          output: trivy-sca.sarif
+
+      - name: Publicar hallazgos
+        if: always()
+        uses: github/codeql-action/upload-sarif@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        with:
+          sarif_file: trivy-sca.sarif
+          category: trivy-sca
+
+      # Snyk solo corre si el token existe. Sin token, el paso se omite.
+      - name: Snyk Open Source
+        if: env.SNYK_TOKEN != ''
+        uses: snyk/actions/node@12140f4059e244892ae643824a95459a102120dd # master
+        continue-on-error: true
+        with:
+          args: --severity-threshold=high --sarif-file-output=snyk.sarif
+
+      - name: Publicar hallazgos de Snyk
+        if: env.SNYK_TOKEN != '' && always()
+        uses: github/codeql-action/upload-sarif@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        with:
+          sarif_file: snyk.sarif
+          category: snyk
+
+  # ---------------------------------------------------------------- 5
+  # Construccion. Depende de las puertas bloqueantes anteriores, de modo que un
+  # hallazgo corta el pipeline antes de pagar el costo de construir.
+  build:
+    name: 5 · Construccion y pruebas
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    needs: [secretos, sast-semgrep, sca, iac]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Pruebas unitarias con cobertura
+        run: npx ng test --watch=false --browsers=ChromeHeadless --code-coverage
+
+      - name: Construir
+        run: npx ng build --configuration production
+
+      - name: Guardar artefacto de construccion
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dist
+          path: dist/RoadToFIRE
+          retention-days: 5
+
+      - name: Guardar cobertura para la puerta de calidad
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage
+          path: coverage
+          retention-days: 5
+
+  # ---------------------------------------------------------------- 6
+  # Puerta de calidad sobre codigo nuevo. Solo corre si hay servidor configurado.
+  # Caracter: BLOQUEANTE segun las condiciones definidas en el servidor.
+  puerta-calidad:
+    name: 6 · Puerta de calidad (SonarQube)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: [build]
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # necesario para que Sonar distinga codigo nuevo de historico
+
+      - name: Recuperar cobertura
+        if: env.SONAR_TOKEN != ''
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: coverage
+          path: coverage
+
+      - name: Analisis y puerta de calidad
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402 # v4
+
+      - name: Esperar el veredicto de la puerta
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-quality-gate-action@7a5fffe8e523c40e0c740b6bc2712ab503e52efa # v1
+        timeout-minutes: 5
+
+  # ---------------------------------------------------------------- 7
+  # Imagen de contenedor. Insumo: la imagen construida.
+  # Caracter: BLOQUEANTE antes de publicar.
+  imagen:
+    name: 7 · Imagen de contenedor (Trivy image)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    needs: [build]
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Construir la imagen
+        run: docker build -t "$IMAGE" .
+
+      - name: Trivy image · puerta bloqueante
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Trivy image · registro informativo
+        if: always()
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: false
+          exit-code: "0"
+          format: sarif
+          output: trivy-image.sarif
+
+      - name: Publicar hallazgos
+        if: always()
+        uses: github/codeql-action/upload-sarif@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image
+
+      - name: Exportar la imagen para el DAST
+        run: docker save "$IMAGE" -o image.tar
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: image
+          path: image.tar
+          retention-days: 1
+
+  # ---------------------------------------------------------------- 8
+  # DAST. Insumo: la aplicacion desplegada.
+  # Caracter: INFORMATIVO en la solicitud de fusion.
+  dast:
+    name: 8 · DAST (OWASP ZAP baseline)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    needs: [imagen]
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: image
+
+      - name: Levantar la aplicacion
+        run: |
+          docker load -i image.tar
+          docker run -d --name app -p 8080:8080 "$IMAGE"
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080 > /dev/null; then echo "arriba"; break; fi
+            sleep 2
+          done
+
+      - name: ZAP baseline
+        uses: zaproxy/action-baseline@66042c8e7e24680119199a017e5b0e8603bf4dae # v0.12.0
+        with:
+          target: http://localhost:8080
+          rules_file_name: .zap/rules.tsv
+          cmd_options: "-a -j"
+          fail_action: false # informativo: registra el hallazgo sin detener la entrega
+          allow_issue_writing: false
+
+      - name: Apagar la aplicacion
+        if: always()
+        run: docker rm -f app || true
