@@ -129,6 +129,12 @@ export class DashboardGridTileEditorComponent implements OnInit, OnDestroy {
             svgIcon: ASSET_ICONS[AssetType.Stock].svgIcon,
           },
           {
+            id: DashboardGridTiles.StockTypesAllocation,
+            label: 'Stock Type Allocation',
+            icon: ASSET_ICONS[AssetType.Stock].icon,
+            svgIcon: ASSET_ICONS[AssetType.Stock].svgIcon,
+          },
+          {
             id: DashboardGridTiles.BondsAllocation,
             label: 'Top Bond Holdings',
             icon: ASSET_ICONS[AssetType.Bond].icon,

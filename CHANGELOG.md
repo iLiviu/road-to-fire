@@ -2,6 +2,7 @@
 
 ### Features
 * New user interface
+* Stock Type Allocation chart showing the percentage breakdown of holdings across Stock ETFs, Mutual Funds, and individual stocks
 
 
 ## 2.0.0

@@ -191,6 +191,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   topPortfolioHoldingsChart: ChartContext = { datasets: [], labels: [] };
   stockCurrencyAllocationChart: ChartContext = { datasets: [], labels: [] };
   stockGeoAllocationChart: ChartContext = { datasets: [], labels: [] };
+  stockTypeAllocationChart: ChartContext = { datasets: [], labels: [] };
   portfolioHistoryChart: ChartContext = { datasets: [{ label: '', data: [] }], labels: [] };
   unrealizedPLHistoryChart: ChartContext = { datasets: [{ label: '', data: [] }], labels: [] };
   benchmarkChart: ChartContext = { datasets: [], labels: [] };
@@ -352,6 +353,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   private allPortfolioHistory: PortfolioHistory;
   private baseCurrencySymbol: string;
   private labelAllocations: { [categoryId: number]: { [labelId: number]: { label: Label, value: number } } } = {};
+  private stockTypeTotals: NumKeyDictionary<number> = {};
 
   readonly benchmarkChartOptions: ChartOptions = {
     responsive: true,
@@ -459,6 +461,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
       (this.gridVisibility[this.GridTiles.PortfolioTopHoldings] && this.topPortfolioHoldingsChart.datasets[0]?.data?.length > 0) ||
       (this.gridVisibility[this.GridTiles.CurrencyAllocation] && this.currencyAllocationChart.datasets[0]?.data?.length > 0) ||
       (this.gridVisibility[this.GridTiles.StocksAllocation] && this.stockAllocationChart.datasets[0]?.data?.length > 0) ||
+      (this.gridVisibility[this.GridTiles.StockTypesAllocation] && this.stockTypeAllocationChart.datasets[0]?.data?.length > 0) ||
       (this.gridVisibility[this.GridTiles.StocksGeoAllocation] && this.stockGeoAllocationChart.datasets[0]?.data?.length > 0) ||
       (this.gridVisibility[this.GridTiles.StockCurrencyAllocation] && this.stockCurrencyAllocationChart.datasets[0]?.data?.length > 0) ||
       (this.gridVisibility[this.GridTiles.BondsAllocation] && this.bondAllocationChart.datasets[0]?.data?.length > 0) ||
@@ -855,6 +858,29 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   }
 
   /**
+   * Build the chart data for the breakdown of stocks by type (Stock ETFs, Mutual Funds, Individual Stocks)
+   */
+  private computeStockTypeAllocationData(): ChartContext {
+    const chartCtx: ChartContext = { datasets: [{ data: [] }], labels: [] };
+    const stockTypeLabels: NumKeyDictionary<string> = {
+      [AssetType.StockETF]: 'Stock ETFs',
+      [AssetType.StockMutualFund]: 'Mutual Funds',
+      [AssetType.Stock]: 'Individual Stocks',
+    };
+    const sortedTypes = this.sortNumDict(this.stockTypeTotals);
+    const totalStockValue = this.getAbsTotalAllocationValue(sortedTypes);
+    if (totalStockValue > 0) {
+      for (const [assetType, value] of sortedTypes) {
+        if (value > 0) {
+          chartCtx.labels.push(stockTypeLabels[assetType] || this.assetTypeLabels[assetType]);
+          chartCtx.datasets[0].data.push(this.toPercentage(value, totalStockValue));
+        }
+      }
+    }
+    return chartCtx;
+  }
+
+  /**
    * Go through entire asset allocation, and compute what assets need to be
    * bought/sold in order to have the desired portfolio allocation, and also
    * compute the current debt ratio and the amount required to get to
@@ -922,6 +948,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.assetDescriptions = {};
     this.assetsUnrealizedPL = {};
     this.labelAllocations = {};
+    this.stockTypeTotals = {};
 
     // check for any foreign currencies and get updated quotes for them
     const requiredCurrencies: string[] = [];
@@ -978,6 +1005,10 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
               this.assetsTotalValue[broadAssetType] = 0;
             }
             this.assetsTotalValue[broadAssetType] += assetBaseCurrencyValue;
+
+            if (asset.type === AssetType.Stock || asset.type === AssetType.StockETF || asset.type === AssetType.StockMutualFund) {
+              this.stockTypeTotals[asset.type] = (this.stockTypeTotals[asset.type] || 0) + assetBaseCurrencyValue;
+            }
 
             if (!this.assetCurrenciesValue[broadAssetType]) {
               this.assetCurrenciesValue[broadAssetType] = {};
@@ -1077,6 +1108,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     this.bondAllocationChart = this.computeAssetTypeAllocationData(AssetType.Bond, 10);
     this.p2pAllocationChart = this.computeAssetTypeAllocationData(AssetType.P2P, 10);
     this.stockAllocationChart = this.computeAssetTypeAllocationData(AssetType.Stock, 10);
+    this.stockTypeAllocationChart = this.computeStockTypeAllocationData();
     this.topPortfolioHoldingsChart = this.computeAssetTypeAllocationData(AssetType.All, 10);
     this.computeLabelCategoriesAllocationData();
     this.computeRebalanceSteps();

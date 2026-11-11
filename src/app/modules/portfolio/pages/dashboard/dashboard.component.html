@@ -431,6 +431,17 @@
           </mat-card-content>
         </mat-card>
 
+        <!-- Stock Type Allocation -->
+        <mat-card class="breakdown-card"
+          *ngIf="gridVisibility[GridTiles.StockTypesAllocation] && stockTypeAllocationChart.datasets[0].data.length > 0">
+          <mat-card-title class="card-heading">Stock Type Allocation</mat-card-title>
+          <mat-card-content class="doughnut-content">
+            <div class="doughnut-chart-wrapper">
+              <canvas baseChart [data]="stockTypeAllocationChart" [options]="pieChartOptions" type="doughnut"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
         <!-- Stocks Geo Allocation -->
         <mat-card class="breakdown-card"
           *ngIf="gridVisibility[GridTiles.StocksGeoAllocation] && stockGeoAllocationChart.datasets[0].data.length > 0">

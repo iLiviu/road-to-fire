@@ -39,6 +39,9 @@ import { ConfigService } from 'src/app/core/services/config.service';
 import { MockConfigService } from 'src/app/core/mocks/config.service.mock';
 import { BenchmarkService } from '../../services/benchmark.service';
 import { TransactionType } from '../../models/transaction';
+import { AssetType } from '../../models/asset';
+import { TradeableAsset, TradeableAssetData } from '../../models/tradeable-asset';
+import { PortfolioAccount } from '../../models/portfolio-account';
 import { Component, Input } from '@angular/core';
 
 @Component({
@@ -262,6 +265,46 @@ describe('DashboardComponent', () => {
 
     expect(benchmarkService.computePortfolioIRR).toHaveBeenCalled();
     expect(component.inaccurateIRR).toBeTrue();
+    discardPeriodicTasks();
+  }));
+
+  it('should compute stockTypeAllocationChart percentages for StockETF, StockMutualFund, and Stock', fakeAsync(() => {
+    const makeStockAsset = (id: number, type: AssetType, amount: number, price: number) => {
+      const data: TradeableAssetData = {
+        id,
+        description: `Asset ${id}`,
+        currency: 'EUR',
+        type,
+        amount,
+        buyPrice: price,
+        grossBuyPrice: price,
+        currentPrice: price,
+        lastQuoteUpdate: null,
+        positions: [{ id: 1, amount, buyPrice: price, grossBuyPrice: price, buyDate: null }],
+        region: null,
+        customRegions: [],
+        symbol: '',
+      };
+      return new TradeableAsset(data);
+    };
+
+    const testAccount = new PortfolioAccount({
+      id: 1,
+      description: 'Test Account',
+      assets: [
+        makeStockAsset(1, AssetType.StockETF, 5, 100),         // 500 -> 50%
+        makeStockAsset(2, AssetType.StockMutualFund, 3, 100),  // 300 -> 30%
+        makeStockAsset(3, AssetType.Stock, 2, 100),            // 200 -> 20%
+        makeStockAsset(4, AssetType.BondETF, 4, 100),          // 400 -> excluded
+      ],
+    });
+    spyOn(portfolioService, 'getAccounts').and.returnValue(Promise.resolve([testAccount]));
+
+    fixture.detectChanges();
+    tick(5000);
+
+    expect(component.stockTypeAllocationChart.labels).toEqual(['Stock ETFs', 'Mutual Funds', 'Individual Stocks']);
+    expect(component.stockTypeAllocationChart.datasets[0].data).toEqual([50, 30, 20]);
     discardPeriodicTasks();
   }));
 });
