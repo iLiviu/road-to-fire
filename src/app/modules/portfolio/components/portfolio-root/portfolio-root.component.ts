@@ -1,5 +1,5 @@
 import {
-  Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef
+  Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ElementRef, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef
 } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable, Subscription, Subject } from 'rxjs';
@@ -17,6 +17,8 @@ import { PortfolioAccount } from '../../models/portfolio-account';
 import { LoggerService } from 'src/app/core/services/logger.service';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { StorageService } from 'src/app/core/services/storage.service';
+import { MenuListItemComponent } from 'src/app/shared/components/menu-list-item/menu-list-item.component';
+import { ASSET_ICONS, AssetType } from '../../models/asset';
 
 const accountsMenuItems: NavItem[] = [];
 
@@ -28,14 +30,14 @@ const MENU_ROUTES: NavItem[] = [
   { path: 'accounts', title: 'Accounts', icon: 'account_balance', children: accountsMenuItems },
   {
     path: 'assets', title: 'Assets', icon: 'apps', children: [
-      { path: 'assets/bonds', title: 'Bonds & Bond ETFs', svgIcon: 'certificate' },
-      { path: 'assets/cash', title: 'Cash & Equivalents', icon: 'local_atm' },
-      { path: 'assets/commodities', title: 'Commodities', svgIcon: 'commodity' },
-      { path: 'assets/crypto', title: 'Cryptocurrencies', icon: 'currency_bitcoin' },
-      { path: 'assets/debt', title: 'Debt', icon: 'credit_card' },
-      { path: 'assets/p2p', title: 'P2P Loans', icon: 'handshake' },
-      { path: 'assets/real-estate', title: 'Real Estate', icon: 'home' },
-      { path: 'assets/stocks', title: 'Stocks', icon: 'trending_up' },
+      { path: 'assets/bonds', title: 'Bonds & Bond ETFs', icon: ASSET_ICONS[AssetType.Bond].icon, svgIcon: ASSET_ICONS[AssetType.Bond].svgIcon },
+      { path: 'assets/cash', title: 'Cash & Equivalents', icon: ASSET_ICONS[AssetType.Cash].icon, svgIcon: ASSET_ICONS[AssetType.Cash].svgIcon },
+      { path: 'assets/commodities', title: 'Commodities', icon: ASSET_ICONS[AssetType.Commodity].icon, svgIcon: ASSET_ICONS[AssetType.Commodity].svgIcon },
+      { path: 'assets/crypto', title: 'Cryptocurrencies', icon: ASSET_ICONS[AssetType.Cryptocurrency].icon, svgIcon: ASSET_ICONS[AssetType.Cryptocurrency].svgIcon },
+      { path: 'assets/debt', title: 'Debt', icon: ASSET_ICONS[AssetType.Debt].icon, svgIcon: ASSET_ICONS[AssetType.Debt].svgIcon },
+      { path: 'assets/p2p', title: 'P2P Loans', icon: ASSET_ICONS[AssetType.P2P].icon, svgIcon: ASSET_ICONS[AssetType.P2P].svgIcon },
+      { path: 'assets/real-estate', title: 'Real Estate', icon: ASSET_ICONS[AssetType.RealEstate].icon, svgIcon: ASSET_ICONS[AssetType.RealEstate].svgIcon },
+      { path: 'assets/stocks', title: 'Stocks', icon: ASSET_ICONS[AssetType.Stock].icon, svgIcon: ASSET_ICONS[AssetType.Stock].svgIcon },
     ]
   },
   { path: 'transactions', title: 'Transactions', icon: 'swap_horiz', children: null },
@@ -61,15 +63,17 @@ const ACCOUNTS_MENU_INDEX = 1;
 })
 export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit {
 
-
-
   canInstallApp = WebAPK.canInstallApp;
   loggedIn: boolean;
   @ViewChild('drawer', { static: true }) drawer: MatSidenav;
+  @ViewChildren(MenuListItemComponent) menuListItems: QueryList<MenuListItemComponent>;
 
   readonly navItems = MENU_ROUTES;
   readonly isHandset$: Observable<boolean>;
 
+  private isHandset = false;
+  private collapseTimeout: any;
+  private autoExpandResetTimeout: any;
   private componentDestroyed$ = new Subject();
   private accountsLoaded = false;
 
@@ -106,12 +110,16 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
 
   ngOnInit() {
     this.loggedIn = this.storageService.isEncryptionEnabled();
-    // close the sidenav when on handset device a link is clicked
+
+    this.isHandset$
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(isHandset => this.isHandset = isHandset);
+
+    // Close the drawer on mobile when a link is clicked, without collapsing submenus
     this.router.events
       .pipe(
         takeUntil(this.componentDestroyed$),
-        withLatestFrom(this.isHandset$),
-        filter(([a, b]) => b && a instanceof NavigationEnd)
+        filter(event => event instanceof NavigationEnd && this.isHandset)
       )
       .subscribe(_ => this.drawer.close());
 
@@ -121,6 +129,52 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
         event => {
           this.handleEvents(event);
         });
+  }
+
+  onSidenavMouseEnter(): void {
+    if (this.collapseTimeout) {
+      clearTimeout(this.collapseTimeout);
+      this.collapseTimeout = null;
+    }
+    if (!this.isHandset) {
+      this.eventsService.canAutoExpandMenu = true;
+      if (this.autoExpandResetTimeout) {
+        clearTimeout(this.autoExpandResetTimeout);
+      }
+      this.autoExpandResetTimeout = setTimeout(() => {
+        this.eventsService.canAutoExpandMenu = false;
+        this.autoExpandResetTimeout = null;
+      }, 150);
+    }
+  }
+
+  onSidenavMouseLeave(): void {
+    this.eventsService.canAutoExpandMenu = false;
+    if (this.autoExpandResetTimeout) {
+      clearTimeout(this.autoExpandResetTimeout);
+      this.autoExpandResetTimeout = null;
+    }
+    if (!this.isHandset) {
+      this.collapseTimeout = setTimeout(() => {
+        this.collapseAllMenus();
+      }, 250);
+    }
+  }
+
+  collapseAllMenus(): void {
+    if (this.menuListItems) {
+      this.menuListItems.forEach(item => item.collapse());
+    }
+  }
+
+  onMenuItemExpanded(expandedItem: NavItem): void {
+    if (this.menuListItems) {
+      this.menuListItems.forEach(menuItem => {
+        if (menuItem.item !== expandedItem) {
+          menuItem.collapse();
+        }
+      });
+    }
   }
 
   handleEvents(event: AppEvent) {
@@ -166,6 +220,12 @@ export class PortfolioRootComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngOnDestroy() {
+    if (this.collapseTimeout) {
+      clearTimeout(this.collapseTimeout);
+    }
+    if (this.autoExpandResetTimeout) {
+      clearTimeout(this.autoExpandResetTimeout);
+    }
     this.componentDestroyed$.next();
     this.componentDestroyed$.unsubscribe();
   }

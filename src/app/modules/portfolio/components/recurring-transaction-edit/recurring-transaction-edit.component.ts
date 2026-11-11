@@ -4,13 +4,11 @@ import { RecurringTransactionType, RecurringTransaction } from '../../models/rec
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { UntypedFormGroup, UntypedFormControl, Validators } from '@angular/forms';
 import { PortfolioAccount } from '../../models/portfolio-account';
-import { PortfolioService } from '../../services/portfolio.service';
 import { Asset, AssetType } from '../../models/asset';
 import { Subject } from 'rxjs';
 import { RecurringTransactionInputComponent } from '../recurring-transaction-input/recurring-transaction-input.component';
-import { getDateAsISOString } from 'src/app/shared/util';
+import { getDateAsISOString, FloatingMath } from 'src/app/shared/util';
 import { takeUntil } from 'rxjs/operators';
-import { TransferTransaction } from '../../models/transfer-transaction';
 import { TwoWayTransaction } from '../../models/two-way-transaction';
 
 export interface RecurringTransactionEditData {
@@ -56,12 +54,14 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
   readonly RecurringTransactionType = RecurringTransactionType;
   readonly AssetType = AssetType;
 
-  private componentDestroyed$ = new Subject();
+  private readonly componentDestroyed$ = new Subject<void>();
   @ViewChild('recTxInput') private readonly recTxInput: RecurringTransactionInputComponent;
 
-  constructor(public dialogRef: MatDialogRef<RecurringTransactionEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: RecurringTransactionEditData) {
-
+  constructor(
+    public dialogRef: MatDialogRef<RecurringTransactionEditComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: RecurringTransactionEditData,
+    private cdr: ChangeDetectorRef
+  ) {
     this.recTx = data.recTx;
     this.accounts = data.accounts;
   }
@@ -98,12 +98,85 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
       this.assetForm.addControl('withholdingTax', this.withholdingTax);
     }
 
+    this.assetForm.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => {
+        this.cdr.markForCheck();
+      });
+
     this.loadData();
   }
 
   ngOnDestroy() {
     this.componentDestroyed$.next();
     this.componentDestroyed$.unsubscribe();
+  }
+
+  get dialogTitle(): string {
+    return 'Edit Recurring Transaction';
+  }
+
+  get grossAmount(): number {
+    return Number(this.amount?.value) || 0;
+  }
+
+  get feeAmount(): number {
+    return Number(this.fee?.value) || 0;
+  }
+
+  get taxAmount(): number {
+    return Number(this.withholdingTax?.value) || 0;
+  }
+
+  get totalDebitAmount(): number {
+    return FloatingMath.fixRoundingError(this.grossAmount + this.feeAmount);
+  }
+
+  get netCreditAmount(): number {
+    return FloatingMath.fixRoundingError(this.grossAmount - this.taxAmount - this.feeAmount);
+  }
+
+  get netAmount(): number {
+    return this.isCredit ? this.netCreditAmount : this.totalDebitAmount;
+  }
+
+  get currency(): string {
+    return this.sourceAsset?.value?.currency || this.tx?.asset?.currency || '';
+  }
+
+  get txTypeLabel(): string {
+    if (this.tx?.isTransfer()) {
+      return 'Transfer';
+    }
+    if (this.tx?.isDividend()) {
+      return 'Dividend';
+    }
+    if (this.tx?.isInterestPayment()) {
+      return 'Interest';
+    }
+    if (this.tx?.isPrincipalPayment()) {
+      return 'Principal';
+    }
+    if (this.isCredit) {
+      return 'Credit';
+    }
+    return 'Debit';
+  }
+
+  get pillIcon(): string {
+    if (this.tx?.isTransfer()) {
+      return 'swap_horiz';
+    }
+    if (this.tx?.isDividend()) {
+      return 'payments';
+    }
+    if (this.tx?.isInterestPayment()) {
+      return 'savings';
+    }
+    if (this.tx?.isPrincipalPayment()) {
+      return 'receipt_long';
+    }
+    return this.isCredit ? 'arrow_downward' : 'arrow_upward';
   }
 
   onDestinationAccountChanged() {
@@ -116,6 +189,7 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
     } else {
       this.destinationCashAssets = [];
     }
+    this.cdr.markForCheck();
   }
 
   onSourceAccountChanged() {
@@ -126,6 +200,7 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
     } else {
       this.sourceCashAssets = [];
     }
+    this.cdr.markForCheck();
   }
 
   /**
@@ -222,7 +297,6 @@ export class RecurringTransactionEditComponent implements OnInit, OnDestroy {
       this.destinationAsset.markAsTouched();
       this.assetForm.addControl('destinationAsset', this.destinationAsset);
     }
-
   }
 
   getAccountById(id: number) {

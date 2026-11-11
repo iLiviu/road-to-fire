@@ -178,15 +178,16 @@
 
         <!-- Asset Allocation Chips from original Stats -->
         <mat-card class="allocation-summary-card"
-          *ngIf="gridVisibility[GridTiles.Stats] && (assetsTotalValue | keyvalue).length > 0">
+          *ngIf="gridVisibility[GridTiles.Stats] && assetAllocationChips.length > 0">
           <div class="allocation-summary-header">
             <span>Allocation by Asset Class</span>
           </div>
           <div class="allocation-chips">
-            <div class="allocation-chip" *ngFor="let assetValue of assetsTotalValue | keyvalue">
-              <span class="chip-label">{{assetTypeLabels[assetValue.key]}}:</span>
-              <span class="chip-val" [ngClass]="{'negative': assetValue.value < 0}">
-                {{assetValue.value | currency:baseCurrency}}
+            <div class="allocation-chip" *ngFor="let item of assetAllocationChips"
+              [matTooltip]="item.label + ': ' + (item.value | currency:baseCurrency)">
+              <span class="chip-label">{{item.label}}</span>
+              <span class="chip-val" [ngClass]="{'negative': item.value < 0}">
+                {{item.value | currency:baseCurrency}}
               </span>
             </div>
           </div>

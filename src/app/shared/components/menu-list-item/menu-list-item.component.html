@@ -1,4 +1,5 @@
 <a mat-list-item class="level{{depth}}" (click)="onItemSelected(item)"
+              (mouseenter)="onMouseEnter()"
               [ngClass]="{'active': isRouteActive(item), 'expanded': expanded}">
   <mat-icon *ngIf="item.icon" class="routeIcon">{{item.icon}}</mat-icon>
   <mat-icon *ngIf="item.svgIcon" class="routeIcon" svgIcon="{{item.svgIcon}}"></mat-icon>

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import { RecurringTransactionInputComponent } from './recurring-transaction-input.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -75,5 +76,22 @@ describe('RecurringTransactionInputComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should render fields in a form-row layout', () => {
+    const formRows = fixture.debugElement.queryAll(By.css('.form-row'));
+    expect(formRows.length).toBeGreaterThanOrEqual(1);
+
+    const cols = formRows[0].queryAll(By.css('.form-col'));
+    expect(cols.length).toBe(2); // Daily type has Repeats and Transactions left
+  });
+
+  it('should display period field in row when EveryGivenDays is selected', () => {
+    component.recurringType.setValue(RecurringTransactionType.EveryGivenDays);
+    fixture.detectChanges();
+
+    const formRows = fixture.debugElement.queryAll(By.css('.form-row'));
+    const cols = formRows[0].queryAll(By.css('.form-col'));
+    expect(cols.length).toBe(3); // Repeats, Period, Transactions left
   });
 });

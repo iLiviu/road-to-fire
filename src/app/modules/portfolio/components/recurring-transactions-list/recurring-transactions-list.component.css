@@ -1,17 +1,1 @@
-mat-nav-list {
-  padding-top: 0px !important;
-}
-
-.list-viewport {
-  height: calc(100% - 40px);
-}
-
-.transactions-list {
-  height: 100%;
-
-}
-
-.full-height {
-  height: 100%;
-}
-
+/* Styles defined globally in src/app/modules/portfolio/styles/_portfolio-common.scss */

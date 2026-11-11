@@ -63,6 +63,11 @@ export class EventsService {
 
   readonly events$ = this.eventSource.asObservable();
 
+  /**
+   * Tracks if the sidenav was just hovered from outside so the targeted expandable menu item can auto-expand
+   */
+  canAutoExpandMenu = false;
+
   constructor() { }
 
   private triggerEvent(event: AppEvent) {
@@ -481,3 +486,4 @@ export class EventsService {
     });
   }
 }
+

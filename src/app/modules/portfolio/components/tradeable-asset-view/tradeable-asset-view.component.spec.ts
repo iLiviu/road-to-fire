@@ -1,14 +1,18 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { DomSanitizer } from '@angular/platform-browser';
 
 import { TradeableAssetViewComponent, TradeableAssetViewData } from './tradeable-asset-view.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatIconModule } from '@angular/material/icon';
+import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormatDatePipe } from 'src/app/shared/pipes/format-date.pipe';
 import { ViewAsset } from '../../models/view-asset';
+import { AssetType } from '../../models/asset';
+import { BondAsset } from '../../models/bond-asset';
 import { SAMPLE_ASSETS, SAMPLE_ACCOUNTS } from '../../mocks/sample-accounts.mock';
 
 const viewAsset = new ViewAsset(SAMPLE_ASSETS.stockAsset1, SAMPLE_ACCOUNTS.account1);
@@ -18,8 +22,8 @@ const dialogData: TradeableAssetViewData = {
     capitalCosts: 0,
     dividends: 0,
     realizedGaines: 0,
-    totalCost: 0,
-    totalReturn: 0,
+    totalCost: 100,
+    totalReturn: 120,
   },
   viewAsset: viewAsset,
 };
@@ -37,6 +41,7 @@ describe('TradeableAssetViewComponent', () => {
         MatIconModule,
         MatChipsModule,
         MatTooltipModule,
+        NoopAnimationsModule,
       ],
       declarations: [
         TradeableAssetViewComponent,
@@ -45,7 +50,9 @@ describe('TradeableAssetViewComponent', () => {
       providers: [
         {
           provide: MatDialogRef,
-          useValue: {}
+          useValue: {
+            close: jasmine.createSpy('close'),
+          }
         }, {
           provide: MAT_DIALOG_DATA,
           useValue: dialogData
@@ -53,6 +60,10 @@ describe('TradeableAssetViewComponent', () => {
       ],
     })
       .compileComponents();
+
+    const iconRegistry = TestBed.inject(MatIconRegistry);
+    const sanitizer = TestBed.inject(DomSanitizer);
+    iconRegistry.addSvgIconLiteral('certificate', sanitizer.bypassSecurityTrustHtml('<svg></svg>'));
   }));
 
   beforeEach(() => {
@@ -63,5 +74,45 @@ describe('TradeableAssetViewComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+    expect(component.displayName).toBe(SAMPLE_ASSETS.stockAsset1.description);
+    expect(component.assetTypeLabel).toBe('Stock');
+    expect(component.typeBadgeClass).toBe('stock');
+    expect(component.totalPL).toBe(20);
+    expect(component.totalPLPercent).toBe(0.2);
+  });
+
+  it('should copy to clipboard and provide temporary feedback', () => {
+    spyOn(component, 'copyToClipboard').and.callThrough();
+    component.copyToClipboard('Test text');
+    expect(component.copied).toBeTrue();
+  });
+
+  it('should close dialog when cancel is called', () => {
+    component.cancel();
+    expect(component.dialogRef.close).toHaveBeenCalled();
+  });
+
+  it('should configure properly for bond asset', () => {
+    const bondAsset = new BondAsset({ ...SAMPLE_ASSETS.bondAsset1, type: AssetType.Bond });
+    const bondView = new ViewAsset(bondAsset, SAMPLE_ACCOUNTS.account1);
+    bondView.position = bondAsset.positions[0];
+    const bondFixture = TestBed.createComponent(TradeableAssetViewComponent);
+    const bondComp = bondFixture.componentInstance;
+    bondComp.data = {
+      totalReturnStats: {
+        capitalCosts: 0,
+        dividends: 0,
+        realizedGaines: 0,
+        totalCost: 50,
+        totalReturn: 60,
+      },
+      viewAsset: bondView,
+    };
+    bondComp.ngOnInit();
+    bondFixture.detectChanges();
+
+    expect(bondComp.bondAsset).toBeTruthy();
+    expect(bondComp.assetTypeLabel).toBe('Bond');
+    expect(bondComp.typeBadgeClass).toBe('bond');
   });
 });

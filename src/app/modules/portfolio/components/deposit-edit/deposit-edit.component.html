@@ -1,56 +1,121 @@
 <form [formGroup]="assetForm">
-  <app-edit-dialog [form]="assetForm" title="{{data.asset.id? 'Edit':'New'}} Deposit" (close)="dialogClosed($event)">
-    <div class="text-content" fxLayout="column">
-      <mat-form-field>
-        <input matInput type="text" placeholder="Identifier" required formControlName="description">
-        <mat-error>Please enter a description</mat-error>
-      </mat-form-field>
-      <mat-form-field *ngIf="!data.asset.id">
-        <mat-select placeholder="Source Cash Account" formControlName="cashAsset" required>
-          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
-            {{asset.description}} ({{asset.amount | currency:asset.currency}})
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+  <app-edit-dialog [form]="assetForm" [title]="dialogTitle" (close)="dialogClosed($event)" #editDialog>
+    <div [ngClass]="{ 'handset': editDialog.isHandset }" class="trade-dialog-container">
+      <div class="single-tab-content">
+        <div [formGroup]="assetForm" class="form-layout">
+          <!-- Section: Deposit Details -->
+          <section class="form-section">
 
-      <mat-form-field>
-        <input matInput type="number" placeholder="Deposit Amount" required formControlName="amount" #depositAmount>
-        <span matPrefix>{{selectedCashAsset.currency | currencySymbol}}</span>
-        <mat-error>Amount must be between 0 and {{selectedCashAsset.amount}}</mat-error>
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput type="number" placeholder="Interest Rate" formControlName="interestRate">
-        <span matSuffix>%</span>
-        <mat-error>Value must be a number</mat-error>
-      </mat-form-field>
+            <!-- Identifier & Source Cash Account in same row on desktop -->
+            <div class="form-row">
+              <mat-form-field [ngClass]="data.asset.id ? 'form-col-full' : 'form-col'">
+                <input matInput type="text" placeholder="Identifier" required formControlName="description">
+                <mat-error>Please enter a description</mat-error>
+              </mat-form-field>
 
-      <mat-form-field>
-        <input matInput [max]="todayDate" [matDatepicker]="datepicker" placeholder="Creation Date"
-          formControlName="creationDate">
-        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
-        <mat-datepicker #datepicker></mat-datepicker>
-        <mat-error>Creation date can't be in the future</mat-error>
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput [min]="todayDate" [matDatepicker]="maturitydatepicker" placeholder="Maturity Date"
-          formControlName="maturityDate">
-        <mat-datepicker-toggle matSuffix [for]="maturitydatepicker"></mat-datepicker-toggle>
-        <mat-datepicker #maturitydatepicker></mat-datepicker>
-        <mat-error>Maturity date can't be in the past</mat-error>
-      </mat-form-field>
+              <mat-form-field class="form-col" *ngIf="!data.asset.id">
+                <mat-select placeholder="Source Cash Account" formControlName="cashAsset" required>
+                  <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                    {{ asset.description }} ({{ asset.amount | currency: asset.currency }})
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
 
-      <mat-checkbox formControlName="withholdInterestTax">Withhold interest tax</mat-checkbox>
-      <mat-form-field *ngIf="withholdInterestTax.value">
-        <input matInput type="number" placeholder="Tax rate" formControlName="interestTaxRate">
-        <span matSuffix>%</span>
-        <mat-error>Value must be a number between 0 and 100</mat-error>
-      </mat-form-field>
+            <!-- Deposit Amount & Interest Rate in same row on desktop -->
+            <div class="form-row">
+              <mat-form-field class="form-col">
+                <input matInput type="number" placeholder="Deposit Amount" required formControlName="amount">
+                <span matPrefix>{{ depositCurrency | currencySymbol }}&nbsp;</span>
+                <mat-error *ngIf="amount.errors?.invalidRange">
+                  Amount must be between 0 and {{ selectedCashAsset ? selectedCashAsset.amount : 0 }}
+                </mat-error>
+                <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
+              </mat-form-field>
 
-      <mat-checkbox #autoRenewDeposit formControlName="autoRenew">Auto renew on maturity</mat-checkbox>
-      <mat-checkbox *ngIf="autoRenewDeposit.checked" formControlName="capitalize">Capitalize interest</mat-checkbox>
+              <mat-form-field class="form-col">
+                <input matInput type="number" placeholder="Interest Rate" formControlName="interestRate">
+                <span matSuffix>%</span>
+                <mat-error>Value must be a number</mat-error>
+              </mat-form-field>
+            </div>
 
-      <mat-checkbox *ngIf="!data.asset.id" formControlName="debitAccount" (change)="debitAccountToggled()">Automatically
-        debit the cash account with {{depositAmount.value | currency:selectedCashAsset.currency}}</mat-checkbox>
+            <!-- Creation Date & Maturity Date in same row on desktop -->
+            <div class="form-row">
+              <mat-form-field class="form-col">
+                <input matInput [max]="todayDate" [matDatepicker]="datepicker" placeholder="Creation Date"
+                  formControlName="creationDate">
+                <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+                <mat-datepicker #datepicker></mat-datepicker>
+                <mat-error>Creation date can't be in the future</mat-error>
+              </mat-form-field>
+
+              <mat-form-field class="form-col">
+                <input matInput [min]="todayDate" [matDatepicker]="maturitydatepicker" placeholder="Maturity Date"
+                  formControlName="maturityDate">
+                <mat-datepicker-toggle matSuffix [for]="maturitydatepicker"></mat-datepicker-toggle>
+                <mat-datepicker #maturitydatepicker></mat-datepicker>
+                <mat-error>Maturity date can't be in the past</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <div class="form-col">
+                <mat-checkbox formControlName="autoRenew">Auto renew on maturity</mat-checkbox>
+              </div>
+              <div class="form-col">
+                <mat-checkbox *ngIf="autoRenew.value" formControlName="capitalize">Capitalize interest</mat-checkbox>
+              </div>
+            </div>
+
+            <div class="form-row options-row">
+              <div class="form-col option-group">
+                <mat-checkbox formControlName="withholdInterestTax">Withhold interest tax</mat-checkbox>
+                <mat-form-field class="compact-tax-field" *ngIf="withholdInterestTax.value">
+                  <input matInput type="number" placeholder="Tax rate" formControlName="interestTaxRate">
+                  <span matSuffix>%</span>
+                  <mat-error>0 to 100</mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section: Summary Card -->
+          <section class="summary-section">
+            <div class="order-summary-card">
+              <div class="summary-row">
+                <div class="summary-breakdown">
+                  <span class="summary-item">
+                    <span class="summary-label">Principal:</span>
+                    <span class="summary-value">{{ grossAmount | currency: depositCurrency }}</span>
+                  </span>
+                  <span class="summary-item" *ngIf="interestRate.value">
+                    <span class="summary-label">Rate:</span>
+                    <span class="summary-value">{{ interestRate.value }}%</span>
+                  </span>
+                  <span class="summary-item" *ngIf="termDays > 0">
+                    <span class="summary-label">Term:</span>
+                    <span class="summary-value">{{ termDays }} days</span>
+                  </span>
+                  <span class="summary-item" *ngIf="estGrossInterest > 0">
+                    <span class="summary-label">Est. Interest:</span>
+                    <span class="summary-value">{{ estPayableInterest | currency: depositCurrency }}</span>
+                  </span>
+                </div>
+
+              </div>
+
+              <div class="settlement-toggle" *ngIf="!data.asset.id && selectedCashAsset">
+                <mat-checkbox formControlName="debitAccount" (change)="debitAccountToggled()">
+                  Auto-debit {{ selectedCashAsset.description }} with <strong>{{ grossAmount | currency: depositCurrency
+                    }}</strong>
+                </mat-checkbox>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
     </div>
   </app-edit-dialog>
 </form>

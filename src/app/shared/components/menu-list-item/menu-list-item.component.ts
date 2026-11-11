@@ -1,6 +1,7 @@
-import { Component, HostBinding, Input, ChangeDetectionStrategy, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, HostBinding, Input, Output, EventEmitter, ChangeDetectionStrategy, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 import { NavItem } from '../../models/nav-item';
 import { Subject } from 'rxjs';
@@ -27,11 +28,13 @@ export class MenuListItemComponent implements OnInit, OnDestroy {
   @HostBinding('attr.aria-expanded') ariaExpanded = this.expanded;
   @Input() item: NavItem;
   @Input() depth: number;
+  @Output() itemExpanded = new EventEmitter<NavItem>();
 
+  private isHandset = false;
   private componentDestroyed$ = new Subject();
 
   constructor(public router: Router, private route: ActivatedRoute, private cdr: ChangeDetectorRef,
-    private eventsService: EventsService) {
+    private eventsService: EventsService, private breakpointObserver: BreakpointObserver) {
 
     if (this.depth === undefined) {
       this.depth = 0;
@@ -39,6 +42,10 @@ export class MenuListItemComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.breakpointObserver.observe([Breakpoints.Small, Breakpoints.XSmall])
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(result => this.isHandset = result.matches);
+
     // we need to listen to navigation events to determine the active route
     this.router.events
       .pipe(takeUntil(this.componentDestroyed$))
@@ -70,6 +77,18 @@ export class MenuListItemComponent implements OnInit, OnDestroy {
     return this.router.isActive(this.router.createUrlTree([item.path], { relativeTo: this.route }).toString(), true);
   }
 
+  onMouseEnter() {
+    // Only auto-expand when entering from outside the sidenav (eventsService.canAutoExpandMenu is true)
+    if (!this.isHandset && this.eventsService.canAutoExpandMenu && this.item.children && this.item.children.length) {
+      this.eventsService.canAutoExpandMenu = false;
+      if (!this.expanded) {
+        this.expanded = true;
+        this.itemExpanded.emit(this.item);
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
   onItemSelected(item: NavItem) {
     if (!item.children || !item.children.length) {
       if (item.path) {
@@ -78,6 +97,16 @@ export class MenuListItemComponent implements OnInit, OnDestroy {
     }
     if (item.children && item.children.length) {
       this.expanded = !this.expanded;
+      if (this.expanded) {
+        this.itemExpanded.emit(this.item);
+      }
+    }
+  }
+
+  collapse() {
+    if (this.expanded) {
+      this.expanded = false;
+      this.cdr.markForCheck();
     }
   }
 }

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import { DepositEditComponent, DepositEditData } from './deposit-edit.component';
 import { EditDialogComponent } from '../edit-dialog/edit-dialog.component';
@@ -57,7 +58,9 @@ describe('DepositEditComponent', () => {
         { provide: DialogsService, useClass: MockDialogsService },
         {
           provide: MatDialogRef,
-          useValue: {}
+          useValue: {
+            close: jasmine.createSpy('close')
+          }
         }, {
           provide: MAT_DIALOG_DATA,
           useValue: dialogData
@@ -75,5 +78,29 @@ describe('DepositEditComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should calculate gross amount and interest correctly', () => {
+    component.amount.setValue(1000);
+    component.interestRate.setValue(5);
+    component.creationDate.setValue(new Date(2026, 0, 1));
+    component.maturityDate.setValue(new Date(2027, 0, 1));
+    component.withholdInterestTax.setValue(true);
+    component.interestTaxRate.setValue(10);
+    fixture.detectChanges();
+
+    expect(component.grossAmount).toBe(1000);
+    expect(component.termDays).toBe(365);
+    expect(component.estGrossInterest).toBe(50);
+    expect(component.estPayableInterest).toBe(45);
+  });
+
+  it('should render form rows and summary card', () => {
+
+    const summaryCard = fixture.debugElement.query(By.css('.order-summary-card'));
+    expect(summaryCard).toBeTruthy();
+
+    const formRows = fixture.debugElement.queryAll(By.css('.form-row'));
+    expect(formRows.length).toBeGreaterThanOrEqual(4);
   });
 });

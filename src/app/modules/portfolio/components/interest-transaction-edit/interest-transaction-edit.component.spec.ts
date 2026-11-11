@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -41,7 +42,7 @@ const txData: InterestTransactionData = {
   description: 'interest tx',
   fee: 0,
   type: TransactionType.CashInterest,
-  value: 1,
+  value: 100,
 };
 const dialogData: InterestTxEditData = {
   tx: new InterestTransaction(txData),
@@ -80,7 +81,9 @@ describe('InterestTransactionEditComponent', () => {
         { provide: DialogsService, useClass: MockDialogsService },
         {
           provide: MatDialogRef,
-          useValue: {}
+          useValue: {
+            close: jasmine.createSpy('close')
+          }
         }, {
           provide: MAT_DIALOG_DATA,
           useValue: dialogData
@@ -98,5 +101,26 @@ describe('InterestTransactionEditComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should calculate gross, tax, and net amounts correctly', () => {
+    component.amount.setValue(200);
+    component.fee.setValue(10);
+    component.withholdTax.setValue(true);
+    component.taxRate.setValue(15);
+    fixture.detectChanges();
+
+    expect(component.grossAmount).toBe(200);
+    expect(component.taxAmount).toBe(30);
+    expect(component.netAmount).toBe(160);
+  });
+
+  it('should render form rows and summary card', () => {
+
+    const summaryCard = fixture.debugElement.query(By.css('.order-summary-card'));
+    expect(summaryCard).toBeTruthy();
+
+    const formRows = fixture.debugElement.queryAll(By.css('.form-row'));
+    expect(formRows.length).toBeGreaterThanOrEqual(2);
   });
 });

@@ -1,5 +1,6 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { MatSort, Sort } from '@angular/material/sort';
 
 import { PortfolioPageComponent } from '../../components/portfolio-page/portfolio-page.component';
 import { DialogsService } from 'src/app/modules/dialogs/dialogs.service';
@@ -53,6 +54,8 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
   currentYear: number;
   salesGroupBy: SalesGroupBy = SalesGroupBy.Asset;
   yearAssetsCapitalGains: AssetCapitalGains[] = [];
+
+  @ViewChild(MatSort) sort: MatSort;
 
   readonly displayedColumns: string[] = ['description', 'amount', 'buyDate', 'buyPrice', 'sellPrice', 'Fees', 'PL', 'PLPercent'];
   readonly SalesGroupBy = SalesGroupBy;
@@ -183,7 +186,7 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
     } catch (err) {
       this.logger.error('Could not compute capital gains: ' + err, err);
     }
-    this.yearAssetsCapitalGains.sort((a, b) => a.description.toLowerCase() < b.description.toLowerCase() ? -1 : 1);
+    this.sortData();
     this.totalProfitLossPercent = (this.totalCost > 0) ? this.totalProfitLoss / this.totalCost : 0;
     this.grossTotalProfitLoss = this.totalProfitLoss + this.totalFees;
     this.grossTotalProfitLossPercent = (this.totalCost > 0) ? this.grossTotalProfitLoss / this.totalCost : 0;
@@ -192,7 +195,62 @@ export class CapitalGainsComponent extends PortfolioPageComponent implements OnI
     this.cdr.markForCheck();
   }
 
+  /**
+   * Sort the yearAssetsCapitalGains table by the selected column
+   */
+  sortData(sort?: Sort) {
+    const active = sort ? sort.active : (this.sort?.active || 'description');
+    const direction = sort ? sort.direction : (this.sort?.direction || 'asc');
+    const isAsc = direction === 'asc';
+
+    this.yearAssetsCapitalGains = [...this.yearAssetsCapitalGains].sort((a, b) => {
+      let res = 0;
+      switch (active) {
+        case 'description':
+          res = compare(a.description?.toLowerCase() || '', b.description?.toLowerCase() || '', isAsc);
+          break;
+        case 'amount':
+          res = compare(a.amount || 0, b.amount || 0, isAsc);
+          break;
+        case 'buyDate': {
+          const timeA = a.buyDate ? new Date(a.buyDate).getTime() : 0;
+          const timeB = b.buyDate ? new Date(b.buyDate).getTime() : 0;
+          res = compare(timeA, timeB, isAsc);
+          break;
+        }
+        case 'buyPrice':
+          res = compare(a.buyPrice || 0, b.buyPrice || 0, isAsc);
+          break;
+        case 'sellPrice':
+          res = compare(a.sellPrice || 0, b.sellPrice || 0, isAsc);
+          break;
+        case 'Fees':
+          res = compare(a.fees || 0, b.fees || 0, isAsc);
+          break;
+        case 'PL':
+          res = compare(a.profitLoss || 0, b.profitLoss || 0, isAsc);
+          break;
+        case 'PLPercent':
+          res = compare(a.profitLossPercent || 0, b.profitLossPercent || 0, isAsc);
+          break;
+        default:
+          res = compare(a.description?.toLowerCase() || '', b.description?.toLowerCase() || '', isAsc);
+      }
+      if (res === 0) {
+        res = (a.description?.toLowerCase() || '').localeCompare(b.description?.toLowerCase() || '');
+      }
+      return res;
+    });
+
+    this.cdr.markForCheck();
+  }
+
   onYearChanged() {
     this.computeCapitalGains();
   }
+}
+
+/** Simple sort comparator */
+function compare(a: number | string, b: number | string, isAsc: boolean): number {
+  return (a < b ? -1 : a > b ? 1 : 0) * (isAsc ? 1 : -1);
 }

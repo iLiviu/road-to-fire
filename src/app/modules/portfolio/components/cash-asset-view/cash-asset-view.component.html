@@ -1,67 +1,115 @@
-<h2 mat-dialog-title>
-  <span>{{viewAsset.asset.description}}</span>
-  <button mat-icon-button>
-    <mat-icon aria-label="Copy to clipboard" (click)="copyToClipboard(viewAsset.asset.description)" color="primary"
-      matTooltip="Copy to clipboard">file_copy</mat-icon>
-  </button>
+<h2 mat-dialog-title class="dialog-title">
+  <div class="title-content">
+    <div class="title-left">
+      <span class="title-text" [matTooltip]="displayName">{{ displayName }}</span>
+      <button mat-icon-button type="button" class="copy-button" (click)="copyToClipboard(displayName)"
+        [matTooltip]="copied ? 'Copied!' : 'Copy to clipboard'">
+        <mat-icon [color]="copied ? 'accent' : 'primary'">{{ copied ? 'check' : 'file_copy' }}</mat-icon>
+      </button>
+    </div>
+    <span class="type-badge" [ngClass]="typeBadgeClass">
+      {{ assetTypeLabel }}
+    </span>
+  </div>
 </h2>
-<mat-dialog-content>
 
-  <div fxLayout="column" fxLayoutGap="8px">
-    <div>
-      <span fxFlex>Balance:</span>
-      <span [ngClass]="{'negative':viewAsset.asset.amount < 0}">
-        {{viewAsset.asset.amount | currency: viewAsset.asset.currency}}
+<mat-dialog-content>
+  <div class="details-list">
+    <div class="detail-row">
+      <span class="row-label">Balance:</span>
+      <span class="row-value font-bold" [ngClass]="{'negative': viewAsset.asset.amount < 0}">
+        {{ viewAsset.asset.amount | currency: viewAsset.asset.currency }}
       </span>
     </div>
 
     <mat-divider></mat-divider>
 
     <ng-container *ngIf="deposit">
-      <div>
-        <span fxFlex>Interest rate: </span>
-        <span>{{deposit.interestRate | percent:'1.0-2'}}</span>
+      <div class="detail-row">
+        <span class="row-label">Interest rate:</span>
+        <span class="row-value font-bold">{{ deposit.interestRate | percent:'1.0-2' }}</span>
       </div>
 
       <mat-divider></mat-divider>
 
-      <div>
-        <span fxFlex>Auto-renew: </span>
-        <span>{{deposit.autoRenew? 'yes':'no'}}</span>
+      <div class="detail-row" *ngIf="payableInterest !== null">
+        <span class="row-label">Projected interest:</span>
+        <span class="row-value positive font-bold">
+          +{{ payableInterest | currency: deposit.currency }}
+          <span *ngIf="deposit.withholdInterestTax" class="sub-text">(net)</span>
+        </span>
+      </div>
+
+      <mat-divider *ngIf="payableInterest !== null"></mat-divider>
+
+      <div class="detail-row" *ngIf="withholdingTax !== null">
+        <span class="row-label">Tax withheld ({{ deposit.interestTaxRate | percent:'1.0-2' }}):</span>
+        <span class="row-value">{{ withholdingTax | currency: deposit.currency }}</span>
+      </div>
+
+      <mat-divider *ngIf="withholdingTax !== null"></mat-divider>
+
+      <div class="detail-row">
+        <span class="row-label">Auto-renew:</span>
+        <span class="row-value">{{ deposit.autoRenew ? 'yes' : 'no' }}</span>
       </div>
 
       <mat-divider></mat-divider>
 
       <ng-container *ngIf="deposit.autoRenew">
-        <div>
-          <span fxFlex>Capitalize interest: </span>
-          <span>{{deposit.capitalize? 'yes':'no'}}</span>
+        <div class="detail-row">
+          <span class="row-label">Capitalize interest:</span>
+          <span class="row-value">{{ deposit.capitalize ? 'yes' : 'no' }}</span>
         </div>
 
         <mat-divider></mat-divider>
       </ng-container>
 
-      <div>
-        <span fxFlex>Creation date: </span>
-        <span>{{deposit.creationDate | formatDate}}</span>
+      <div class="detail-row">
+        <span class="row-label">Creation date:</span>
+        <span class="row-value">{{ deposit.creationDate | formatDate }}</span>
       </div>
 
       <mat-divider></mat-divider>
 
-      <div>
-        <span fxFlex>Maturity: </span>
-        <span>{{deposit.maturityDate | formatDate}}</span>
+      <div class="detail-row">
+        <span class="row-label">Maturity:</span>
+        <span class="row-value">
+          <span *ngIf="daysToMaturity !== null && daysToMaturity > 0" class="status-badge active">
+            in {{ daysToMaturity }}d
+          </span>
+          <span *ngIf="daysToMaturity !== null && daysToMaturity <= 0" class="status-badge matured">
+            Matured
+          </span>
+          {{ deposit.maturityDate | formatDate }}
+        </span>
       </div>
 
       <mat-divider></mat-divider>
     </ng-container>
 
-    <div>
-      <span fxFlex>Account:</span>
-      <span>{{viewAsset.account.description}}</span>
+    <div class="detail-row">
+      <span class="row-label">Account:</span>
+      <span class="row-value">{{ viewAsset.account?.description || '—' }}</span>
     </div>
+
+    <ng-container *ngIf="viewAsset.asset.labels && viewAsset.asset.labels.length > 0">
+      <mat-divider></mat-divider>
+      <div class="detail-row labels-row">
+        <span class="row-label">Labels:</span>
+        <span class="row-value">
+          <mat-chip-list aria-label="Asset labels">
+            <mat-chip *ngFor="let label of viewAsset.asset.labels" [style.background-color]="label.color"
+              [selectable]="false" class="label-chip">
+              {{ label.name }}
+            </mat-chip>
+          </mat-chip-list>
+        </span>
+      </div>
+    </ng-container>
   </div>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close="edit">Edit</button>
   <button mat-button mat-dialog-close cdkFocusInitial>Close</button>

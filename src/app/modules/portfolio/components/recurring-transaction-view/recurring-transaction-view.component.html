@@ -1,67 +1,75 @@
-<h2 mat-dialog-title>
-  {{tx.description}}
+<h2 mat-dialog-title class="dialog-title">
+  <div class="title-content">
+    <div class="title-left">
+      <span class="title-text" [matTooltip]="displayName">{{ displayName }}</span>
+    </div>
+    <span class="type-badge" [ngClass]="typeBadgeClass">
+      {{ transactionTypeLabel }}
+    </span>
+  </div>
 </h2>
-<mat-dialog-content>
 
-  <div fxLayout="column" fxLayoutGap="8px">
+<mat-dialog-content>
+  <div class="details-list">
     <ng-container *ngIf="recTx.tx.date">
-      <div>
-        <span fxFlex>Next Transaction Date: </span>
-        <span>{{recTx.tx.date | formatDate}}</span>
+      <div class="detail-row">
+        <span class="row-label">Next transaction date:</span>
+        <span class="row-value">{{ recTx.tx.date | formatDate }}</span>
       </div>
 
       <mat-divider></mat-divider>
     </ng-container>
 
     <ng-container *ngIf="recTx.type !== RecurringTransactionType.Never">
-      <div>
-        <span fxFlex>Occurrence: </span>
-        <span>{{txOccurrence}}</span>
+      <div class="detail-row">
+        <span class="row-label">Occurrence:</span>
+        <span class="row-value">{{ txOccurrence }}</span>
       </div>
+
       <mat-divider></mat-divider>
     </ng-container>
 
     <ng-container *ngIf="recTx.type !== RecurringTransactionType.AfterGivenDays">
-      <div>
-        <span fxFlex>Transactions left: </span>
-        <span>{{recTx.transactionsLeft < 0?  'no limit':recTx.transactionsLeft}}</span>
+      <div class="detail-row">
+        <span class="row-label">Transactions left:</span>
+        <span class="row-value">{{ recTx.transactionsLeft < 0 ? 'no limit' : recTx.transactionsLeft }}</span>
       </div>
 
       <mat-divider></mat-divider>
     </ng-container>
 
-    <div>
-      <span fxFlex>Auto approve transaction: </span>
-      <span>{{recTx.autoApprove? 'yes':'no'}}</span>
+    <div class="detail-row">
+      <span class="row-label">Auto approve transaction:</span>
+      <span class="row-value">{{ recTx.autoApprove ? 'yes' : 'no' }}</span>
     </div>
 
     <mat-divider></mat-divider>
 
     <ng-container *ngIf="exchangeTx">
-      <div>
-        <span fxFlex>Debited from {{tx.asset.description}} ({{tx.asset.accountDescription}}): </span>
-        <span class="negative">
-          {{tx.value | currency:tx.asset.currency}}
+      <div class="detail-row">
+        <span class="row-label">Debited from {{ tx.asset.description }} ({{ tx.asset.accountDescription }}):</span>
+        <span class="row-value negative font-bold">
+          {{ tx.value | currency:tx.asset.currency }}
         </span>
       </div>
 
       <mat-divider></mat-divider>
 
-      <div>
-        <span fxFlex>Credited to {{tx.otherAsset.description}}: </span>
-        <span class="positive">
-          {{tx.value*tx.rate | currency:tx.otherAsset.currency }}
+      <div class="detail-row">
+        <span class="row-label">Credited to {{ tx.otherAsset.description }}:</span>
+        <span class="row-value positive font-bold">
+          {{ tx.value * tx.rate | currency:tx.otherAsset.currency }}
         </span>
       </div>
 
-      <mat-divider></mat-divider>
+      <mat-divider *ngIf="tx.fee"></mat-divider>
     </ng-container>
 
     <ng-container *ngIf="!exchangeTx">
-      <div>
-        <span fxFlex>Value: </span>
-        <span [ngClass]="{'positive': isCredit, 'negative': isDebit}">
-          {{(isDebit? '-':'') + tx.value | currency:tx.asset.currency}}
+      <div class="detail-row">
+        <span class="row-label">Value:</span>
+        <span class="row-value font-bold" [ngClass]="{'positive': isCredit, 'negative': isDebit}">
+          {{ (isDebit ? '-' : '') + tx.value | currency:tx.asset.currency }}
         </span>
       </div>
 
@@ -69,38 +77,36 @@
     </ng-container>
 
     <ng-container *ngIf="tx.fee">
-      <div>
-        <span fxFlex>Fee: </span>
-        <span>{{tx.fee | currency:tx.asset.currency}}</span>
+      <div class="detail-row">
+        <span class="row-label">Fee:</span>
+        <span class="row-value">{{ tx.fee | currency:tx.asset.currency }}</span>
       </div>
 
-      <mat-divider></mat-divider>
+      <mat-divider *ngIf="!exchangeTx"></mat-divider>
     </ng-container>
 
     <ng-container *ngIf="!exchangeTx">
       <ng-container *ngIf="!tradeTx">
-        <div>
-          <span fxFlex>{{isCredit? 'Destination':'Source'}}: </span>
-          <span>{{tx.asset.description}} ({{tx.asset.accountDescription}})</span>
+        <div class="detail-row">
+          <span class="row-label">{{ isCredit ? 'Destination' : 'Source' }}:</span>
+          <span class="row-value">{{ tx.asset.description }} ({{ tx.asset.accountDescription }})</span>
         </div>
 
-        <mat-divider></mat-divider>
+        <mat-divider *ngIf="twoWayTx"></mat-divider>
       </ng-container>
 
       <ng-container *ngIf="twoWayTx">
-        <div>
-          <span fxFlex>{{tradeTx? 'Cash account':'Destination'}}: </span>
-          <span>{{tx.otherAsset.description}}
-            ({{tx.otherAsset.accountDescription? tx.otherAsset.accountDescription:tx.asset.accountDescription }})</span>
+        <div class="detail-row">
+          <span class="row-label">{{ tradeTx ? 'Cash account' : 'Destination' }}:</span>
+          <span class="row-value">
+            {{ tx.otherAsset.description }} ({{ tx.otherAsset.accountDescription || tx.asset.accountDescription }})
+          </span>
         </div>
-
-        <mat-divider></mat-divider>
       </ng-container>
-
     </ng-container>
-
   </div>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <button *ngIf="recTx.id" mat-button mat-dialog-close="edit">Edit</button>
   <button mat-button mat-dialog-close cdkFocusInitial>Close</button>

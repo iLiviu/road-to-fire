@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import { AssetTransferComponent, AssetTransferData } from './asset-transfer.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -60,7 +61,9 @@ describe('AssetTransferComponent', () => {
         { provide: DialogsService, useClass: MockDialogsService },
         {
           provide: MatDialogRef,
-          useValue: {}
+          useValue: {
+            close: jasmine.createSpy('close')
+          }
         }, {
           provide: MAT_DIALOG_DATA,
           useValue: dialogData
@@ -78,5 +81,33 @@ describe('AssetTransferComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should calculate gross and total transfer value correctly', () => {
+    component.amount.setValue(5);
+    component.fee.setValue(1);
+    fixture.detectChanges();
+
+    expect(component.grossAmount).toBe(5);
+    expect(component.totalTransferValue).toBe(6);
+  });
+
+  it('should render form rows, position pill, and summary card', () => {
+    const positionPill = fixture.debugElement.query(By.css('.position-info-pill'));
+    expect(positionPill).toBeTruthy();
+
+    const summaryCard = fixture.debugElement.query(By.css('.order-summary-card'));
+    expect(summaryCard).toBeTruthy();
+
+    const formRows = fixture.debugElement.queryAll(By.css('.form-row'));
+    expect(formRows.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('should populate destination cash assets on destination account change', () => {
+    component.destinationAccount.setValue(SAMPLE_ACCOUNTS.account2);
+    fixture.detectChanges();
+
+    expect(component.destinationCashAssets.length).toBe(1);
+    expect(component.destinationAsset.value).toBe(SAMPLE_ASSETS.EURCashAsset2);
   });
 });

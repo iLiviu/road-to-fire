@@ -1,34 +1,198 @@
-<div fxLayout="row">
-  <span fxFlex></span>
-  <span class="text-content" fxLayoutAlign="center center">
-    <mat-form-field>
-      <mat-select placeholder="Group by" [(value)]="groupBy" (selectionChange)="groupByChanged()">
-        <mat-option value="0">None</mat-option>
-        <mat-option value="1" *ngIf="multiAccount">Parent Account</mat-option>
-        <mat-option value="2">Currency</mat-option>
-      </mat-select>
-    </mat-form-field>
-  </span>
-</div>
+<div class="overview-container">
+  <div *ngIf="assets && assets.length > 0; else noAssetsTemplate">
+    <!-- Top Controls Bar: Currency Filters & Sort Controls -->
+    <div class="list-controls-bar">
+      <!-- Currency Filter Pills (displayed when multiple currencies are present) -->
+      <div class="currency-chips" *ngIf="currencies.length > 1">
+        <button type="button" class="chip-btn" [class.active]="selectedCurrency === 'ALL'"
+          (click)="selectCurrency('ALL')">
+          <span>All</span>
+          <span class="chip-count">{{assets.length}}</span>
+        </button>
+        <button type="button" class="chip-btn" *ngFor="let curr of currencies"
+          [class.active]="selectedCurrency === curr" (click)="selectCurrency(curr)">
+          <span>{{curr}}</span>
+          <span class="chip-count">{{currencyCounts[curr]}}</span>
+        </button>
+      </div>
 
-<mat-nav-list dense *ngIf="groupBy === AssetGroupBy.None">
-  <ng-container *ngFor="let viewAsset of assets; trackBy: assetIdTrackFn">
-    <app-cash-list-item *ngIf="viewAsset.asset.type === AssetType.Cash || viewAsset.asset.type === AssetType.Debt" [viewAsset]="viewAsset"></app-cash-list-item>
-    <app-deposit-list-item *ngIf="viewAsset.asset.type === AssetType.Deposit" [viewAsset]="viewAsset"></app-deposit-list-item>
+      <div class="controls-spacer" *ngIf="currencies.length > 1"></div>
 
-  </ng-container>
-</mat-nav-list>
+      <!-- Right-side summary & sorting controls -->
+      <div class="controls-right">
+        <div class="stats-text" *ngIf="filteredAssets.length > 0">
+          <span class="count-badge">{{filteredAssets.length}} {{filteredAssets.length === 1 ? 'asset' :
+            'assets'}}</span>
+          <span class="total-badge" *ngIf="singleCurrencyTotal !== null">
+            &bull; Total: <strong>{{singleCurrencyTotal | currency:activeCurrencyCode}}</strong>
+          </span>
+        </div>
 
-<div *ngIf="groupBy !== AssetGroupBy.None">
-  <mat-card class="card" *ngFor="let group of groups | keyvalue">
-    <mat-card-title>{{group.key}}</mat-card-title>
-    <mat-card-content>
-      <mat-nav-list dense>
-        <ng-container *ngFor="let viewAsset of group.value; trackBy: assetIdTrackFn">
-          <app-cash-list-item *ngIf="viewAsset.asset.type === AssetType.Cash || viewAsset.asset.type === AssetType.Debt" [viewAsset]="viewAsset"></app-cash-list-item>
-          <app-deposit-list-item *ngIf="viewAsset.asset.type === AssetType.Deposit" [viewAsset]="viewAsset"></app-deposit-list-item>
-        </ng-container>
-      </mat-nav-list>
-    </mat-card-content>
-  </mat-card>
+        <!-- Sort Criterion Menu -->
+        <button type="button" mat-button [matMenuTriggerFor]="sortMenu" class="sort-btn" matTooltip="Sort assets">
+          <mat-icon class="sort-icon">sort</mat-icon>
+          <span class="sort-label">Sort:</span>
+          <span class="sort-value">{{sortCriterion === 'value' ? 'Balance' : (sortCriterion === 'name' ? 'Name' :
+            'Account')}}</span>
+          <mat-icon class="dropdown-arrow">arrow_drop_down</mat-icon>
+        </button>
+
+        <mat-menu #sortMenu="matMenu" class="asset-sort-menu">
+          <button mat-menu-item (click)="setSort('value')">
+            <mat-icon color="primary" *ngIf="sortCriterion === 'value'" class="check-icon">check</mat-icon>
+            <mat-icon *ngIf="sortCriterion !== 'value'" class="check-icon empty-icon"></mat-icon>
+            <span [class.active-sort-item]="sortCriterion === 'value'">By Balance</span>
+          </button>
+          <button mat-menu-item (click)="setSort('name')">
+            <mat-icon color="primary" *ngIf="sortCriterion === 'name'" class="check-icon">check</mat-icon>
+            <mat-icon *ngIf="sortCriterion !== 'name'" class="check-icon empty-icon"></mat-icon>
+            <span [class.active-sort-item]="sortCriterion === 'name'">By Name</span>
+          </button>
+          <button mat-menu-item *ngIf="multiAccount" (click)="setSort('account')">
+            <mat-icon color="primary" *ngIf="sortCriterion === 'account'" class="check-icon">check</mat-icon>
+            <mat-icon *ngIf="sortCriterion !== 'account'" class="check-icon empty-icon"></mat-icon>
+            <span [class.active-sort-item]="sortCriterion === 'account'">By Account</span>
+          </button>
+        </mat-menu>
+
+        <!-- Toggle sort direction -->
+        <button type="button" mat-icon-button (click)="toggleSortDirection()" class="sort-dir-btn"
+          [matTooltip]="sortDirection === 'asc' ? 'Ascending (click for descending)' : 'Descending (click for ascending)'"
+          aria-label="Toggle sort direction">
+          <mat-icon>{{sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'}}</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty filtered state -->
+    <mat-card *ngIf="filteredAssets.length === 0" class="card empty-filter-state" fxLayout="column"
+      fxLayoutAlign="center center">
+      <mat-icon class="empty-icon">search_off</mat-icon>
+      <div class="empty-text">No assets match the selected currency filter.</div>
+      <button mat-button color="primary" (click)="selectCurrency('ALL')">Show all assets</button>
+    </mat-card>
+
+    <!-- Responsive Multi-Column Asset Cards Grid -->
+    <div class="asset-cards-grid" *ngIf="filteredAssets.length > 0">
+      <mat-card class="card asset-card" *ngFor="let viewAsset of filteredAssets; trackBy: assetIdTrackFn"
+        (click)="view(viewAsset)">
+
+        <!-- Card Header: Icon Badge, Title, Account, and Actions Menu -->
+        <div class="card-header">
+          <div class="card-icon-badge" [ngClass]="getAssetBadgeClass(viewAsset)">
+            <mat-icon [svgIcon]="ASSET_ICONS[viewAsset?.asset?.type].svgIcon">{{
+              ASSET_ICONS[viewAsset?.asset?.type].icon }}</mat-icon>
+          </div>
+
+          <div class="card-title-group">
+            <div class="asset-name" [title]="viewAsset.asset.description || viewAsset.asset.currency">
+              {{viewAsset.asset.description || viewAsset.asset.currency}}
+            </div>
+            <div class="account-name" *ngIf="multiAccount && viewAsset.account?.description">
+              {{viewAsset.account.description}}
+            </div>
+          </div>
+
+          <!-- 3-Dots Action Button & Menu -->
+          <button type="button" mat-icon-button [matMenuTriggerFor]="actionMenu" (click)="onItemMenu($event)"
+            matTooltip="Actions" aria-label="Actions" class="action-menu-btn">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+
+          <!-- Context Menu for Cash & Debt -->
+          <mat-menu #actionMenu="matMenu">
+            <ng-container *ngIf="viewAsset.asset.type === AssetType.Cash || viewAsset.asset.type === AssetType.Debt">
+              <button mat-menu-item (click)="creditAccount(viewAsset)">
+                <mat-icon>add_circle_outline</mat-icon>
+                <span>Credit</span>
+              </button>
+              <button mat-menu-item (click)="debitAccount(viewAsset)">
+                <mat-icon>remove_circle_outline</mat-icon>
+                <span>Debit</span>
+              </button>
+              <button mat-menu-item (click)="exchange(viewAsset)">
+                <mat-icon>currency_exchange</mat-icon>
+                <span>Exchange</span>
+              </button>
+              <button mat-menu-item (click)="transfer(viewAsset)">
+                <mat-icon>sync_alt</mat-icon>
+                <span>Transfer</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="edit(viewAsset)">
+                <mat-icon>edit</mat-icon>
+                <span>Edit</span>
+              </button>
+              <button mat-menu-item (click)="delete(viewAsset)">
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </ng-container>
+
+            <!-- Context Menu for Deposit -->
+            <ng-container *ngIf="viewAsset.asset.type === AssetType.Deposit">
+              <button mat-menu-item (click)="liquidate(viewAsset)">
+                <mat-icon>savings</mat-icon>
+                <span>Liquidate</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="edit(viewAsset)">
+                <mat-icon>edit</mat-icon>
+                <span>Edit</span>
+              </button>
+              <button mat-menu-item (click)="delete(viewAsset)">
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </ng-container>
+          </mat-menu>
+        </div>
+
+        <!-- Card Body: Large Prominent Balance & Details -->
+        <div class="card-body">
+          <div class="balance-row">
+            <span class="balance-value" [ngClass]="{'negative': viewAsset.currentValue < 0}">
+              {{viewAsset.currentValue | currency:viewAsset.asset.currency}}
+            </span>
+            <span class="currency-tag">{{viewAsset.asset.currency}}</span>
+          </div>
+
+          <!-- Deposit Meta (Interest Rate & Maturity Date) -->
+          <div class="deposit-details" *ngIf="viewAsset.asset.type === AssetType.Deposit">
+            <div class="deposit-detail-item">
+              <mat-icon class="detail-icon">trending_up</mat-icon>
+              <span class="detail-label">Interest:</span>
+              <span class="detail-value">{{asDeposit(viewAsset.asset).interestRate | percent:'1.0-2'}}</span>
+            </div>
+            <div class="deposit-detail-item" *ngIf="asDeposit(viewAsset.asset).maturityDate">
+              <mat-icon class="detail-icon">event</mat-icon>
+              <span class="detail-label">Maturity:</span>
+              <span class="detail-value">{{asDeposit(viewAsset.asset).maturityDate | formatDate}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="card-footer">
+          <span class="account-footer-label" *ngIf="!multiAccount && viewAsset.account?.description">
+            <mat-icon class="footer-icon">account_balance</mat-icon>
+            <span>{{viewAsset.account.description}}</span>
+          </span>
+
+          <span class="view-details-link">
+            <span>Details</span>
+            <mat-icon class="chevron-icon">chevron_right</mat-icon>
+          </span>
+        </div>
+
+      </mat-card>
+    </div>
+  </div>
+
+  <ng-template #noAssetsTemplate>
+    <mat-card class="card empty-state-card" fxLayout="column" fxLayoutAlign="center center">
+      <mat-icon class="empty-icon">account_balance_wallet</mat-icon>
+      <div class="empty-text">No assets found</div>
+    </mat-card>
+  </ng-template>
 </div>

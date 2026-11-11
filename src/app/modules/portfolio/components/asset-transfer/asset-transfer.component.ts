@@ -1,7 +1,7 @@
-import { Component, OnInit, Inject, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { UntypedFormGroup, UntypedFormControl, ValidationErrors, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Subscription, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
@@ -87,10 +87,13 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
   readonly AssetType = AssetType;
 
   @ViewChild('recurringTransaction') private readonly recurringTransaction: RecurringTransactionInputComponent;
-  private readonly componentDestroyed$ = new Subject();
+  private readonly componentDestroyed$ = new Subject<void>();
 
-  constructor(public dialogRef: MatDialogRef<AssetTransferComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: AssetTransferData) { }
+  constructor(
+    public dialogRef: MatDialogRef<AssetTransferComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: AssetTransferData,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.todayDate = new Date();
@@ -121,8 +124,16 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
     this.fee = new UntypedFormControl(0, [Validators.min(0)]);
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
-      .subscribe(() => this.amount.updateValueAndValidity());
+      .subscribe(() => {
+        this.amount.updateValueAndValidity();
+        this.cdr.markForCheck();
+      });
     this.amount = new UntypedFormControl(this.fullAssetTransfer ? this.maxAmount : 0, [amountValidator(this.maxAmount, this.fee)]);
+    this.amount.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => {
+        this.cdr.markForCheck();
+      });
 
     this.assetForm = new UntypedFormGroup({
       amount: this.amount,
@@ -138,6 +149,44 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
       // non-cash assets can't be transferred to same account
       this.data.accounts = this.data.accounts.filter((account) => account.id !== this.data.sourceAccount.id);
     }
+
+    this.assetForm.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => {
+        this.cdr.markForCheck();
+      });
+  }
+
+  /**
+   * Title displayed in dialog header
+   */
+  get dialogTitle(): string {
+    return `Transfer from ${this.data.sourceAsset?.description || ''}`;
+  }
+
+  /**
+   * Gross transaction / transfer amount
+   */
+  get grossAmount(): number {
+    return Number(this.amount?.value) || 0;
+  }
+
+  /**
+   * Total transfer value factoring in fee
+   */
+  get totalTransferValue(): number {
+    const feeVal = Number(this.fee?.value) || 0;
+    return this.debtFlag ? this.grossAmount : (this.grossAmount + feeVal);
+  }
+
+  /**
+   * Icon for position info pill
+   */
+  get pillIcon(): string {
+    if (this.cashOrDebtTransfer) {
+      return this.data.sourceAsset?.isDebt() ? 'credit_card' : 'account_balance_wallet';
+    }
+    return 'inventory_2';
   }
 
   ngOnDestroy(): void {
@@ -157,7 +206,7 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
         destinationAsset: this.destinationAsset.value,
         transactionDate: getDateAsISOString(this.transactionDate.value),
         description: this.description.value,
-        fee: this.fee.value,
+        fee: this.fee?.value || 0,
         recurringTransaction: this.enableRecurringTransaction.value ? this.recurringTransaction.getRecurringTransactionDetails() : null,
       };
       this.dialogRef.close(data);
@@ -171,12 +220,19 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
    * Debt can only be transferred to another debt, while cash can be transferred to either debt or cash.
    */
   private onDestinationAccountChanged() {
-    this.destinationCashAssets = (<PortfolioAccount>this.destinationAccount.value).assets.filter(
+    if (!this.destinationAccount.value) {
+      this.destinationCashAssets = [];
+      this.destinationAsset.setValue(null);
+      this.cdr.markForCheck();
+      return;
+    }
+    this.destinationCashAssets = (<PortfolioAccount>this.destinationAccount.value).assets?.filter(
       asset => asset.isCashOrDebt() &&
         ((this.data.sourceAsset.amount > 0) || asset.isDebt()) &&
         asset.id !== this.data.sourceAsset.id &&
-        asset.currency === this.data.sourceAsset.currency);
+        asset.currency === this.data.sourceAsset.currency) || [];
     this.destinationCashAssets.sort((a, b) => a.description < b.description ? -1 : 1);
-    this.destinationAsset.setValue(null);
+    this.destinationAsset.setValue(this.destinationCashAssets.length > 0 ? this.destinationCashAssets[0] : null);
+    this.cdr.markForCheck();
   }
 }

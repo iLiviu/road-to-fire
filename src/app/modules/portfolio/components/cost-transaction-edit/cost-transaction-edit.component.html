@@ -1,53 +1,101 @@
 <form [formGroup]="assetForm">
-  <app-edit-dialog [form]="assetForm"
-    title="Add cost for {{data.asset.description}}"
-    (close)="dialogClosed($event)">
-    <div class="text-content" fxLayout="column">
-      <mat-form-field>
-        <input matInput type="number" placeholder="Amount" required formControlName="amount">
-        <span matPrefix>{{data.asset.currency | currencySymbol}}</span>
-        <mat-error *ngIf="amount.errors?.invalidRange">Amount must be between 0 and
-          {{cashAsset.value.amount - fee.value | number}}
-        </mat-error>
-        <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
-      </mat-form-field>
+  <app-edit-dialog [form]="assetForm" [title]="dialogTitle" (close)="dialogClosed($event)" #editDialog>
+    <div [ngClass]="{ 'handset': editDialog.isHandset }" class="trade-dialog-container">
+      <div class="single-tab-content">
+        <div [formGroup]="assetForm" class="form-layout">
 
-      <mat-form-field>
-        <mat-select placeholder="Cash account" formControlName="cashAsset" required (selectionChange)="cashAssetChanged()">
-          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
-            {{asset.description}} ({{asset.amount | currency:asset.currency}})
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+          <!-- Section: Cost Details -->
+          <section class="form-section">
 
-      <mat-form-field>
-        <input matInput type="number" placeholder="Fee" formControlName="fee">
-        <span matPrefix>{{data.asset.currency | currencySymbol}}</span>
-        <mat-error *ngIf="fee.errors?.min">Fee must be positive</mat-error>
-      </mat-form-field>
+            <!-- Amount & Fee in same row on desktop -->
+            <div class="form-row">
+              <mat-form-field class="form-col">
+                <input matInput type="number" placeholder="Amount" required formControlName="amount">
+                <span matPrefix>{{ data.asset.currency | currencySymbol }}&nbsp;</span>
+                <mat-error *ngIf="amount.errors?.invalidRange">Amount must be between 0 and
+                  {{ (cashAsset.value ? cashAsset.value.amount - fee.value : 0) | number }}
+                </mat-error>
+                <mat-error *ngIf="amount.errors?.min">Amount must be positive</mat-error>
+              </mat-form-field>
 
+              <mat-form-field class="form-col">
+                <input matInput type="number" placeholder="Fee" formControlName="fee">
+                <span matPrefix>{{ data.asset.currency | currencySymbol }}&nbsp;</span>
+                <mat-error *ngIf="fee.errors?.min">Fee must be positive</mat-error>
+              </mat-form-field>
+            </div>
 
-      <mat-form-field>
-        <input matInput type="text" placeholder="Transaction Description" formControlName="description">
-      </mat-form-field>
+            <!-- Cash Account & Transaction Date in same row on desktop -->
+            <div class="form-row">
+              <mat-form-field class="form-col">
+                <mat-select placeholder="Cash account" formControlName="cashAsset" required
+                  (selectionChange)="cashAssetChanged()">
+                  <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                    {{ asset.description }} ({{ asset.amount | currency: asset.currency }})
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
 
-      <mat-form-field>
-        <input matInput [matDatepicker]="datepicker" placeholder="Transaction Date" formControlName="transactionDate"
-          required (dateInput)="onTxDateChanged()">
-        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
-        <mat-datepicker #datepicker></mat-datepicker>
-        <mat-error>Transaction date can't be in the future</mat-error>
-        <mat-hint *ngIf="isScheduledTx">Transaction will be scheduled</mat-hint>
-      </mat-form-field>
+              <mat-form-field class="form-col">
+                <input matInput [matDatepicker]="datepicker" placeholder="Transaction Date"
+                  formControlName="transactionDate" required (dateInput)="onTxDateChanged()"
+                  (dateChange)="onTxDateChanged()">
+                <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+                <mat-datepicker #datepicker></mat-datepicker>
+                <mat-error>Transaction date can't be in the future</mat-error>
+                <mat-hint *ngIf="isScheduledTx">Transaction will be scheduled</mat-hint>
+              </mat-form-field>
+            </div>
 
-      <mat-checkbox formControlName="updateCashAssetBalance" (change)="updateCashAssetBalanceToggled()">
-        Automatically debit the cash account with {{(amount.value + fee.value ) | currency: data.asset.currency}}
-      </mat-checkbox>
+            <!-- Description in full row -->
+            <div class="form-row">
+              <mat-form-field class="form-col-full">
+                <input matInput type="text" placeholder="Transaction Description" formControlName="description">
+              </mat-form-field>
+            </div>
+          </section>
 
-      <mat-checkbox formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
-      <mat-card [hidden]="!enableRecurringTransaction.value">
-        <app-recurring-transaction-input [form]="assetForm" #recurringTransaction></app-recurring-transaction-input>
-      </mat-card>
+          <!-- Section: Recurring Transaction -->
+          <section class="form-section recurring-section">
+            <mat-checkbox formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
+            <mat-card [hidden]="!enableRecurringTransaction.value" class="recurring-card">
+              <app-recurring-transaction-input [form]="assetForm"
+                #recurringTransaction></app-recurring-transaction-input>
+            </mat-card>
+          </section>
+
+          <!-- Section: Summary Card -->
+          <section class="summary-section">
+            <div class="order-summary-card">
+              <div class="summary-row">
+                <div class="summary-breakdown">
+                  <span class="summary-item">
+                    <span class="summary-label">Cost:</span>
+                    <span class="summary-value">{{ grossAmount | currency: data.asset.currency }}</span>
+                  </span>
+                  <span class="summary-item" *ngIf="fee.value">
+                    <span class="summary-label">Fee:</span>
+                    <span class="summary-value">{{ (fee.value || 0) | currency: data.asset.currency }}</span>
+                  </span>
+                </div>
+
+                <div class="summary-total">
+                  <span class="summary-total-label">Total Cost:</span>
+                  <span class="summary-total-value">{{ totalCostValue | currency: data.asset.currency }}</span>
+                </div>
+              </div>
+
+              <div class="settlement-toggle" *ngIf="cashAsset.value">
+                <mat-checkbox formControlName="updateCashAssetBalance" (change)="updateCashAssetBalanceToggled()">
+                  Auto-debit {{ cashAsset.value.description }} with <strong>{{ totalCostValue | currency:
+                    data.asset.currency }}</strong>
+                </mat-checkbox>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
     </div>
   </app-edit-dialog>
 </form>

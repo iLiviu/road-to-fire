@@ -59,6 +59,34 @@ export const ASSET_TYPE_LABELS: NumKeyDictionary<string> = {
   [AssetType.Forex]: 'Forex',
 };
 
+export interface AppIconData {
+  icon?: string;
+  svgIcon?: string;
+};
+
+export const ASSET_ICONS: NumKeyDictionary<AppIconData> = {
+  [AssetType.Cash]: { icon: 'account_balance_wallet' },
+  [AssetType.Deposit]: { icon: 'savings' },
+  [AssetType.CashLike]: { icon: 'account_balance_wallet' },
+  [AssetType.Bond]: { svgIcon: 'certificate' },
+  [AssetType.Stock]: { icon: 'candlestick_chart' },
+  [AssetType.Commodity]: { svgIcon: 'commodity' },
+  [AssetType.Cryptocurrency]: { icon: 'currency_bitcoin' },
+  [AssetType.RealEstate]: { icon: 'home' },
+  [AssetType.StockETF]: { icon: 'candlestick_chart' },
+  [AssetType.BondETF]: { svgIcon: 'certificate' },
+  [AssetType.MoneyMarketETF]: { icon: 'account_balance_wallet' },
+  [AssetType.CommodityETF]: { svgIcon: 'commodity' },
+  [AssetType.StockMutualFund]: { icon: 'candlestick_chart' },
+  [AssetType.BondMutualFund]: { svgIcon: 'certificate' },
+  [AssetType.CommodityMutualFund]: { svgIcon: 'commodity' },
+  [AssetType.MoneyMarketMutualFund]: { icon: 'account_balance_wallet' },
+  [AssetType.Debt]: { icon: 'credit_card' },
+  [AssetType.P2P]: { icon: 'handshake' },
+  [AssetType.Forex]: { icon: 'local_atm' },
+};
+
+
 export interface AssetData {
   id?: number;
   amount: number;

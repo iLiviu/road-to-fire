@@ -2289,7 +2289,7 @@ export class AssetManagementService {
       asset.description = response.description;
     }
     asset.region = response.region || AssetRegion.Unspecified;
-    asset.labels = response.labels;
+    asset.labels = response.labels ? response.labels : [];
     if ((asset.type === AssetType.Bond || asset.type === AssetType.P2P)) {
       const bond = <BondAsset>asset;
       if (response.maturityDate) {

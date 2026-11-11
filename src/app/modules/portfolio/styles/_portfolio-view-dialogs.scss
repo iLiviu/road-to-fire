@@ -1,0 +1,246 @@
+/* ==========================================================================
+   Portfolio View & Details Dialogs (Shared Styles)
+   ========================================================================== */
+
+h2[mat-dialog-title].dialog-title {
+  margin: 0 0 12px 0;
+  padding: 0;
+
+  .title-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+
+    .title-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+      flex: 0 1 auto;
+
+      .asset-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+        line-height: 22px;
+        flex-shrink: 0;
+        margin-right: 2px;
+      }
+
+      .title-text {
+        flex: 0 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 1.2rem;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+
+      .copy-button {
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        flex-shrink: 0;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          line-height: 18px;
+        }
+      }
+    }
+
+    .type-badge {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--rf-surface-muted);
+      color: var(--rf-text-secondary);
+      flex-shrink: 0;
+
+      &.credit {
+        background: var(--rf-positive-bg);
+        color: var(--rf-positive);
+      }
+
+      &.debit {
+        background: var(--rf-negative-bg);
+        color: var(--rf-negative);
+      }
+
+      &.exchange,
+      &.transfer {
+        background: var(--rf-info-bg);
+        color: var(--rf-info);
+      }
+
+      &.deposit {
+        background: var(--rf-badge-deposit-bg);
+        color: var(--rf-badge-deposit-text);
+      }
+
+      &.stock {
+        background: var(--rf-badge-stock-bg);
+        color: var(--rf-badge-stock-text);
+      }
+
+      &.bond {
+        background: var(--rf-badge-bond-bg);
+        color: var(--rf-badge-bond-text);
+      }
+
+      &.crypto {
+        background: var(--rf-badge-crypto-bg);
+        color: var(--rf-badge-crypto-text);
+      }
+
+      &.real-estate {
+        background: var(--rf-badge-re-bg);
+        color: var(--rf-badge-re-text);
+      }
+
+      &.commodity {
+        background: var(--rf-badge-commodity-bg);
+        color: var(--rf-badge-commodity-text);
+      }
+
+      &.p2p {
+        background: var(--rf-badge-p2p-bg);
+        color: var(--rf-badge-p2p-text);
+      }
+    }
+  }
+}
+
+mat-dialog-content {
+  min-width: 200px;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.details-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 6px 0;
+  gap: 16px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+
+  .row-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+    color: var(--rf-text-secondary);
+    font-size: 14px;
+    line-height: 1.4;
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    .sub-text {
+      font-size: 12px;
+      font-weight: 400;
+      opacity: 0.8;
+      display: inline-block;
+    }
+  }
+
+  .row-value {
+    flex: 0 1 auto;
+    max-width: 65%;
+    min-width: 0;
+    text-align: right;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--rf-text-primary);
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    &.font-bold {
+      font-weight: 600;
+    }
+
+    .sub-text {
+      font-size: 12px;
+      font-weight: 400;
+      opacity: 0.7;
+      margin-left: 4px;
+      display: inline-block;
+    }
+  }
+
+  &.labels-row {
+    align-items: flex-start;
+
+    .row-value {
+      max-width: 100%;
+
+      .mat-chip-list-wrapper {
+        justify-content: flex-end;
+        margin: 0 !important;
+      }
+    }
+
+    @media (max-width: 420px) {
+      flex-direction: column;
+      gap: 6px;
+
+      .row-value {
+        width: 100%;
+        max-width: 100%;
+        text-align: left;
+
+        .mat-chip-list-wrapper {
+          justify-content: flex-start;
+        }
+      }
+    }
+  }
+}
+
+/* Status badge for asset/deposit maturity */
+.status-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 4px;
+  vertical-align: middle;
+
+  &.active {
+    background: var(--rf-positive-bg);
+    color: var(--rf-positive);
+  }
+
+  &.matured {
+    background: var(--rf-negative-bg);
+    color: var(--rf-negative);
+  }
+}
+
+.label-chip {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  min-height: 24px !important;
+}
+
+.mat-chip-list-wrapper {
+  margin: 0 !important;
+  justify-content: flex-end;
+}

@@ -1,11 +1,12 @@
-import { Component, OnInit, Inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Inject, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { UntypedFormGroup, UntypedFormControl, Validators, ValidationErrors } from '@angular/forms';
-import { PortfolioService } from '../../services/portfolio.service';
+import { UntypedFormGroup, UntypedFormControl, Validators } from '@angular/forms';
 import { getDateAsISOString, FloatingMath, DateUtils } from 'src/app/shared/util';
 import { InterestTransaction } from '../../models/interest-transaction';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export interface InterestTxEditData {
   account: PortfolioAccount;
@@ -23,14 +24,13 @@ export interface InterestTxEditResponse {
 /**
  * Component to display a UI for editing data for an interest transaction
  */
-
 @Component({
   selector: 'app-interest-transaction-edit',
   templateUrl: './interest-transaction-edit.component.html',
   styleUrls: ['./interest-transaction-edit.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class InterestTransactionEditComponent implements OnInit {
+export class InterestTransactionEditComponent implements OnInit, OnDestroy {
 
   assetCurrency: string;
   assetForm: UntypedFormGroup;
@@ -48,16 +48,20 @@ export class InterestTransactionEditComponent implements OnInit {
   updateCashAssetBalance: UntypedFormControl;
   withholdTax: UntypedFormControl;
 
+  private readonly componentDestroyed$ = new Subject<void>();
 
-  constructor(public dialogRef: MatDialogRef<InterestTransactionEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: InterestTxEditData) { }
+  constructor(
+    public dialogRef: MatDialogRef<InterestTransactionEditComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: InterestTxEditData,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.tx = this.data.tx;
     this.account = this.data.account;
     let defaultCashAsset = null;
     if (this.tx.asset.id) {
-      defaultCashAsset = this.data.account.getAssetById(this.data.tx.asset.id);
+      defaultCashAsset = this.data.account.getAssetById(this.tx.asset.id);
     }
 
     this.cashAsset = new UntypedFormControl(defaultCashAsset);
@@ -90,7 +94,39 @@ export class InterestTransactionEditComponent implements OnInit {
       updateCashAssetBalance: this.updateCashAssetBalance,
     });
 
+    this.assetForm.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => {
+        this.cdr.markForCheck();
+      });
+
     this.loadData();
+    this.onTxDateChanged();
+  }
+
+  ngOnDestroy(): void {
+    this.componentDestroyed$.next();
+    this.componentDestroyed$.unsubscribe();
+  }
+
+  get dialogTitle(): string {
+    return `Interest from ${this.asset?.description || this.tx?.payerAsset?.description || ''}`;
+  }
+
+  get grossAmount(): number {
+    return Number(this.amount?.value) || 0;
+  }
+
+  get taxAmount(): number {
+    if (this.withholdTax?.value && this.taxRate?.value) {
+      return FloatingMath.fixRoundingError(this.grossAmount * (Number(this.taxRate.value) / 100));
+    }
+    return 0;
+  }
+
+  get netAmount(): number {
+    const feeVal = Number(this.fee?.value) || 0;
+    return FloatingMath.fixRoundingError(this.grossAmount - this.taxAmount - feeVal);
   }
 
   /**
@@ -103,6 +139,7 @@ export class InterestTransactionEditComponent implements OnInit {
     } else {
       this.updateCashAssetBalance.enable();
     }
+    this.cdr.markForCheck();
   }
 
   /**
@@ -141,7 +178,7 @@ export class InterestTransactionEditComponent implements OnInit {
 
   /**
    * Load account and asset data
-  */
+   */
   private loadData() {
     this.asset = this.account.getAssetById(this.tx.payerAsset.id);
     this.cashAssets = this.account.assets

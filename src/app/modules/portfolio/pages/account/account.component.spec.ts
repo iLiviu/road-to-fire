@@ -15,6 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { LoggerService } from 'src/app/core/services/logger.service';
@@ -70,7 +71,7 @@ describe('AccountComponent', () => {
         ScrollingModule,
         MatSelectModule,
         MatFormFieldModule,
-
+        MatTooltipModule,
       ],
       declarations: [
         AccountComponent,

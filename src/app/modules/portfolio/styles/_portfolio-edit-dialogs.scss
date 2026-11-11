@@ -1,0 +1,317 @@
+/* ==========================================================================
+   Portfolio Edit & Transaction Dialogs (Shared Styles)
+   ========================================================================== */
+
+.trade-dialog-container {
+  width: 580px;
+  box-sizing: border-box;
+
+  &.handset {
+    min-width: 100%;
+    width: 100%;
+    padding: 0px 4px;
+
+    &.has-tabs {
+      height: 100%;
+    }
+  }
+
+  /* Multi-tab container: fixed height below mat-dialog-content max-height so outer dialog never scrolls */
+  &.has-tabs {
+    height: calc(65vh - 20px);
+    display: flex;
+    flex-direction: column;
+
+    .trade-tab-group {
+      height: 100%;
+      flex: 1 1 100%;
+    }
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  .mat-form-field-wrapper {
+    padding-bottom: 0.9em;
+  }
+}
+
+/* Single-tab content: sits naturally in mat-dialog-content */
+.single-tab-content {
+  box-sizing: border-box;
+  padding: 4px 0;
+}
+
+.tab-main-pane {
+  box-sizing: border-box;
+  padding: 6px 4px;
+}
+
+/* Payment tabs (AssetTradeComponent) */
+.payment-tab-content {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tab-settings-panel {
+  flex: 0 0 auto;
+  padding: 6px 4px 0 4px;
+}
+
+.payment-toolbar {
+  flex: 0 0 auto;
+  background: transparent;
+  min-height: 44px;
+  height: 44px;
+  border-bottom: 1px solid var(--rf-border);
+}
+
+.payment-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Form Layout & Sections */
+.form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 2px 0 0 0;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  margin-bottom: 1px;
+  color: var(--rf-text-secondary);
+}
+
+.section-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  opacity: 0.8;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+.form-col {
+  flex: 1 1 50%;
+  min-width: 0;
+  width: 100%;
+}
+
+.form-col-3 {
+  flex: 1 1 30%;
+  min-width: 0;
+  width: 100%;
+}
+
+.form-col-full {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+/* Position Info Pill */
+.position-info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  background: var(--rf-surface-subtle);
+  border: 1px solid var(--rf-border);
+  font-size: 12px;
+  align-self: flex-start;
+  margin-bottom: 2px;
+
+  .pill-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    opacity: 0.7;
+  }
+}
+
+/* Compact Order Summary Card */
+.order-summary-card {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--rf-surface-subtle);
+  border: 1px solid var(--rf-border);
+  margin-top: 2px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.summary-breakdown {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.summary-item {
+  font-size: 12px;
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.summary-label {
+  opacity: 0.7;
+}
+
+.summary-value {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-total {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.summary-total-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.summary-total-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rf-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.settlement-toggle {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--rf-border-strong);
+  font-size: 12px;
+}
+
+/* Options & Tax Controls */
+.tax-row {
+  min-height: 48px;
+  align-items: center;
+}
+
+.tax-col {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+}
+
+.compact-tax-field {
+  max-width: 100px;
+}
+
+.options-row {
+  align-items: center;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  min-height: 60px;
+}
+
+.option-group {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.option-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.options-group {
+  display: flex;
+  gap: 20px;
+  margin: 4px 0 2px 0;
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.renewal-toggles {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Recurring Transaction Input Section */
+.recurring-section {
+  margin-top: 2px;
+}
+
+.recurring-card {
+  margin-top: 6px;
+  padding: 8px 12px 4px 12px;
+  border-radius: 6px;
+  background: var(--rf-surface-subtle);
+  border: 1px solid var(--rf-border);
+  box-shadow: none !important;
+}
+
+.recurring-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  .mat-form-field-wrapper {
+    padding-bottom: 0.9em;
+  }
+}
+
+.auto-approve-row {
+  margin-top: 2px;
+  font-size: 13px;
+}

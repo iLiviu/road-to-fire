@@ -1,0 +1,274 @@
+:host {
+  display: block;
+  width: 100%;
+
+  .card {
+    margin: 0;
+  }
+}
+
+.labels-settings-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   CATEGORIES ACCORDION
+   ========================================================================== */
+
+.categories-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+
+  .category-panel {
+    margin: 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 8px !important;
+    box-shadow: var(--rf-shadow-sm);
+    border: 1px solid var(--rf-border);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      box-shadow: var(--rf-shadow-hover);
+      border-color: var(--rf-border-hover);
+    }
+
+    ::ng-deep .mat-expansion-panel-header {
+      border-radius: 8px;
+      padding: 0 16px 0 20px;
+      height: 56px;
+
+      &.mat-expanded {
+        border-bottom: 1px solid var(--rf-border);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+    }
+  }
+}
+
+.category-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+  padding-right: 8px;
+
+  .category-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+
+    .category-name {
+      font-size: 15px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .category-count-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: var(--rf-surface-muted);
+      color: var(--rf-text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  }
+
+  .category-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+
+    .action-btn {
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.65;
+      transition: opacity 0.15s ease;
+
+      ::ng-deep .mat-button-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        line-height: 1;
+      }
+
+      &:hover {
+        opacity: 1;
+      }
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   CATEGORY BODY & LABEL CHIPS
+   ========================================================================== */
+
+.category-body {
+  padding: 16px 4px 12px 4px;
+}
+
+.labels-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.label-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 4px 0 10px;
+  border-radius: 16px;
+  background: var(--rf-primary-bg);
+  border: 1px solid var(--rf-primary-border);
+  color: var(--rf-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  gap: 6px;
+  box-sizing: border-box;
+
+  &:hover {
+    background: var(--rf-primary-bg);
+    border-color: var(--rf-primary);
+  }
+
+  .chip-lead-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+    color: var(--rf-primary);
+    opacity: 0.85;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .chip-label-name {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .chip-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 2px;
+
+    .chip-btn {
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      padding: 0;
+      margin: 0;
+      border: none;
+      background: transparent;
+      border-radius: 50%;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.6;
+      color: inherit;
+      transition: all 0.15s ease;
+      vertical-align: middle;
+
+      &:hover {
+        opacity: 1;
+        background: var(--rf-surface-hover);
+      }
+
+      &.delete-chip-btn:hover {
+        color: var(--rf-negative);
+        background: var(--rf-negative-bg);
+      }
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        line-height: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+.add-label-chip-btn {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  background: transparent;
+  border: 1px dashed var(--rf-primary-border);
+  color: var(--rf-primary);
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  box-sizing: border-box;
+
+  &:hover {
+    background: var(--rf-primary-bg);
+    border-color: var(--rf-primary);
+    border-style: solid;
+  }
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.empty-category-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.65;
+  font-style: italic;
+  padding: 4px 2px;
+}

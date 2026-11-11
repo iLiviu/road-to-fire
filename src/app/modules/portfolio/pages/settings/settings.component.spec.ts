@@ -11,6 +11,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -60,6 +62,8 @@ describe('SettingsComponent', () => {
         MatDialogModule,
         MatTabsModule,
         MatCheckboxModule,
+        MatSlideToggleModule,
+        MatTooltipModule,
       ],
       declarations: [
         SettingsComponent,

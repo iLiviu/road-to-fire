@@ -1,10 +1,12 @@
-import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, Inject, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { UntypedFormGroup, UntypedFormControl, Validators } from '@angular/forms';
 import { getDateAsISOString, FloatingMath, DateUtils } from 'src/app/shared/util';
 import { BondAsset } from '../../models/bond-asset';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export interface PrincipalTxEditData {
   account: PortfolioAccount;
@@ -25,14 +27,13 @@ export interface PrincipalTxEditResponse {
 /**
  * Component to display a UI for editing data for a bond principal payment transaction
  */
-
 @Component({
   selector: 'app-principal-transaction-edit',
   templateUrl: './principal-transaction-edit.component.html',
   styleUrls: ['./principal-transaction-edit.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PrincipalTransactionEditComponent implements OnInit {
+export class PrincipalTransactionEditComponent implements OnInit, OnDestroy {
 
   assetCurrency: string;
   assetForm: UntypedFormGroup;
@@ -46,9 +47,13 @@ export class PrincipalTransactionEditComponent implements OnInit {
   todayDate: Date;
   updateCashAssetBalance: UntypedFormControl;
 
+  private readonly componentDestroyed$ = new Subject<void>();
 
-  constructor(public dialogRef: MatDialogRef<PrincipalTransactionEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: PrincipalTxEditData) { }
+  constructor(
+    public dialogRef: MatDialogRef<PrincipalTransactionEditComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: PrincipalTxEditData,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.account = this.data.account;
@@ -72,7 +77,40 @@ export class PrincipalTransactionEditComponent implements OnInit {
       updateCashAssetBalance: this.updateCashAssetBalance,
     });
 
+    this.assetForm.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => {
+        this.cdr.markForCheck();
+      });
+
     this.loadData();
+    this.onTxDateChanged();
+  }
+
+  ngOnDestroy(): void {
+    this.componentDestroyed$.next();
+    this.componentDestroyed$.unsubscribe();
+  }
+
+  get dialogTitle(): string {
+    return `Principal payment from ${this.data.asset?.description || ''}`;
+  }
+
+  get paymentPerUnit(): number {
+    return Number(this.principalPayment?.value) || 0;
+  }
+
+  get unitsCount(): number {
+    return this.data.asset?.amount || 1;
+  }
+
+  get grossTotalPayment(): number {
+    return FloatingMath.fixRoundingError(this.paymentPerUnit * this.unitsCount);
+  }
+
+  get netAmount(): number {
+    const feeVal = Number(this.fee?.value) || 0;
+    return FloatingMath.fixRoundingError(this.grossTotalPayment - feeVal);
   }
 
   /**
@@ -85,6 +123,7 @@ export class PrincipalTransactionEditComponent implements OnInit {
     } else {
       this.updateCashAssetBalance.enable();
     }
+    this.cdr.markForCheck();
   }
 
   /**
@@ -108,7 +147,7 @@ export class PrincipalTransactionEditComponent implements OnInit {
 
   /**
    * Load account and asset data
-  */
+   */
   private loadData() {
     this.cashAssets = this.account.assets
       .filter(asset => asset.type === AssetType.Cash && (asset.currency === this.data.asset.currency));

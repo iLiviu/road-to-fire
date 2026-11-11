@@ -6,6 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 import { Dictionary } from 'src/app/shared/models/dictionary';
 import { DashboardGridTiles, LABEL_CATEGORY_TILE_PREFIX } from '../../models/dashboard-grid-tiles';
 import { PortfolioService } from '../../services/portfolio.service';
+import { ASSET_ICONS, AssetType } from '../../models/asset';
 
 export interface TileItem {
   id: string | number;
@@ -124,37 +125,47 @@ export class DashboardGridTileEditorComponent implements OnInit, OnDestroy {
           {
             id: DashboardGridTiles.StocksAllocation,
             label: 'Top Stock Holdings',
-            icon: 'candlestick_chart',
+            icon: ASSET_ICONS[AssetType.Stock].icon,
+            svgIcon: ASSET_ICONS[AssetType.Stock].svgIcon,
           },
           {
             id: DashboardGridTiles.BondsAllocation,
             label: 'Top Bond Holdings',
-            svgIcon: 'certificate',
+            icon: ASSET_ICONS[AssetType.Bond].icon,
+            svgIcon: ASSET_ICONS[AssetType.Bond].svgIcon,
           },
           {
             id: DashboardGridTiles.CryptoAllocation,
             label: 'Cryptocurrency Allocation',
-            icon: 'currency_bitcoin',
+            icon: ASSET_ICONS[AssetType.Cryptocurrency].icon,
+            svgIcon: ASSET_ICONS[AssetType.Cryptocurrency].svgIcon,
           },
           {
             id: DashboardGridTiles.CommodityAllocation,
             label: 'Commodity Allocation',
-            svgIcon: 'commodity',
+            icon: ASSET_ICONS[AssetType.Commodity].icon,
+            svgIcon: ASSET_ICONS[AssetType.Commodity].svgIcon,
           },
           {
             id: DashboardGridTiles.P2PAllocation,
             label: 'Top P2P Holdings',
-            icon: 'handshake',
+            icon: ASSET_ICONS[AssetType.P2P].icon,
+            svgIcon: ASSET_ICONS[AssetType.P2P].svgIcon,
+
           },
           {
             id: DashboardGridTiles.CashAllocation,
             label: 'Cash Allocation',
-            icon: 'payments',
+            icon: ASSET_ICONS[AssetType.Cash].icon,
+            svgIcon: ASSET_ICONS[AssetType.Cash].svgIcon,
+
           },
           {
             id: DashboardGridTiles.DebtAllocation,
             label: 'Debt Allocation',
-            icon: 'credit_card',
+            icon: ASSET_ICONS[AssetType.Debt].icon,
+            svgIcon: ASSET_ICONS[AssetType.Debt].svgIcon,
+
           }
         ]
       },

@@ -1,3 +1,9 @@
+## Master
+
+### Features
+* New user interface
+
+
 ## 2.0.0
 
 ### Features

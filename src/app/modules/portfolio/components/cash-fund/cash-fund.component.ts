@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ViewChild, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormGroup, UntypedFormControl, Validators, ValidationErrors } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -30,18 +30,45 @@ export interface CashFundResponse {
 }
 
 /**
- * Validates that the user provided amount + fees do not exceed the cash asset's balance
- * @param cashAsset cash asset
- * @param feeCtrl fee form control
+ * Validates that the user provided amount + fees do not cause the asset's balance to fall below 0
+ * (or exceed 0 for debt assets)
+ * @param cashAsset cash asset (or a function returning it)
+ * @param feeCtrl fee form control (or a function returning the fee value)
+ * @param isCreditTx whether the transaction is credit (or a function returning it)
  */
-const cashAmountValidator = (cashAsset: Asset, feeCtrl: UntypedFormControl) => {
+export const cashAmountValidator = (
+  cashAsset: Asset | (() => Asset),
+  feeCtrl: UntypedFormControl | (() => number),
+  isCreditTx: boolean | (() => boolean)
+) => {
   return (amountCtrl: UntypedFormControl): ValidationErrors | null => {
-    const amount = amountCtrl.value;
-    return amount <= 0 || (amount > FloatingMath.fixRoundingError(Math.abs(cashAsset.amount - feeCtrl.value))) ?
-      { 'invalidRange': true } : null;
+    const asset = typeof cashAsset === 'function' ? cashAsset() : cashAsset;
+    if (!asset) {
+      return null;
+    }
+    const isCredit = typeof isCreditTx === 'function' ? isCreditTx() : isCreditTx;
+    const amount = Number(amountCtrl.value);
+    const fee = typeof feeCtrl === 'function' ? Number(feeCtrl()) || 0 : Number(feeCtrl?.value) || 0;
+    if (isNaN(amount) || amount <= 0) {
+      return null;
+    }
+
+    if (asset.isDebt()) {
+      if (isCredit) {
+        // Crediting debt pays off debt (debt balance is <= 0). Balance cannot exceed 0.
+        const newBalance = FloatingMath.fixRoundingError(asset.amount + amount - fee);
+        return newBalance > 0 ? { 'invalidRange': true } : null;
+      }
+      return null;
+    }
+
+    const newBalance = isCredit
+      ? FloatingMath.fixRoundingError(asset.amount + amount - fee)
+      : FloatingMath.fixRoundingError(asset.amount - amount - fee);
+
+    return newBalance < 0 ? { 'invalidRange': true } : null;
   };
 };
-
 
 /**
  * Component to display a UI for debiting/crediting a cash asset
@@ -65,35 +92,31 @@ export class CashFundComponent implements OnInit, OnDestroy {
   todayDate: Date;
   @ViewChild('recurringTransaction') private readonly recurringTransaction: RecurringTransactionInputComponent;
 
-  private componentDestroyed$ = new Subject();
+  private readonly componentDestroyed$ = new Subject<void>();
 
-  constructor(public dialogRef: MatDialogRef<CashFundComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: CashFundData) { }
+  constructor(
+    public dialogRef: MatDialogRef<CashFundComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: CashFundData,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.todayDate = new Date();
     this.todayDate.setHours(0, 0, 0, 0);
     this.isCreditTx = Transaction.isCredit(this.data.transactionType);
 
-    this.amount = new UntypedFormControl(0);
     this.fee = new UntypedFormControl(0, [Validators.min(0)]);
+    this.amount = new UntypedFormControl(0, [
+      Validators.required,
+      Validators.min(Number.EPSILON),
+      cashAmountValidator(() => this.data?.asset, this.fee, () => this.isCreditTx)
+    ]);
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
-      .subscribe(() => this.amount.updateValueAndValidity());
-
-    if (this.data.asset.isDebt()) {
-      if (this.isCreditTx) {
-        this.amount.setValidators([cashAmountValidator(this.data.asset, this.fee)]);
-      } else {
-        this.amount.setValidators([Validators.min(Number.EPSILON)]);
-      }
-    } else {
-      if (this.isCreditTx) {
-        this.amount.setValidators([Validators.min(Number.EPSILON)]);
-      } else {
-        this.amount.setValidators([cashAmountValidator(this.data.asset, this.fee)]);
-      }
-    }
+      .subscribe(() => {
+        this.amount.updateValueAndValidity();
+        this.cdr.markForCheck();
+      });
 
     const defDesc = (this.isCreditTx ? 'Credit ' : 'Debit ') + this.data.asset.description;
     this.description = new UntypedFormControl(defDesc);
@@ -107,10 +130,67 @@ export class CashFundComponent implements OnInit, OnDestroy {
       fee: this.fee,
       transactionDate: this.transactionDate,
     });
+
+    this.assetForm.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => {
+        this.cdr.markForCheck();
+      });
+
+    this.onTxDateChanged();
+  }
+
+  /**
+   * Title displayed in dialog header
+   */
+  get dialogTitle(): string {
+    return `${this.isCreditTx ? 'Credit' : 'Debit'} ${this.data.asset?.description || ''}`;
+  }
+
+  /**
+   * Gross transaction amount
+   */
+  get grossAmount(): number {
+    return Number(this.amount?.value) || 0;
+  }
+
+  /**
+   * Net total transaction value factoring in fees
+   */
+  get totalTransactionValue(): number {
+    const amountVal = this.grossAmount;
+    const feeVal = Number(this.fee?.value) || 0;
+    if (this.isCreditTx) {
+      return FloatingMath.fixRoundingError(amountVal - feeVal);
+    } else {
+      return FloatingMath.fixRoundingError(amountVal + feeVal);
+    }
+  }
+
+  /**
+   * Maximum allowed amount when debiting a cash asset or paying off debt
+   */
+  get maxAmount(): number {
+    const feeVal = Number(this.fee?.value) || 0;
+    const assetAmount = this.data?.asset?.amount || 0;
+    if (this.data?.asset?.isDebt()) {
+      return Math.max(0, FloatingMath.fixRoundingError(Math.abs(assetAmount) + feeVal));
+    }
+    return Math.max(0, FloatingMath.fixRoundingError(assetAmount - feeVal));
+  }
+
+  /**
+   * Minimum required amount when crediting a cash asset to avoid negative balance
+   */
+  get minCreditAmount(): number {
+    const feeVal = Number(this.fee?.value) || 0;
+    const assetAmount = this.data?.asset?.amount || 0;
+    return Math.max(0, FloatingMath.fixRoundingError(feeVal - assetAmount));
   }
 
   onTxDateChanged() {
     this.isScheduledTx = DateUtils.compareDates(new Date(this.transactionDate.value), this.todayDate) > 0;
+    this.cdr.markForCheck();
   }
 
   ngOnDestroy(): void {

@@ -10,9 +10,8 @@
 
 // Define a custom typography config that overrides the font-family as well as the
 // `headlines` and `body-1` levels.
-$custom-typography: mat.define-typography-config(
-  $font-family: 'Roboto Condensed, monospace',
-);
+$custom-typography: mat.define-typography-config($font-family: 'Roboto Condensed, monospace',
+  );
 
 // Include the base styles for Angular Material core. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
@@ -20,33 +19,27 @@ $custom-typography: mat.define-typography-config(
 @include mat.core($custom-typography);
 
 // Create a light theme
-$app-light-theme: mat.define-light-theme((
- color: (
-   primary: mat.define-palette(mat.$light-blue-palette, 500),
-   accent: mat.define-palette(mat.$pink-palette, 400),
- )
-));
+$app-light-theme: mat.define-light-theme((color: (primary: mat.define-palette(mat.$light-blue-palette, 500),
+        accent: mat.define-palette(mat.$pink-palette, 400),
+      )));
 // extra theme colors that we use in our app
 $extra-light-colors: (
   positive: green,
   warning: rgb(240, 170, 65),
   snackbar-text: white,
 );
-$app-light-theme: map.set($app-light-theme,extra,$extra-light-colors);
+$app-light-theme: map.set($app-light-theme, extra, $extra-light-colors);
 
 // Define a dark theme
-$app-dark-theme: mat.define-dark-theme((
- color: (
-   primary: mat.define-palette(mat.$light-blue-palette, 500),
-   accent: mat.define-palette(mat.$pink-palette, 400),
- )
-));
+$app-dark-theme: mat.define-dark-theme((color: (primary: mat.define-palette(mat.$light-blue-palette, 500),
+        accent: mat.define-palette(mat.$pink-palette, 400),
+      )));
 $extra-dark-colors: (
   positive: rgb(78, 192, 97),
   warning: rgb(240, 170, 65),
   snackbar-text: white,
 );
-$app-dark-theme: map.set($app-dark-theme,extra,$extra-dark-colors);
+$app-dark-theme: map.set($app-dark-theme, extra, $extra-dark-colors);
 
 // initialize light theme by default
 @include mat.all-component-themes($app-light-theme);
@@ -69,4 +62,170 @@ $app-dark-theme: map.set($app-dark-theme,extra,$extra-dark-colors);
   @include mat.all-component-colors($app-dark-theme);
 
   @include app-theme($app-dark-theme);
+}
+
+/* ==========================================================================
+   Centralized Theme Variables (Light & Dark Theme)
+   ========================================================================== */
+
+:root,
+body {
+  /* Brand / Primary */
+  --rf-primary: #0288d1;
+  --rf-primary-light: #29b6f6;
+  --rf-primary-contrast: #ffffff;
+  --rf-chip-count-active-bg: rgba(255, 255, 255, 0.25);
+  --rf-primary-hover: rgba(2, 136, 209, 0.08);
+  --rf-primary-bg: rgba(3, 169, 244, 0.12);
+  --rf-primary-border: rgba(2, 136, 209, 0.35);
+  --rf-accent: #f06292;
+
+  /* Semantic / Status Colors */
+  --rf-positive: #2e7d32;
+  --rf-positive-light: #4caf50;
+  --rf-positive-bg: rgba(76, 175, 80, 0.12);
+  --rf-positive-border: rgba(76, 175, 80, 0.35);
+
+  --rf-negative: #c62828;
+  --rf-negative-light: #ef5350;
+  --rf-negative-bg: rgba(244, 67, 54, 0.12);
+  --rf-negative-border: rgba(244, 67, 54, 0.35);
+
+  --rf-warning: #e65100;
+  --rf-warning-light: #ffb74d;
+  --rf-warning-bg: rgba(255, 152, 0, 0.12);
+  --rf-warning-border: rgba(255, 152, 0, 0.35);
+
+  --rf-info: #0288d1;
+  --rf-info-light: #81d4fa;
+  --rf-info-bg: rgba(3, 169, 244, 0.12);
+
+  --rf-purple: #7b1fa2;
+  --rf-purple-light: #ba68c8;
+  --rf-purple-bg: rgba(142, 36, 170, 0.12);
+
+  /* Asset Type Badges */
+  --rf-badge-stock-bg: rgba(30, 136, 229, 0.15);
+  --rf-badge-stock-text: #1976d2;
+  --rf-badge-bond-bg: rgba(92, 107, 192, 0.15);
+  --rf-badge-bond-text: #3949ab;
+  --rf-badge-crypto-bg: rgba(255, 152, 0, 0.15);
+  --rf-badge-crypto-text: #e65100;
+  --rf-badge-re-bg: rgba(76, 175, 80, 0.15);
+  --rf-badge-re-text: #2e7d32;
+  --rf-badge-commodity-bg: rgba(251, 140, 0, 0.15);
+  --rf-badge-commodity-text: #ef6c00;
+  --rf-badge-p2p-bg: rgba(142, 36, 170, 0.15);
+  --rf-badge-p2p-text: #7b1fa2;
+  --rf-badge-deposit-bg: rgba(33, 150, 243, 0.15);
+  --rf-badge-deposit-text: #1976d2;
+
+  /* Surfaces & Backgrounds */
+  --rf-surface: #ffffff;
+  --rf-surface-card: #ffffff;
+  --rf-surface-subtle: rgba(0, 0, 0, 0.03);
+  --rf-surface-muted: rgba(0, 0, 0, 0.06);
+  --rf-surface-hover: rgba(0, 0, 0, 0.04);
+  --rf-page-bg: #ededed;
+  --rf-page-wrapper-bg: #fafafa;
+  --rf-sort-bar-bg: #fafafa;
+
+  /* Borders & Dividers */
+  --rf-border: rgba(0, 0, 0, 0.08);
+  --rf-border-subtle: rgba(0, 0, 0, 0.06);
+  --rf-border-strong: rgba(0, 0, 0, 0.15);
+  --rf-border-hover: rgba(2, 136, 209, 0.35);
+
+  /* Typography / Text */
+  --rf-text-primary: rgba(0, 0, 0, 0.87);
+  --rf-text-secondary: rgba(0, 0, 0, 0.6);
+  --rf-text-muted: rgba(0, 0, 0, 0.45);
+  --rf-text-subtle: rgba(0, 0, 0, 0.25);
+
+  /* Shadows */
+  --rf-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --rf-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --rf-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --rf-primary-shadow: 0 2px 6px rgba(2, 136, 209, 0.3);
+}
+
+body.dark-theme,
+.dark-theme {
+  /* Brand / Primary */
+  --rf-primary: #29b6f6;
+  --rf-primary-light: #81d4fa;
+  --rf-primary-contrast: #121212;
+  --rf-chip-count-active-bg: rgba(0, 0, 0, 0.22);
+  --rf-primary-hover: rgba(41, 182, 246, 0.08);
+  --rf-primary-bg: rgba(3, 169, 244, 0.2);
+  --rf-primary-border: rgba(41, 182, 246, 0.35);
+  --rf-accent: #f48fb1;
+
+  /* Semantic / Status Colors */
+  --rf-positive: #81c784;
+  --rf-positive-light: #a5d6a7;
+  --rf-positive-bg: rgba(76, 175, 80, 0.2);
+  --rf-positive-border: rgba(76, 175, 80, 0.4);
+
+  --rf-negative: #e57373;
+  --rf-negative-light: #ef5350;
+  --rf-negative-bg: rgba(244, 67, 54, 0.2);
+  --rf-negative-border: rgba(244, 67, 54, 0.4);
+
+  --rf-warning: #ffb74d;
+  --rf-warning-light: #ffe082;
+  --rf-warning-bg: rgba(255, 152, 0, 0.2);
+  --rf-warning-border: rgba(255, 152, 0, 0.4);
+
+  --rf-info: #81d4fa;
+  --rf-info-light: #b3e5fc;
+  --rf-info-bg: rgba(3, 169, 244, 0.2);
+
+  --rf-purple: #ce93d8;
+  --rf-purple-light: #e1bee7;
+  --rf-purple-bg: rgba(156, 39, 176, 0.2);
+
+  /* Asset Type Badges */
+  --rf-badge-stock-bg: rgba(30, 136, 229, 0.25);
+  --rf-badge-stock-text: #90caf9;
+  --rf-badge-bond-bg: rgba(92, 107, 192, 0.25);
+  --rf-badge-bond-text: #9fa8da;
+  --rf-badge-crypto-bg: rgba(255, 152, 0, 0.25);
+  --rf-badge-crypto-text: #ffb74d;
+  --rf-badge-re-bg: rgba(76, 175, 80, 0.25);
+  --rf-badge-re-text: #81c784;
+  --rf-badge-commodity-bg: rgba(251, 140, 0, 0.25);
+  --rf-badge-commodity-text: #ffb74d;
+  --rf-badge-p2p-bg: rgba(142, 36, 170, 0.25);
+  --rf-badge-p2p-text: #ce93d8;
+  --rf-badge-deposit-bg: rgba(33, 150, 243, 0.25);
+  --rf-badge-deposit-text: #90caf9;
+
+  /* Surfaces & Backgrounds */
+  --rf-surface: #303030;
+  --rf-surface-card: #303030;
+  --rf-surface-subtle: rgba(255, 255, 255, 0.04);
+  --rf-surface-muted: rgba(255, 255, 255, 0.08);
+  --rf-surface-hover: rgba(255, 255, 255, 0.06);
+  --rf-page-bg: #1e1e1e;
+  --rf-page-wrapper-bg: #303030;
+  --rf-sort-bar-bg: #282828;
+
+  /* Borders & Dividers */
+  --rf-border: rgba(255, 255, 255, 0.08);
+  --rf-border-subtle: rgba(255, 255, 255, 0.06);
+  --rf-border-strong: rgba(255, 255, 255, 0.15);
+  --rf-border-hover: rgba(41, 182, 246, 0.35);
+
+  /* Typography / Text */
+  --rf-text-primary: rgba(255, 255, 255, 0.92);
+  --rf-text-secondary: rgba(255, 255, 255, 0.65);
+  --rf-text-muted: rgba(255, 255, 255, 0.5);
+  --rf-text-subtle: rgba(255, 255, 255, 0.25);
+
+  /* Shadows */
+  --rf-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.25);
+  --rf-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --rf-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --rf-primary-shadow: 0 2px 6px rgba(41, 182, 246, 0.35);
 }

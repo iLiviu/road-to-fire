@@ -7,7 +7,7 @@ import { Label } from '../../models/label';
 @Component({
     selector: 'app-labels-settings',
     templateUrl: './labels-settings.component.html',
-    styleUrls: ['./labels-settings.component.css'],
+    styleUrls: ['./labels-settings.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LabelsSettingsComponent implements OnInit {

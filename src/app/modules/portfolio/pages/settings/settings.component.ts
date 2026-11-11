@@ -1,12 +1,13 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Location } from '@angular/common';
 import { UntypedFormGroup, UntypedFormControl, UntypedFormArray, Validators, ValidatorFn, ValidationErrors } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { EventsService } from 'src/app/core/services/events.service';
 import { APP_CONSTS } from 'src/app/config/app.constants';
 import { ConfigService } from 'src/app/core/services/config.service';
-import { AssetType, ASSET_TYPE_LABELS } from '../../models/asset';
+import { AssetType, ASSET_TYPE_LABELS, ASSET_ICONS } from '../../models/asset';
 import { LoggerService } from 'src/app/core/services/logger.service';
 import { PortfolioService } from '../../services/portfolio.service';
 import { PortfolioPageComponent } from '../../components/portfolio-page/portfolio-page.component';
@@ -42,10 +43,10 @@ const valueMatchesControlValidator = (secondCtrl: UntypedFormControl) => {
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.css'],
+  styleUrls: ['./settings.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SettingsComponent extends PortfolioPageComponent implements OnInit {
+export class SettingsComponent extends PortfolioPageComponent implements OnInit, OnDestroy {
 
   appConfig: AppConfig;
   baseCurrencyCtl: UntypedFormControl;
@@ -81,6 +82,17 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
   readonly LocaleIDs = LocaleIDs;
   readonly ASSET_TYPE_LABELS = ASSET_TYPE_LABELS;
   readonly currencyCodes = APP_CONSTS.CURRENCY_CODES;
+  readonly ASSET_INFO: { [key: number]: { label: string; icon?: string; svgIcon?: string; color: string; description: string } } = {
+    [AssetType.Stock]: { label: 'Stocks', icon: ASSET_ICONS[AssetType.Stock].icon, svgIcon: ASSET_ICONS[AssetType.Stock].svgIcon, color: '#1e88e5', description: 'Equities & stock ETFs' },
+    [AssetType.Bond]: { label: 'Bonds', icon: ASSET_ICONS[AssetType.Bond].icon, svgIcon: ASSET_ICONS[AssetType.Bond].svgIcon, color: '#5c6bc0', description: 'Fixed income & bond ETFs' },
+    [AssetType.RealEstate]: { label: 'Real Estate', icon: ASSET_ICONS[AssetType.RealEstate].icon, svgIcon: ASSET_ICONS[AssetType.RealEstate].svgIcon, color: '#43a047', description: 'Property & real estate holdings' },
+    [AssetType.Cash]: { label: 'Cash', icon: ASSET_ICONS[AssetType.Cash].icon, svgIcon: ASSET_ICONS[AssetType.Cash].svgIcon, color: '#00897b', description: 'Cash, checking & savings' },
+    [AssetType.Commodity]: { label: 'Commodities', icon: ASSET_ICONS[AssetType.Commodity].icon, svgIcon: ASSET_ICONS[AssetType.Commodity].svgIcon, color: '#fb8c00', description: 'Gold, silver & commodities' },
+    [AssetType.Cryptocurrency]: { label: 'Cryptocurrencies', icon: ASSET_ICONS[AssetType.Cryptocurrency].icon, svgIcon: ASSET_ICONS[AssetType.Cryptocurrency].svgIcon, color: '#caf50bff', description: 'Digital currencies & tokens' },
+    [AssetType.P2P]: { label: 'P2P Loans', icon: ASSET_ICONS[AssetType.P2P].icon, svgIcon: ASSET_ICONS[AssetType.P2P].svgIcon, color: '#8e24aa', description: 'Peer-to-peer lending' },
+  };
+
+  private allocationSub: Subscription;
 
 
   constructor(protected eventsService: EventsService, protected configService: ConfigService, protected logger: LoggerService,
@@ -201,6 +213,83 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
       this.settingsForm.markAsDirty();
       this.onGoalsUpdated();
     }
+  }
+
+  /**
+   * Renames an existing portfolio value goal
+   *
+   * @param index index of goal to edit
+   */
+  async editGoalTitle(index: number) {
+    const currentGoal = this.portfolioConfig.goals[index];
+    const newName = await this.dialogService.input('Edit goal name:', '', currentGoal.title);
+    if (newName && newName.trim()) {
+      currentGoal.title = newName.trim();
+      this.settingsForm.markAsDirty();
+      this.cdr.markForCheck();
+    }
+  }
+
+  get totalAllocation(): number {
+    if (!this.portfolioAllocation || !this.portfolioAllocation.controls) {
+      return 0;
+    }
+    let total = 0;
+    for (const key of Object.keys(this.portfolioAllocation.controls)) {
+      const val = parseFloat(this.portfolioAllocation.controls[key].value);
+      if (!isNaN(val)) {
+        total += val;
+      }
+    }
+    return FloatingMath.fixRoundingError(total);
+  }
+
+  get remainingAllocation(): number {
+    return FloatingMath.fixRoundingError(100 - this.totalAllocation);
+  }
+
+  get isAllocationValid(): boolean {
+    return this.totalAllocation === 100;
+  }
+
+  getAssetAllocationPercent(assetType: number): number {
+    if (!this.portfolioAllocation) {
+      return 0;
+    }
+    const val = parseFloat(this.portfolioAllocation.get(assetType.toString())?.value);
+    return isNaN(val) ? 0 : val;
+  }
+
+  getSegmentWidth(assetType: number): number {
+    const val = this.getAssetAllocationPercent(assetType);
+    if (val <= 0) {
+      return 0;
+    }
+    const total = this.totalAllocation;
+    const base = Math.max(100, total);
+    return (val / base) * 100;
+  }
+
+  distributeEvenly() {
+    const count = this.ALL_ASSETS.length;
+    const baseShare = Math.floor(100 / count);
+    const remainder = 100 - (baseShare * count);
+    for (let i = 0; i < count; i++) {
+      const share = baseShare + (i < remainder ? 1 : 0);
+      this.portfolioAllocation.get(this.ALL_ASSETS[i].toString())?.setValue(share);
+    }
+    this.portfolioAllocation.markAsDirty();
+    this.settingsForm.markAsDirty();
+    this.cdr.markForCheck();
+  }
+
+  resetAllocations() {
+    for (const asset of this.ALL_ASSETS) {
+      this.portfolioAllocation.get(asset.toString())?.setValue(0);
+    }
+    this.portfolioAllocation.markAsDirty();
+    this.settingsForm.markAsDirty();
+    this.cdr.markForCheck();
   }
 
   /**
@@ -418,12 +507,26 @@ export class SettingsComponent extends PortfolioPageComponent implements OnInit 
       theme: this.theme,
     });
 
+    if (this.allocationSub) {
+      this.allocationSub.unsubscribe();
+    }
+    this.allocationSub = this.portfolioAllocation.valueChanges.subscribe(() => {
+      this.cdr.markForCheck();
+    });
+
     this.onDataLoaded();
 
   }
 
   private onGoalsUpdated() {
     this.cdr.markForCheck();
+  }
+
+  override ngOnDestroy(): void {
+    if (this.allocationSub) {
+      this.allocationSub.unsubscribe();
+    }
+    super.ngOnDestroy();
   }
 
   private onDataLoaded() {

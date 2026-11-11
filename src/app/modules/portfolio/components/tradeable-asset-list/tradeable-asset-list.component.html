@@ -1,21 +1,32 @@
-<mat-nav-list dense matSort (matSortChange)="sortData()" matSortDisableClear="true" matSortStart="asc">
-  <div matSubHeader class="mat-subheading-1 list-header">
-    <div fxLayout="column" fxFlex>
-      <div>
-        <span fxFlex mat-sort-header="description">Description /</span>
-        <span mat-sort-header="currentValue" arrowPosition="before">Current Value /</span>
-      </div>
-      <div>
-        <span fxFlex mat-sort-header="initialValue">Initial Value /</span>
-        <span mat-sort-header="profitLossPercent" arrowPosition="before">P/L /</span>
-      </div>
-      <div>
-        <span fxFlex mat-sort-header="account">Account</span>
-        <span *ngIf="hasYTM" mat-sort-header="ytm" arrowPosition="before">YTM</span>
-      </div>
-    </div>
+<div class="list-sort-bar" *ngIf="assets && assets.length > 0">
+  <span class="asset-count">{{ assets.length }} {{ assets.length === 1 ? 'asset' : 'assets' }}</span>
 
+  <div class="sort-actions">
+    <button type="button" mat-button [matMenuTriggerFor]="sortMenu" class="sort-select-btn"
+      matTooltip="Sort by" aria-label="Change sort criterion">
+      <mat-icon class="sort-icon">sort</mat-icon>
+      <span class="sort-label">Sort:</span>
+      <span class="sort-value">{{ sortLabels[activeSort] }}</span>
+      <mat-icon class="dropdown-arrow">arrow_drop_down</mat-icon>
+    </button>
+
+    <mat-menu #sortMenu="matMenu" class="asset-sort-menu">
+      <button type="button" mat-menu-item *ngFor="let opt of sortOptions; trackBy: trackByKey" (click)="selectSort(opt.key)">
+        <mat-icon color="primary" *ngIf="activeSort === opt.key" class="check-icon">check</mat-icon>
+        <mat-icon *ngIf="activeSort !== opt.key" class="check-icon empty-icon"></mat-icon>
+        <span [class.active-sort-item]="activeSort === opt.key">{{ opt.label }}</span>
+      </button>
+    </mat-menu>
+
+    <button type="button" mat-icon-button (click)="toggleSortDirection()"
+      [matTooltip]="sortDirection === 'asc' ? 'Ascending (click for descending)' : 'Descending (click for ascending)'"
+      aria-label="Toggle sort direction" class="sort-dir-btn">
+      <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+    </button>
   </div>
+</div>
+
+<mat-nav-list dense>
   <app-tradeable-asset-list-item *ngFor="let viewAsset of assets; trackBy: assetIdTrackFn" [viewAsset]="viewAsset"></app-tradeable-asset-list-item>
 </mat-nav-list>
 <div fxLayout="row" fxLayoutAlign="center center" *ngIf="!dataLoaded">

@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { By } from '@angular/platform-browser';
 
 import { DividendTransactionEditComponent, DividendTxEditData } from './dividend-transaction-edit.component';
 import { EditDialogComponent } from '../edit-dialog/edit-dialog.component';
@@ -24,7 +25,7 @@ import { TransactionType } from '../../models/transaction';
 import { RecurringTransactionInputComponent } from '../recurring-transaction-input/recurring-transaction-input.component';
 
 const txData: DividendTransactionData = {
-  amount: 1,
+  amount: 10,
   otherAsset: {
     accountDescription: SAMPLE_ACCOUNTS.account1.description,
     accountId: SAMPLE_ACCOUNTS.account1.id,
@@ -42,9 +43,9 @@ const txData: DividendTransactionData = {
     description: SAMPLE_ASSETS.EURCashAsset.description,
     id: SAMPLE_ASSETS.EURCashAsset.id,
   },
-  rate: 1,
+  rate: 2.5,
   type: TransactionType.CashDividend,
-  value: 1,
+  value: 25,
 };
 const dialogData: DividendTxEditData = {
   dividendTx: new DividendTransaction(txData),
@@ -84,7 +85,9 @@ describe('DividendTransactionEditComponent', () => {
         { provide: DialogsService, useClass: MockDialogsService },
         {
           provide: MatDialogRef,
-          useValue: {}
+          useValue: {
+            close: jasmine.createSpy('close')
+          }
         }, {
           provide: MAT_DIALOG_DATA,
           useValue: dialogData
@@ -102,5 +105,33 @@ describe('DividendTransactionEditComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should calculate gross, tax, and total proceeds correctly', () => {
+    // Initially amount is 10, rate is 2.5, fee is 0, withholdTax is false
+    expect(component.grossDividendValue).toBe(25);
+    expect(component.taxAmount).toBe(0);
+    expect(component.totalDividendValue).toBe(25);
+
+    // Enable withhold tax and set tax rate
+    component.withholdTax.setValue(true);
+    component.taxRate.setValue(10);
+    component.fee.setValue(2);
+    fixture.detectChanges();
+
+    expect(component.grossDividendValue).toBe(25);
+    expect(component.taxAmount).toBe(2.5);
+    expect(component.totalDividendValue).toBe(20.5);
+  });
+
+  it('should render form rows and summary card matching AssetTrade layout', () => {
+    const summaryCard = fixture.debugElement.query(By.css('.order-summary-card'));
+    expect(summaryCard).toBeTruthy();
+
+    const formRows = fixture.debugElement.queryAll(By.css('.form-row'));
+    expect(formRows.length).toBeGreaterThanOrEqual(2);
+
+    const positionPill = fixture.debugElement.query(By.css('.position-info-pill'));
+    expect(positionPill).toBeTruthy();
   });
 });

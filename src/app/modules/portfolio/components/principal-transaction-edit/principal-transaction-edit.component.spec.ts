@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -57,7 +58,9 @@ describe('PrincipalTransactionEditComponent', () => {
         { provide: DialogsService, useClass: MockDialogsService },
         {
           provide: MatDialogRef,
-          useValue: {}
+          useValue: {
+            close: jasmine.createSpy('close')
+          }
         }, {
           provide: MAT_DIALOG_DATA,
           useValue: dialogData
@@ -75,5 +78,23 @@ describe('PrincipalTransactionEditComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should calculate gross and net amounts correctly', () => {
+    component.principalPayment.setValue(0.5);
+    component.fee.setValue(0.05);
+    fixture.detectChanges();
+
+    expect(component.paymentPerUnit).toBe(0.5);
+    expect(component.grossTotalPayment).toBe(0.5); // bondAsset1 has amount = 1
+    expect(component.netAmount).toBe(0.45);
+  });
+
+  it('should render form rows and summary card', () => {
+    const summaryCard = fixture.debugElement.query(By.css('.order-summary-card'));
+    expect(summaryCard).toBeTruthy();
+
+    const formRows = fixture.debugElement.queryAll(By.css('.form-row'));
+    expect(formRows.length).toBeGreaterThanOrEqual(2);
   });
 });

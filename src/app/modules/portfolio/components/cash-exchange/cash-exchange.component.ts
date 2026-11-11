@@ -1,12 +1,12 @@
-import { Component, OnInit, Inject, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Subscription, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { PortfolioAccount } from '../../models/portfolio-account';
-import { Asset, AssetType } from '../../models/asset';
+import { Asset } from '../../models/asset';
 import { getDateAsISOString, FloatingMath } from 'src/app/shared/util';
-import { takeUntil } from 'rxjs/operators';
 
 /**
  * Data provided as input to the `CashExchangeComponent` dialog
@@ -76,10 +76,13 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
   todayDate: Date;
   updateCashBalances: UntypedFormControl;
 
-  private componentDestroyed$ = new Subject();
+  private readonly componentDestroyed$ = new Subject<void>();
 
-  constructor(public dialogRef: MatDialogRef<CashExchangeComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: CashExchangeData) { }
+  constructor(
+    public dialogRef: MatDialogRef<CashExchangeComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: CashExchangeData,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     // can only exchange to assets of same type as source (either cash or debt)
@@ -92,13 +95,17 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
     this.fee = new UntypedFormControl(0, [Validators.min(0)]);
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
-      .subscribe(() => this.amount.updateValueAndValidity());
+      .subscribe(() => {
+        this.amount.updateValueAndValidity();
+        this.cdr.markForCheck();
+      });
     this.amount = new UntypedFormControl(0);
     this.sourceAsset = new UntypedFormControl(this.data.sourceAsset);
-    this.destinationAsset = new UntypedFormControl();
+    const defaultDest = (this.cashAssets && this.cashAssets.length > 0) ? this.cashAssets[0] : null;
+    this.destinationAsset = new UntypedFormControl(defaultDest);
     this.rate = new UntypedFormControl(1, [Validators.min(0)]);
     this.transactionDate = new UntypedFormControl(new Date());
-    this.description = new UntypedFormControl('');
+    this.description = new UntypedFormControl(this.generateDefaultDescription());
     this.addForexPosition = new UntypedFormControl(false);
     this.updateCashBalances = new UntypedFormControl(true);
     this.assetForm = new UntypedFormGroup({
@@ -114,20 +121,55 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
     });
     this.destinationAsset.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
-      .subscribe(() => this.transactionValuesChanged());
+      .subscribe(() => {
+        this.transactionValuesChanged();
+        this.cdr.markForCheck();
+      });
     this.rate.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
-      .subscribe(() => this.transactionValuesChanged());
+      .subscribe(() => {
+        this.transactionValuesChanged();
+        this.cdr.markForCheck();
+      });
     this.sourceAsset.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
-      .subscribe(() => this.transactionValuesChanged());
-    this.updateAmountValidators();
+      .subscribe(() => {
+        this.transactionValuesChanged();
+        this.cdr.markForCheck();
+      });
+    this.assetForm.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => {
+        this.cdr.markForCheck();
+      });
 
+    this.updateAmountValidators();
   }
 
   ngOnDestroy(): void {
     this.componentDestroyed$.next();
     this.componentDestroyed$.unsubscribe();
+  }
+
+  /**
+   * Title displayed in dialog header
+   */
+  get dialogTitle(): string {
+    return 'Exchange';
+  }
+
+  /**
+   * Amount to be credited to destination account
+   */
+  get creditedAmount(): number {
+    if (!this.destinationAsset?.value) {
+      return 0;
+    }
+    const amountVal = Number(this.amount?.value) || 0;
+    const feeVal = Number(this.fee?.value) || 0;
+    const rateVal = Number(this.rate?.value) || 0;
+    const netSource = amountVal - (feeVal * this.debtFlag);
+    return FloatingMath.fixRoundingError(netSource * rateVal);
   }
 
   /**
@@ -159,8 +201,8 @@ export class CashExchangeComponent implements OnInit, OnDestroy {
   updateCashBalancesToggled() {
     this.updateAmountValidators();
     this.amount.updateValueAndValidity();
+    this.cdr.markForCheck();
   }
-
 
   /**
    * Actions to take when the user closed the dialog

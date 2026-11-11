@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import {
@@ -15,7 +15,7 @@ import { TwoWayTransaction } from '../../models/two-way-transaction';
 @Component({
   selector: 'app-transaction-view',
   templateUrl: './transaction-view.component.html',
-  styleUrls: ['./transaction-view.component.css'],
+  styleUrls: ['./transaction-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TransactionViewComponent {
@@ -30,8 +30,10 @@ export class TransactionViewComponent {
 
   readonly TransactionType = TransactionType;
 
-  constructor(public dialogRef: MatDialogRef<TransactionViewComponent>,
-    @Inject(MAT_DIALOG_DATA) public tx: Transaction) {
+  constructor(
+    public dialogRef: MatDialogRef<TransactionViewComponent>,
+    @Inject(MAT_DIALOG_DATA) public tx: Transaction
+  ) {
     if (tx.isExchange()) {
       this.exchangeTx = <ExchangeTransaction>tx;
     } else if (tx.isTransfer()) {
@@ -47,4 +49,70 @@ export class TransactionViewComponent {
     this.includesCash = tx.includesCash();
   }
 
+  get displayName(): string {
+    return this.tx?.description || 'Transaction';
+  }
+
+  get transactionTypeLabel(): string {
+    if (!this.tx) {
+      return 'Transaction';
+    }
+    switch (this.tx.type) {
+      case TransactionType.DebitCash:
+        return 'Debit Cash';
+      case TransactionType.CreditCash:
+        return 'Credit Cash';
+      case TransactionType.Transfer:
+        return 'Transfer';
+      case TransactionType.CashTransfer:
+        return 'Cash Transfer';
+      case TransactionType.Exchange:
+        return 'Exchange';
+      case TransactionType.Buy:
+        return 'Buy';
+      case TransactionType.Sell:
+        return 'Sell';
+      case TransactionType.Dividend:
+      case TransactionType.CashDividend:
+        return 'Dividend';
+      case TransactionType.Interest:
+      case TransactionType.CashInterest:
+        return 'Interest';
+      case TransactionType.PrincipalPayment:
+        return 'Principal Payment';
+      case TransactionType.CapitalCost:
+        return 'Capital Cost';
+      default:
+        if (this.isCredit) {
+          return 'Credit';
+        }
+        if (this.isDebit) {
+          return 'Debit';
+        }
+        return 'Transaction';
+    }
+  }
+
+  get typeBadgeClass(): string {
+    if (!this.tx) {
+      return '';
+    }
+    if (this.exchangeTx) {
+      return 'exchange';
+    }
+    if (this.transferTx) {
+      return 'transfer';
+    }
+    if (this.isCredit) {
+      return 'credit';
+    }
+    if (this.isDebit) {
+      return 'debit';
+    }
+    return '';
+  }
+
+  cancel() {
+    this.dialogRef.close();
+  }
 }

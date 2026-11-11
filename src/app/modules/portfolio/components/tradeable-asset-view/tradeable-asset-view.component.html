@@ -1,132 +1,158 @@
-<h2 mat-dialog-title>
-  <span>{{viewAsset.asset.description}}</span>
-  <button mat-icon-button>
-    <mat-icon aria-label="Copy to clipboard" (click)="copyToClipboard(viewAsset.asset.description)" color="primary"
-      matTooltip="Copy to clipboard">file_copy</mat-icon>
-  </button>
+<h2 mat-dialog-title class="dialog-title">
+  <div class="title-content">
+    <div class="title-left">
+      <span class="title-text" [matTooltip]="displayName">{{ displayName }}</span>
+      <button mat-icon-button type="button" class="copy-button" (click)="copyToClipboard(displayName)"
+        [matTooltip]="copied ? 'Copied!' : 'Copy to clipboard'">
+        <mat-icon [color]="copied ? 'accent' : 'primary'">{{ copied ? 'check' : 'file_copy' }}</mat-icon>
+      </button>
+    </div>
+    <span class="type-badge" [ngClass]="typeBadgeClass">
+      {{ assetTypeLabel }}
+    </span>
+  </div>
 </h2>
-<mat-dialog-content>
 
-  <div fxLayout="column" fxLayoutGap="8px">
+<mat-dialog-content>
+  <div class="details-list">
     <ng-container *ngIf="hasAmount">
-      <div>
-        <span fxFlex>Assets bought:</span>
-        <span>{{viewAsset.position.amount | number}}</span>
+      <div class="detail-row">
+        <span class="row-label">Assets bought:</span>
+        <span class="row-value font-bold">{{ viewAsset?.position?.amount | number }}</span>
       </div>
 
       <mat-divider></mat-divider>
     </ng-container>
 
     <ng-container *ngIf="bondAsset">
-      <div>
-        <span fxFlex>Coupon rate: </span>
-        <span>{{bondAsset.couponRate | percent:'1.0-2'}}</span>
+      <div class="detail-row">
+        <span class="row-label">Coupon rate:</span>
+        <span class="row-value font-bold">{{ bondAsset.couponRate | percent:'1.0-2' }}</span>
       </div>
 
       <mat-divider></mat-divider>
 
-      <div>
-        <span fxFlex>Yield to Maturity: </span>
-        <span>{{bondAsset.ytm | percent:'1.0-2'}}</span>
+      <div class="detail-row">
+        <span class="row-label">Yield to maturity:</span>
+        <span class="row-value font-bold">{{ bondAsset.ytm | percent:'1.0-2' }}</span>
       </div>
 
       <mat-divider></mat-divider>
 
-      <div>
-        <span fxFlex>Principal amount: </span>
-        <span>{{bondAsset.principalAmount | currency:bondAsset.currency}}</span>
+      <div class="detail-row">
+        <span class="row-label">Principal amount:</span>
+        <span class="row-value">{{ bondAsset.principalAmount | currency:bondAsset.currency }}</span>
       </div>
 
       <mat-divider></mat-divider>
 
-      <div>
-        <span fxFlex>Maturity: </span>
-        <span>{{bondAsset.maturityDate | formatDate}}</span>
+      <div class="detail-row">
+        <span class="row-label">Maturity:</span>
+        <span class="row-value">
+          <span *ngIf="daysToMaturity !== null && daysToMaturity > 0" class="status-badge active">
+            in {{ daysToMaturity }}d
+          </span>
+          <span *ngIf="daysToMaturity !== null && daysToMaturity <= 0" class="status-badge matured">
+            Matured
+          </span>
+          {{ bondAsset.maturityDate | formatDate }}
+        </span>
       </div>
 
       <mat-divider></mat-divider>
     </ng-container>
 
     <ng-container *ngIf="hasAmount">
-      <div>
-        <span fxFlex>Buy Price:</span>
-        <span>{{viewAsset.position.grossBuyPrice | currency:viewAsset.asset.currency}}</span>
+      <div class="detail-row">
+        <span class="row-label">Buy price:</span>
+        <span class="row-value">{{ viewAsset?.position?.grossBuyPrice | currency:viewAsset?.asset?.currency }}</span>
       </div>
 
       <mat-divider></mat-divider>
     </ng-container>
 
-    <div>
-      <span fxFlex>Cost:</span>
-      <span>{{viewAsset.initialValue | currency:viewAsset.asset.currency}}</span>
+    <div class="detail-row">
+      <span class="row-label">Cost:</span>
+      <span class="row-value">{{ viewAsset?.initialValue | currency:viewAsset?.asset?.currency }}</span>
     </div>
 
     <mat-divider></mat-divider>
 
-    <div>
-      <span fxFlex>Buy Date:</span>
-      <span>{{ viewAsset.position.buyDate | formatDate }}</span>
+    <div class="detail-row">
+      <span class="row-label">Buy date:</span>
+      <span class="row-value">{{ (viewAsset?.position?.buyDate | formatDate) || '—' }}</span>
     </div>
 
     <mat-divider></mat-divider>
 
     <ng-container *ngIf="hasAmount">
-      <div>
-        <span fxFlex>Current price (last updated
-          {{ (tradeableAsset.lastQuoteUpdate | formatDate) || 'never' }}):&nbsp;</span>
-        <span>{{tradeableAsset.currentPrice | currency:viewAsset.asset.currency }}</span>
+      <div class="detail-row">
+        <span class="row-label">
+          Current price
+          <span class="sub-text">(last updated {{ (tradeableAsset?.lastQuoteUpdate | formatDate) || 'never' }})</span>:
+        </span>
+        <span class="row-value">{{ tradeableAsset?.currentPrice | currency:viewAsset?.asset?.currency }}</span>
       </div>
 
       <mat-divider></mat-divider>
     </ng-container>
 
-    <div>
-      <span fxFlex>Current value: </span>
-      <span>{{viewAsset.currentValue | currency:viewAsset.asset.currency }}</span>
+    <div class="detail-row">
+      <span class="row-label">Current value:</span>
+      <span class="row-value font-bold">{{ viewAsset?.currentValue | currency:viewAsset?.asset?.currency }}</span>
     </div>
 
     <mat-divider></mat-divider>
 
-    <div>
-      <span fxFlex>Unrealized P/L: </span>
-      <span [ngClass]="(viewAsset.profitLoss<0)? 'negative':'positive'">{{viewAsset.profitLoss |
-        currency:viewAsset.asset.currency}}
-        ({{viewAsset.profitLossPercent | percent:'1.0-2'}})</span>
+    <div class="detail-row">
+      <span class="row-label">Unrealized P/L:</span>
+      <span class="row-value font-bold" [ngClass]="(viewAsset?.profitLoss < 0) ? 'negative' : 'positive'">
+        {{ viewAsset?.profitLoss | currency:viewAsset?.asset?.currency }}
+        ({{ viewAsset?.profitLossPercent | percent:'1.0-2' }})
+      </span>
     </div>
 
     <mat-divider></mat-divider>
 
-    <div>
-      <span fxFlex matTooltip="Including realized gains and dividends">Total return: </span>
-      <span [ngClass]="(totalPL<0)? 'negative':'positive'">{{totalPL |
-        currency:viewAsset.asset.currency}}
-        ({{totalPLPercent | percent:'1.0-2'}})</span>
+    <div class="detail-row">
+      <span class="row-label" matTooltip="Including realized gains and dividends">Total return:</span>
+      <span class="row-value font-bold" [ngClass]="(totalPL < 0) ? 'negative' : 'positive'">
+        {{ totalPL | currency:viewAsset?.asset?.currency }}
+        ({{ totalPLPercent | percent:'1.0-2' }})
+      </span>
     </div>
 
     <mat-divider></mat-divider>
 
-    <div>
-      <span fxFlex>Asset Region: </span>
-      <span>{{tradeableAsset.getRegionString()}}</span>
+    <div class="detail-row" *ngIf="tradeableAsset?.getRegionString()">
+      <span class="row-label">Asset region:</span>
+      <span class="row-value">{{ tradeableAsset.getRegionString() }}</span>
     </div>
 
-    <ng-container *ngIf="tradeableAsset.labels && tradeableAsset.labels.length > 0">
+    <mat-divider *ngIf="tradeableAsset?.getRegionString()"></mat-divider>
+
+    <div class="detail-row">
+      <span class="row-label">Account:</span>
+      <span class="row-value">{{ viewAsset?.account?.description || '—' }}</span>
+    </div>
+
+    <ng-container *ngIf="tradeableAsset?.labels && tradeableAsset.labels.length > 0">
       <mat-divider></mat-divider>
-      <div>
-        <span fxFlex>Labels:</span>
-        <span>
+      <div class="detail-row labels-row">
+        <span class="row-label">Labels:</span>
+        <span class="row-value">
           <mat-chip-list aria-label="Asset labels">
             <mat-chip *ngFor="let label of tradeableAsset.labels" [style.background-color]="label.color"
               [selectable]="false" class="label-chip">
-              {{label.name}}
+              {{ label.name }}
             </mat-chip>
           </mat-chip-list>
         </span>
       </div>
     </ng-container>
-
   </div>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close="edit">Edit</button>
   <button mat-button mat-dialog-close cdkFocusInitial>Close</button>

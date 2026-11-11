@@ -1,5 +1,5 @@
 .box {
-  border: 1px solid rgba(255, 255, 255, .2);
+  border: 1px solid var(--rf-border-strong);
   border-radius: 4px;
 }
 
@@ -55,6 +55,6 @@
 
 .warning-box {
   text-align: center;
-  color: rgba(255, 67, 67, 87%);
+  color: var(--rf-negative);
   padding: 24px;
 }

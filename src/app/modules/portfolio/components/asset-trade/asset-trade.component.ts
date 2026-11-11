@@ -195,6 +195,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.labelIds = new UntypedFormControl([]);
     this.stockType.valueChanges.pipe(takeUntil(this.componentDestroyed$)).subscribe((value) => {
       this.isMutualFund = TradeableAsset.isMutualFund(value);
+      this.cdr.markForCheck();
     });
     this.filteredSupportedExchanges = this.exchange.valueChanges
       .pipe(
@@ -209,10 +210,22 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.updateAmountValidators();
     this.price.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
-      .subscribe(() => this.amount.updateValueAndValidity());
+      .subscribe(() => {
+        this.amount.updateValueAndValidity();
+        this.cdr.markForCheck();
+      });
     this.fee.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
-      .subscribe(() => this.amount.updateValueAndValidity());
+      .subscribe(() => {
+        this.amount.updateValueAndValidity();
+        this.cdr.markForCheck();
+      });
+    this.amount.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => this.cdr.markForCheck());
+    this.withholdInterestTax.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => this.cdr.markForCheck());
     this.cashAsset.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => {
@@ -220,6 +233,7 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
           this.assetCurrency = this.cashAsset.value.currency;
         }
         this.amount.updateValueAndValidity();
+        this.cdr.markForCheck();
       });
 
     this.labelsByCategory = {};
@@ -279,11 +293,45 @@ export class AssetTradeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
+   * Title displayed in the dialog header
+   */
+  get dialogTitle(): string {
+    if (this.data.action === AssetOperationAction.BUY) {
+      return 'Buy ' + (this.tradeExistingAsset ? this.data.asset?.description : this.assetLabel);
+    }
+    const prefix = this.data.action === AssetOperationAction.SELL ? 'Sell ' : 'Edit ';
+    return prefix + (this.data.asset ? this.data.asset.description : this.assetLabel);
+  }
+
+  /**
+   * Gross transaction value (Amount x Price)
+   */
+  get grossTradeValue(): number {
+    const amountVal = Number(this.amount?.value) || 0;
+    const priceVal = Number(this.price?.value) || 0;
+    return FloatingMath.fixRoundingError(amountVal * priceVal);
+  }
+
+  /**
+   * Net settlement value factoring in fees
+   */
+  get totalTradeValue(): number {
+    const gross = this.grossTradeValue;
+    const feeVal = Number(this.fee?.value) || 0;
+    if (this.data.action === AssetOperationAction.BUY) {
+      return FloatingMath.fixRoundingError(gross + feeVal);
+    } else {
+      return FloatingMath.fixRoundingError(gross - feeVal);
+    }
+  }
+
+  /**
    * Triggered when user clicks "Automatically debit/credit cash account balance" checkbox
    */
   updateCashAssetBalanceToggled() {
     this.updateAmountValidators();
     this.amount.updateValueAndValidity();
+    this.cdr.markForCheck();
   }
 
   /**

@@ -5,59 +5,67 @@
     </div>
   </app-top-toolbar>
 
-  <div class="page-content">
-    <mat-tab-group [swipeTabs]="{hasSideNav: true}" *ngIf="viewAssets.length > 0" class="mat-tab-group-fill-height">
-      <mat-tab label="Overview">
-        <mat-card class="card">
+  <div class="page-content portfolio-page-content">
+    <div class="portfolio-page-wrapper">
+      <mat-tab-group [swipeTabs]="{hasSideNav: true}" *ngIf="viewAssets.length > 0" class="mat-tab-group-fill-height">
+        <mat-tab label="Overview">
+          <div class="overview-container">
+            <div class="overview-cards-grid">
+              <mat-card class="card hero-card">
+                <mat-card-title>Summary</mat-card-title>
+                <mat-card-content>
+                  <div class="mat-subheading-2">
+                    <span fxFlex>Total Value</span>
+                    <span [ngClass]="{'negative':assetsOverview.currentValue < 0}">
+                      {{assetsOverview.currentValue | currency:baseCurrency}}
+                    </span>
+                  </div>
+                  <div class="mat-subheading-2" *ngIf="assetsOverview.currentValue > 0">
+                    <span fxFlex>Portfolio Allocation Percentage</span>
+                    <span>{{assetsOverview.currentValue/totalAssetsValue | percent:'1.0-2'}}</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
 
-          <div class="mat-subheading-2">
-            <span fxFlex>Total Value</span>
-            <span [ngClass]="{'negative':assetsOverview.currentValue < 0}">
-              {{assetsOverview.currentValue | currency:baseCurrency}}
-            </span>
-          </div>
-          <div class="mat-subheading-2" *ngIf="assetsOverview.currentValue > 0">
-            <span fxFlex>Portfolio Allocation Percentage</span>
-            <span>{{assetsOverview.currentValue/totalAssetsValue | percent:'1.0-2'}}</span>
-          </div>
-        </mat-card>
-        <mat-card class="card" *ngIf="cashBalances.length > 0">
-          <mat-card-title>Balances</mat-card-title>
-          <mat-card-content>
-            <div class="mat-subheading-2" *ngFor="let cash of cashBalances">
-              <span fxFlex>{{cash.currency}}</span>
-              <span [ngClass]="{'negative':cash.balance < 0}">{{cash.balance | currency:cash.currency}}</span>
+              <mat-card class="card" *ngIf="cashBalances.length > 0">
+                <mat-card-title>Balances</mat-card-title>
+                <mat-card-content>
+                  <div class="mat-subheading-2" *ngFor="let cash of cashBalances">
+                    <span fxFlex>{{cash.currency}}</span>
+                    <span [ngClass]="{'negative':cash.balance < 0}">{{cash.balance | currency:cash.currency}}</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
             </div>
+          </div>
+        </mat-tab>
+        <mat-tab label="Cash">
+          <div *ngIf="cashAssets.length === 0" fxLayoutAlign="center center">
+            <div class="text-content">You have no Cash assets.</div>
+          </div>
+          <app-cash-asset-list [assets]="cashAssets" *ngIf="cashAssets.length > 0"></app-cash-asset-list>
+        </mat-tab>
+        <mat-tab label="Deposits">
+          <div *ngIf="deposits.length === 0" fxLayoutAlign="center center">
+            <div class="text-content">You have no Deposits.</div>
+          </div>
+          <app-cash-asset-list [assets]="deposits" *ngIf="deposits.length > 0"></app-cash-asset-list>
+        </mat-tab>
+        <mat-tab label="Money Market">
+          <div *ngIf="mmAssets.length === 0" fxLayoutAlign="center center">
+            <div class="text-content">You have no Money Market assets.</div>
+          </div>
+          <app-tradeable-asset-list [assets]="mmAssets" [dataLoaded]="assetsLoaded" *ngIf="mmAssets.length > 0">
+          </app-tradeable-asset-list>
+        </mat-tab>
+      </mat-tab-group>
 
-          </mat-card-content>
-        </mat-card>
-      </mat-tab>
-      <mat-tab label="Cash">
-        <div *ngIf="cashAssets.length === 0" fxLayoutAlign="center center">
-          <div class="text-content">You have no Cash assets.</div>
-        </div>
-        <app-cash-asset-list [assets]="cashAssets" *ngIf="cashAssets.length > 0"></app-cash-asset-list>
-      </mat-tab>
-      <mat-tab label="Deposits">
-        <div *ngIf="deposits.length === 0" fxLayoutAlign="center center">
-          <div class="text-content">You have no Deposits.</div>
-        </div>
-        <app-cash-asset-list [assets]="deposits" *ngIf="deposits.length > 0"></app-cash-asset-list>
-      </mat-tab>
-      <mat-tab label="Money Market">
-        <div *ngIf="mmAssets.length === 0" fxLayoutAlign="center center">
-          <div class="text-content">You have no Money Market assets.</div>
-        </div>
-        <app-tradeable-asset-list [assets]="mmAssets" [dataLoaded]="assetsLoaded" *ngIf="mmAssets.length > 0">
-        </app-tradeable-asset-list>
-      </mat-tab>
-    </mat-tab-group>
-
-    <div *ngIf="assetsLoaded && viewAssets.length === 0" fxLayoutAlign="center center">
-      <div class="text-content">You have no Cash assets.</div>
+      <div *ngIf="assetsLoaded && viewAssets.length === 0" fxLayoutAlign="center center">
+        <div class="text-content">You have no Cash assets.</div>
+      </div>
     </div>
   </div>
 </ng-container>
-<div *ngIf="!assetsLoaded" class="page-content" fxLayoutAlign="center center" fxLayout="column">
+<div *ngIf="!assetsLoaded" class="page-content portfolio-page-content" fxLayoutAlign="center center" fxLayout="column">
   <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
 </div>

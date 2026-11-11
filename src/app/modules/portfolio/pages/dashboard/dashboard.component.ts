@@ -73,6 +73,12 @@ export interface DashboardGoalProgress {
   isCompleted: boolean;
 }
 
+export interface AssetAllocationChip {
+  type: string;
+  label: string;
+  value: number;
+}
+
 interface ChartDataSet {
   label?: string;
   data: number[];
@@ -144,6 +150,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   assetDescriptions: NumKeyDictionary<string>;
   assetRegions: AssetRegionsValue = {};
   assetsTotalValue: Dictionary<number> = {};
+  assetAllocationChips: AssetAllocationChip[] = [];
   assetsValue: number;
   liabilitiesValue: number;
   assetTypeAllocationMap: AssetTypeAllocationMap = {};
@@ -700,6 +707,24 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
   /**
    * Build the chart data for the allocation percentage of each asset type out of the total assets value
    */
+  /**
+   * Build the asset allocation chips sorted by absolute value in descending order.
+   */
+  private computeAssetAllocationChips() {
+    this.assetAllocationChips = [];
+    if (!this.assetsTotalValue) {
+      return;
+    }
+    const sorted = this.sortNumDict(this.assetsTotalValue);
+    for (const [type, value] of sorted) {
+      this.assetAllocationChips.push({
+        type,
+        label: this.assetTypeLabels[type] || type,
+        value,
+      });
+    }
+  }
+
   private computeAssetAllocationData() {
     const chartCtx: ChartContext = { datasets: [{ data: [] }], labels: [] };
     let assetsTotalValue = this.assetsTotalValue;
@@ -1036,6 +1061,7 @@ export class DashboardComponent extends PortfolioPageComponent implements OnInit
     }
 
     this.computeGoals();
+    this.computeAssetAllocationChips();
     this.assetAllocationChart = this.computeAssetAllocationData();
     this.currencyAllocationChart = this.computeCurrenciesAllocationData();
     this.stockCurrencyAllocationChart = this.computeAssetCurrencyAllocationData(AssetType.Stock);

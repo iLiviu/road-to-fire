@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -9,6 +9,8 @@ import { DividendTransaction } from '../../models/dividend-transaction';
 import { TitleCasePipe } from '@angular/common';
 import { RecurringTransactionInputComponent } from '../recurring-transaction-input/recurring-transaction-input.component';
 import { RecurringTransaction } from '../../models/recurring-transaction';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export interface DividendTxEditData {
   dividendTx: DividendTransaction;
@@ -38,7 +40,7 @@ const integerValidator = (control: UntypedFormControl): ValidationErrors | null 
   styleUrls: ['./dividend-transaction-edit.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DividendTransactionEditComponent implements OnInit {
+export class DividendTransactionEditComponent implements OnInit, OnDestroy {
 
   dividendTx: DividendTransaction;
   asset: Asset;
@@ -60,10 +62,15 @@ export class DividendTransactionEditComponent implements OnInit {
   paymentTypeStr = 'dividend';
   isRentable: boolean;
 
+  private readonly componentDestroyed$ = new Subject<void>();
+
   @ViewChild('recurringTransaction') private readonly recurringTransaction: RecurringTransactionInputComponent;
 
-  constructor(public dialogRef: MatDialogRef<DividendTransactionEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DividendTxEditData) { }
+  constructor(
+    public dialogRef: MatDialogRef<DividendTransactionEditComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: DividendTxEditData,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     let defaultCashAsset = null;
@@ -108,6 +115,55 @@ export class DividendTransactionEditComponent implements OnInit {
     });
 
     this.loadData();
+
+    this.assetForm.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => {
+        this.cdr.markForCheck();
+      });
+
+    this.onTxDateChanged();
+  }
+
+  ngOnDestroy(): void {
+    this.componentDestroyed$.next();
+    this.componentDestroyed$.unsubscribe();
+  }
+
+  /**
+   * Title displayed in dialog header
+   */
+  get dialogTitle(): string {
+    const payment = new TitleCasePipe().transform(this.paymentTypeStr);
+    return `${payment} from ${this.asset ? this.asset.description : ''}`;
+  }
+
+  /**
+   * Gross dividend/rent value (Amount x Rate)
+   */
+  get grossDividendValue(): number {
+    const amountVal = Number(this.amount?.value) || (this.isRentable ? 1 : 0);
+    const rateVal = Number(this.dividend?.value) || 0;
+    return FloatingMath.fixRoundingError(amountVal * rateVal);
+  }
+
+  /**
+   * Tax amount withheld
+   */
+  get taxAmount(): number {
+    if (!this.withholdTax?.value) {
+      return 0;
+    }
+    const taxRateVal = Number(this.taxRate?.value) || 0;
+    return FloatingMath.fixRoundingError(this.grossDividendValue * (taxRateVal / 100));
+  }
+
+  /**
+   * Net proceeds factoring in tax withholding and fees
+   */
+  get totalDividendValue(): number {
+    const feeVal = Number(this.fee?.value) || 0;
+    return FloatingMath.fixRoundingError(this.grossDividendValue - this.taxAmount - feeVal);
   }
 
   /**
@@ -149,7 +205,7 @@ export class DividendTransactionEditComponent implements OnInit {
 
   /**
    * Load account and asset data
-  */
+   */
   private loadData() {
     this.asset = this.account.getAssetById(this.dividendTx.payerAsset.id);
     this.isRentable = this.asset.type === AssetType.RealEstate;
@@ -173,5 +229,6 @@ export class DividendTransactionEditComponent implements OnInit {
     } else {
       this.updateCashAssetBalance.enable();
     }
+    this.cdr.markForCheck();
   }
 }

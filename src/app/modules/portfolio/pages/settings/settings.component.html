@@ -6,149 +6,450 @@
         (click)="saveSettings()">Save</button>
     </app-top-toolbar>
 
-    <div class="page-content">
-      <mat-tab-group [swipeTabs]="{hasSideNav: true}" class="mat-tab-group-fill-height">
-        <mat-tab label="General">
-          <div fxLayout="column" class="text-content" fxLayoutGap="8px">
-            <h2>Display</h2>
+    <div class="page-content portfolio-page-content">
+      <div class="portfolio-page-wrapper">
+        <mat-tab-group [swipeTabs]="{hasSideNav: true}" class="mat-tab-group-fill-height">
+          <mat-tab label="General">
+            <div class="settings-tab-container general-tab">
 
-            <mat-form-field>
-              <mat-select placeholder="Theme" formControlName="theme" matTooltip="Theme for current device" required>
-                <mat-option value="light">Light</mat-option>
-                <mat-option value="dark">Dark</mat-option>
-              </mat-select>
-            </mat-form-field>
+              <div class="general-cards-container">
+                <!-- Card 1: Preferences & Display -->
+                <mat-card class="card settings-card">
+                  <div class="card-section-header">
+                    <div class="section-icon-box">
+                      <mat-icon>palette</mat-icon>
+                    </div>
+                    <div class="section-info">
+                      <h3 class="card-title">Display & Regional Preferences</h3>
+                      <p class="card-subtitle">Theme appearance, currency base, and number formatting</p>
+                    </div>
+                  </div>
 
-            <mat-form-field>
-              <mat-select placeholder="Base Currency" formControlName="baseCurrencyCtl" required>
-                <mat-option *ngFor="let currency of currencyCodes" [value]="currency.code">
-                  {{currency.name}}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+                  <div class="card-body">
+                    <div class="form-fields-grid">
+                      <!-- Theme -->
+                      <mat-form-field class="setting-form-field">
+                        <mat-label>Theme</mat-label>
+                        <mat-icon matPrefix class="field-icon">brightness_medium</mat-icon>
+                        <mat-select placeholder="Theme" formControlName="theme" matTooltip="Theme for current device"
+                          required>
+                          <mat-option value="light">Light</mat-option>
+                          <mat-option value="dark">Dark</mat-option>
+                        </mat-select>
+                      </mat-form-field>
 
-            <mat-form-field>
-              <mat-select placeholder="Date and Currency Format" formControlName="dateAndCurrencyFormat" required>
-                <mat-option [value]="LocaleIDs.EN_US">MM/DD/YYYY and $1,234.56</mat-option>
-                <mat-option [value]="LocaleIDs.EN_GB">DD/MM/YYYY and $1,234.56</mat-option>
-                <mat-option [value]="LocaleIDs.EN_BE">DD/MM/YYYY and 1.234,56$</mat-option>
-              </mat-select>
-            </mat-form-field>
+                      <!-- Base Currency -->
+                      <mat-form-field class="setting-form-field">
+                        <mat-label>Base Currency</mat-label>
+                        <mat-icon matPrefix class="field-icon">payments</mat-icon>
+                        <mat-select placeholder="Base Currency" formControlName="baseCurrencyCtl" required>
+                          <mat-option *ngFor="let currency of currencyCodes" [value]="currency.code">
+                            {{currency.name}} ({{currency.code}})
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
 
-            <mat-form-field>
-              <input matInput type="number" placeholder="Yearly Safe Withdrawal Rate" formControlName="withdrawalRate"
-                required>
-              <span matPrefix>%&nbsp;</span>
-              <mat-error>Please enter a value between 0 and 100</mat-error>
-            </mat-form-field>
+                      <!-- Date and Currency Format -->
+                      <mat-form-field class="setting-form-field">
+                        <mat-label>Date & Currency Format</mat-label>
+                        <mat-icon matPrefix class="field-icon">date_range</mat-icon>
+                        <mat-select placeholder="Date and Currency Format" formControlName="dateAndCurrencyFormat"
+                          required>
+                          <mat-option [value]="LocaleIDs.EN_US">MM/DD/YYYY and $1,234.56</mat-option>
+                          <mat-option [value]="LocaleIDs.EN_GB">DD/MM/YYYY and $1,234.56</mat-option>
+                          <mat-option [value]="LocaleIDs.EN_BE">DD/MM/YYYY and 1.234,56$</mat-option>
+                        </mat-select>
+                      </mat-form-field>
 
-            <mat-divider></mat-divider>
+                      <!-- Withdrawal Rate -->
+                      <mat-form-field class="setting-form-field">
+                        <mat-label>Yearly Safe Withdrawal Rate</mat-label>
+                        <mat-icon matPrefix class="field-icon">trending_down</mat-icon>
+                        <input matInput type="number" placeholder="Yearly Safe Withdrawal Rate"
+                          formControlName="withdrawalRate" required>
+                        <span matSuffix>&nbsp;%</span>
+                        <mat-error>Please enter a value between 0 and 100</mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </mat-card>
 
-            <h2>Security & Backup</h2>
+                <!-- Card 2: Security & Cloud Sync -->
+                <mat-card class="card settings-card">
+                  <div class="card-section-header">
+                    <div class="section-icon-box">
+                      <mat-icon>security</mat-icon>
+                    </div>
+                    <div class="section-info">
+                      <h3 class="card-title">Security & Cloud Sync</h3>
+                      <p class="card-subtitle">Protect financial data and manage synchronization across devices</p>
+                    </div>
+                  </div>
 
-            <mat-checkbox formControlName="passwordProtect" #passProtect (change)="onPasswordProtectionToggled($event)">
-              Password protect application data
-            </mat-checkbox>
+                  <div class="card-body">
+                    <div class="setting-rows-list">
+                      <!-- Password Protection Row -->
+                      <div class="setting-row">
+                        <div class="setting-row-left">
+                          <div class="setting-item-icon">
+                            <mat-icon>lock</mat-icon>
+                          </div>
+                          <div class="setting-item-text">
+                            <div class="setting-item-title">Password Protection</div>
+                            <div class="setting-item-desc">Encrypt application configuration and portfolio data on this
+                              device</div>
+                          </div>
+                        </div>
+                        <div class="setting-row-action">
+                          <mat-slide-toggle formControlName="passwordProtect" #passProtect color="primary"
+                            (change)="onPasswordProtectionToggled($event)">
+                          </mat-slide-toggle>
+                        </div>
+                      </div>
 
-            <ng-container *ngIf="passProtect.checked && !encryptionEnabled">
-              <mat-form-field>
-                <input matInput type="password" placeholder="Password" formControlName="configPassword"
-                  autocomplete="app-password" required>
-              </mat-form-field>
+                      <!-- Expanded Password Inputs when enabled & unencrypted -->
+                      <div *ngIf="passProtect.checked && !encryptionEnabled" class="encryption-setup-box">
+                        <div class="alert-box alert-warn">
+                          <mat-icon>warning</mat-icon>
+                          <div>
+                            <strong>Important:</strong> Your application data will be encrypted using this password.
+                            If you lose or forget it, your data cannot be recovered!
+                          </div>
+                        </div>
 
-              <mat-form-field>
-                <input matInput type="password" placeholder="Confirm Password" formControlName="configPasswordConfirm"
-                  autocomplete="app-password" required>
-                <mat-error *ngIf="configPasswordConfirm.errors?.different">Passwords do not match</mat-error>
-              </mat-form-field>
+                        <div class="form-fields-grid password-grid">
+                          <mat-form-field class="setting-form-field">
+                            <mat-label>Password</mat-label>
+                            <mat-icon matPrefix class="field-icon">vpn_key</mat-icon>
+                            <input matInput type="password" placeholder="Password" formControlName="configPassword"
+                              autocomplete="app-password" required>
+                          </mat-form-field>
 
-              <div class="mat-error">
-                Warning: The application data is encrypted using the password you set! If you forget your password,
-                you
-                won't be able to recover your data!
+                          <mat-form-field class="setting-form-field">
+                            <mat-label>Confirm Password</mat-label>
+                            <mat-icon matPrefix class="field-icon">vpn_key</mat-icon>
+                            <input matInput type="password" placeholder="Confirm Password"
+                              formControlName="configPasswordConfirm" autocomplete="app-password" required>
+                            <mat-error *ngIf="configPasswordConfirm.errors?.different">Passwords do not
+                              match</mat-error>
+                          </mat-form-field>
+                        </div>
+                      </div>
+
+                      <!-- Biometric 2FA Row -->
+                      <div *ngIf="passProtect.checked && twoFactorAvailable" class="setting-row">
+                        <div class="setting-row-left">
+                          <div class="setting-item-icon">
+                            <mat-icon>fingerprint</mat-icon>
+                          </div>
+                          <div class="setting-item-text">
+                            <div class="setting-item-title">Biometric Authentication</div>
+                            <div class="setting-item-desc">Unlock application with device biometrics (fingerprint or
+                              face recognition)</div>
+                          </div>
+                        </div>
+                        <div class="setting-row-action">
+                          <mat-slide-toggle formControlName="enable2FA" (change)="twoFAChanged()" color="primary"
+                            matTooltip="Restricts access to the application when the password is stored on the device">
+                          </mat-slide-toggle>
+                        </div>
+                      </div>
+
+                      <!-- Cloud Sync Row -->
+                      <div class="setting-row">
+                        <div class="setting-row-left">
+                          <div class="setting-item-icon">
+                            <mat-icon>cloud_queue</mat-icon>
+                          </div>
+                          <div class="setting-item-text">
+                            <div class="setting-item-title">Cloud Synchronization</div>
+                            <div class="setting-item-desc">Sync your portfolio and configurations seamlessly across all
+                              your devices</div>
+                          </div>
+                        </div>
+                        <div class="setting-row-action">
+                          <mat-slide-toggle formControlName="saveOnCloud" #cloudStorage color="primary">
+                          </mat-slide-toggle>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </mat-card>
+
+                <!-- Card 3: Data Management & Backup -->
+                <mat-card class="card settings-card">
+                  <div class="card-section-header">
+                    <div class="section-icon-box">
+                      <mat-icon>import_export</mat-icon>
+                    </div>
+                    <div class="section-info">
+                      <h3 class="card-title">Data Backup & Portability</h3>
+                      <p class="card-subtitle">Export or import your portfolio data and configurations</p>
+                    </div>
+                  </div>
+
+                  <div class="card-body">
+                    <div class="data-actions-grid">
+                      <button mat-stroked-button type="button" class="data-action-btn" (click)="exportAppDataToFile()">
+                        <mat-icon>file_download</mat-icon>
+                        <div class="btn-text-wrap">
+                          <span class="btn-main-text">Export App Data</span>
+                          <span class="btn-sub-text">Full backup (JSON)</span>
+                        </div>
+                      </button>
+
+                      <button mat-stroked-button type="button" class="data-action-btn"
+                        (click)="exportPortfolioDataToCSV()">
+                        <mat-icon>table_chart</mat-icon>
+                        <div class="btn-text-wrap">
+                          <span class="btn-main-text">Export to CSV</span>
+                          <span class="btn-sub-text">Spreadsheet export</span>
+                        </div>
+                      </button>
+
+                      <button mat-stroked-button type="button" class="data-action-btn"
+                        (click)="importFileInput.click()">
+                        <mat-icon>file_upload</mat-icon>
+                        <div class="btn-text-wrap">
+                          <span class="btn-main-text">Import App Data</span>
+                          <span class="btn-sub-text">Restore from JSON</span>
+                        </div>
+                      </button>
+                    </div>
+
+                    <div class="danger-zone-divider"></div>
+
+                    <!-- Danger Zone Section -->
+                    <div class="danger-zone-box">
+                      <div class="danger-zone-info">
+                        <div class="danger-title-row">
+                          <mat-icon class="danger-icon">warning</mat-icon>
+                          <span class="danger-title">Danger Zone</span>
+                        </div>
+                        <p class="danger-desc">
+                          Permanently delete all application configurations and portfolio data stored on this device.
+                          This cannot be undone.
+                        </p>
+                      </div>
+                      <button mat-flat-button color="warn" type="button" class="wipe-btn" (click)="wipeAppData()">
+                        <mat-icon>delete_forever</mat-icon>
+                        <span>Clear App Data</span>
+                      </button>
+                    </div>
+                  </div>
+                </mat-card>
               </div>
-            </ng-container>
-
-            <div *ngIf="passProtect.checked && twoFactorAvailable">
-              <mat-checkbox formControlName="enable2FA" (change)="twoFAChanged()"
-                matTooltip="Restricts access to the application when the password is stored on the device">Enable biometric
-                authentication</mat-checkbox>
             </div>
+          </mat-tab>
 
-            <div>
-              <mat-checkbox formControlName="saveOnCloud" #cloudStorage>Sync
-                data across your devices </mat-checkbox>
-            </div>
-
-            <div>
-              <div fxLayout="row" fxLayout.lt-sm="column" fxLayoutAlign="center" fxLayoutGap="16px">
-                <button mat-raised-button (click)="wipeAppData()" color="warn">Clear App Data</button>
-                <button mat-raised-button (click)="importFileInput.click()" color="primary">Import App Data</button>
-                <button mat-raised-button (click)="exportAppDataToFile()" color="primary">Export App Data</button>
-                <button mat-raised-button (click)="exportPortfolioDataToCSV()" color="primary">
-                  Export Portfolio To CSV
+          <mat-tab label="Goals">
+            <div class="settings-tab-container goals-tab">
+              <div class="tab-section-header">
+                <div class="header-titles">
+                  <h2 class="section-heading">Financial Goals & Milestones</h2>
+                  <p class="section-subheading">Define target portfolio values along your FIRE journey</p>
+                </div>
+                <button mat-raised-button color="primary" type="button" (click)="addGoal()" class="add-goal-btn">
+                  <mat-icon>add</mat-icon>
+                  <span>Add Goal</span>
                 </button>
+
+              </div>
+
+              <!-- Empty state when no goals exist -->
+              <mat-card *ngIf="goals.controls.length === 0" class="card empty-state-card">
+                <div class="empty-state-icon">
+                  <mat-icon class="empty-icon">flag</mat-icon>
+                </div>
+                <h3 class="empty-state-title">No Milestones Added Yet</h3>
+                <p class="empty-state-text">
+                  Set milestones like "Emergency Fund", "Coast FIRE", or "Financial Freedom" to track your progress.
+                </p>
+                <button mat-stroked-button color="primary" type="button" (click)="addGoal()">
+                  <mat-icon>add</mat-icon> Add Your First Goal
+                </button>
+              </mat-card>
+
+              <!-- Goals Grid -->
+              <div *ngIf="goals.controls.length > 0" formArrayName="goals" class="goals-grid">
+                <mat-card *ngFor="let goal of goals.controls; let i = index" class="card goal-card">
+                  <div class="goal-card-header">
+                    <span class="goal-milestone-badge">#{{ i + 1 }}</span>
+                    <div class="goal-title-wrap" [matTooltip]="portfolioConfig.goals[i]?.title">
+                      <span class="goal-title">{{ portfolioConfig.goals[i]?.title }}</span>
+                      <button mat-icon-button class="action-btn rename-btn" matTooltip="Rename Goal"
+                        (click)="editGoalTitle(i)" type="button">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    </div>
+                    <button mat-icon-button class="action-btn delete-btn" color="warn" matTooltip="Delete Goal"
+                      (click)="deleteGoal(i)" type="button">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </div>
+
+                  <div class="goal-card-body">
+                    <mat-form-field class="goal-input-field">
+                      <mat-label>Target Amount</mat-label>
+                      <input matInput type="number" [formControlName]="i" min="0">
+                      <span matPrefix>{{ baseCurrencyCtl.value | currencySymbol }}&nbsp;</span>
+                      <mat-error>Please enter a positive number</mat-error>
+                    </mat-form-field>
+                  </div>
+                </mat-card>
               </div>
             </div>
-          </div>
-        </mat-tab>
+          </mat-tab>
 
-        <mat-tab label="Goals">
-          <div fxLayout="column" formArrayName="goals" class="text-content">
-            <div *ngFor="let goal of goals.controls; let i = index" fxLayout="row" fxLayoutAlign="start center">
-              <mat-form-field fxFlex>
-                <input matInput type="number" placeholder="{{portfolioConfig.goals[i].title}}" [formControlName]="i"
-                  min="0">
-                <span matPrefix>&nbsp;{{ baseCurrencyCtl.value | currencySymbol}}</span>
-                <mat-error>Please enter a positive number</mat-error>
-              </mat-form-field>
-              <button mat-icon-button matTooltip="Delete Goal" (click)="deleteGoal(i)">
-                <mat-icon aria-label="Delete Goal">clear</mat-icon>
-              </button>
+          <mat-tab label="Portfolio Allocation">
+            <div class="settings-tab-container allocation-tab">
+              <div class="allocation-layout">
+                <!-- Left Column: Summary & Debt -->
+                <div class="allocation-summary-col">
+                  <!-- Live Allocation Summary Card -->
+                  <mat-card class="card summary-card">
+                    <div class="summary-card-header">
+                      <span class="summary-label">Target Allocation</span>
+                      <div class="status-chip" [ngClass]="{
+                           'status-valid': isAllocationValid,
+                           'status-under': totalAllocation < 100,
+                           'status-over': totalAllocation > 100
+                         }">
+                        <mat-icon class="chip-icon">{{ isAllocationValid ? 'check_circle' : (totalAllocation < 100
+                            ? 'pie_chart' : 'warning' ) }}</mat-icon>
+                            <span>{{ isAllocationValid ? '100% Complete' : (totalAllocation < 100 ? remainingAllocation
+                                + '% Remaining' : (totalAllocation - 100) + '% Over Limit' ) }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Total Metric Display -->
+                    <div class="total-metric-row">
+                      <span class="total-number"
+                        [ngClass]="{'valid-color': isAllocationValid, 'warn-color': !isAllocationValid}">
+                        {{ totalAllocation }}<span class="percent-sign">%</span>
+                      </span>
+                      <span class="total-baseline">/ 100%</span>
+                    </div>
+
+                    <!-- Multi-Segment Visual Progress Bar -->
+                    <div class="multi-progress-bar-wrap">
+                      <div class="multi-progress-bar">
+                        <ng-container *ngFor="let assetType of ALL_ASSETS">
+                          <div *ngIf="getAssetAllocationPercent(assetType) > 0" class="progress-segment"
+                            [style.width.%]="getSegmentWidth(assetType)"
+                            [style.background-color]="ASSET_INFO[assetType]?.color"
+                            [matTooltip]="ASSET_TYPE_LABELS[assetType] + ': ' + getAssetAllocationPercent(assetType) + '%'">
+                          </div>
+                        </ng-container>
+                      </div>
+                    </div>
+
+                    <!-- Legend / Breakdown List -->
+                    <div class="allocation-legend">
+                      <ng-container *ngFor="let assetType of ALL_ASSETS">
+                        <div *ngIf="getAssetAllocationPercent(assetType) > 0" class="legend-item">
+                          <span class="legend-dot" [style.background-color]="ASSET_INFO[assetType]?.color"></span>
+                          <span class="legend-name">{{ ASSET_TYPE_LABELS[assetType] }}</span>
+                          <span class="legend-value">{{ getAssetAllocationPercent(assetType) }}%</span>
+                        </div>
+                      </ng-container>
+                      <div *ngIf="totalAllocation === 0" class="legend-empty">
+                        No assets allocated yet. Specify desired percentages on the right.
+                      </div>
+                    </div>
+
+                    <!-- Quick Action Buttons -->
+                    <div class="quick-actions-row">
+                      <button mat-button type="button" (click)="distributeEvenly()" class="quick-btn">
+                        <mat-icon>balance</mat-icon> Equal Split
+                      </button>
+                      <button mat-button type="button" (click)="resetAllocations()" class="quick-btn reset-btn">
+                        <mat-icon>restart_alt</mat-icon> Reset
+                      </button>
+                    </div>
+
+                    <p class="mat-error allocation-error-hint" *ngIf="portfolioAllocation.errors?.invalidAllocation">
+                      The sum of all allocations must be 100!
+                    </p>
+                  </mat-card>
+
+                  <!-- Debt Ratio Card -->
+                  <mat-card class="card debt-card">
+                    <div class="debt-header">
+                      <div class="debt-icon-wrap">
+                        <mat-icon>credit_card</mat-icon>
+                      </div>
+                      <div>
+                        <h3 class="debt-title">Target Debt Ratio</h3>
+                        <p class="debt-subtitle">Desired debt-to-assets leverage ratio</p>
+                      </div>
+                    </div>
+                    <mat-form-field class="debt-field">
+                      <mat-label>Debt to Total Assets</mat-label>
+                      <input matInput type="number" formControlName="debtToValueRatio" min="0" max="100" required>
+                      <span matSuffix>%</span>
+                      <mat-error>Please enter a value between 0 and 100</mat-error>
+                    </mat-form-field>
+                  </mat-card>
+                </div>
+
+                <!-- Right Column: Asset Allocation Cards Grid -->
+                <div class="allocation-inputs-col" formGroupName="portfolioAllocation">
+                  <div class="inputs-header">
+                    <h3 class="inputs-title">Asset Class Targets</h3>
+                    <span class="inputs-hint">Set percentage for each asset class (0 - 100%)</span>
+                  </div>
+
+                  <div class="asset-cards-grid">
+                    <mat-card *ngFor="let assetType of ALL_ASSETS" class="card asset-tile-card">
+                      <div class="tile-top-row">
+                        <div class="tile-identity">
+                          <div class="tile-icon-box" [style.background-color]="ASSET_INFO[assetType]?.color + '1a'"
+                            [style.color]="ASSET_INFO[assetType]?.color">
+                            <mat-icon *ngIf="ASSET_INFO[assetType]?.icon">{{ ASSET_INFO[assetType]?.icon }}</mat-icon>
+                            <mat-icon *ngIf="ASSET_INFO[assetType]?.svgIcon"
+                              [svgIcon]="ASSET_INFO[assetType]?.svgIcon"></mat-icon>
+                          </div>
+                          <div class="tile-meta">
+                            <span class="tile-name">{{ ASSET_TYPE_LABELS[assetType] }}</span>
+                            <span class="tile-desc">{{ ASSET_INFO[assetType]?.description }}</span>
+                          </div>
+                        </div>
+
+                        <div class="tile-input-box">
+                          <mat-form-field class="asset-input-field">
+                            <input matInput type="number" [formControlName]="assetType" min="0" max="100" required>
+                            <span matSuffix>%</span>
+                            <mat-error>0-100</mat-error>
+                          </mat-form-field>
+                        </div>
+                      </div>
+
+                      <!-- Mini progress track inside card -->
+                      <div class="tile-progress-track">
+                        <div class="tile-progress-fill" [style.width.%]="getAssetAllocationPercent(assetType)"
+                          [style.background-color]="ASSET_INFO[assetType]?.color">
+                        </div>
+                      </div>
+                    </mat-card>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          </mat-tab>
 
-          <div class="fab-bottom-right">
-            <button mat-fab matTooltip="Add Goal" color="primary" (click)="addGoal()">
-              <mat-icon aria-label="Add Goal">add</mat-icon>
-            </button>
-          </div>
-        </mat-tab>
-
-        <mat-tab label="Portfolio Allocation">
-          <div fxLayout="column" class="text-content">
-            <ng-container formGroupName="portfolioAllocation">
-              <h2>Desired allocation</h2>
-              <mat-form-field *ngFor="let assetType of ALL_ASSETS">
-                <input matInput type="number" [placeholder]="ASSET_TYPE_LABELS[assetType]" [formControlName]="assetType"
-                  min="0" max="100" required>
-                <span matPrefix>%&nbsp;</span>
-                <mat-error>Please enter a value between 0 and 100</mat-error>
-              </mat-form-field>
-              <p class="mat-error" *ngIf="portfolioAllocation.errors?.invalidAllocation">The sum of all allocations must
-                be 100!</p>
-            </ng-container>
-
-            <h2>Debt</h2>
-            <mat-form-field>
-              <input matInput type="number" placeholder="Desired debt to total assets value ratio"
-                formControlName="debtToValueRatio" min="0" max="100" required>
-              <span matPrefix>%&nbsp;</span>
-              <mat-error>Please enter a value between 0 and 100</mat-error>
-            </mat-form-field>
-          </div>
-        </mat-tab>
-        <mat-tab label="Labels">
-          <div class="text-content">
-            <app-labels-settings></app-labels-settings>
-          </div>
-        </mat-tab>
-      </mat-tab-group>
+          <mat-tab label="Labels">
+            <div class="settings-tab-container labels-tab">
+              <app-labels-settings></app-labels-settings>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
     </div>
   </form>
   <input #importFileInput type="file" (change)="importAppDataFromFile($event)" style="display:none;" />
 </div>
 
-<div *ngIf="!dataLoaded" class="page-content" fxLayoutAlign="center center" fxLayout="column">
+<div *ngIf="!dataLoaded" class="page-content portfolio-page-content" fxLayoutAlign="center center" fxLayout="column">
   <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
 </div>

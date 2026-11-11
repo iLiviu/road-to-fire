@@ -7,7 +7,7 @@ import { debounce } from 'src/app/shared/decorators/debounce.decorator';
 import { EventsService, AppEvent, AppEventType } from 'src/app/core/services/events.service';
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { PortfolioService } from '../../services/portfolio.service';
-import { AssetType } from '../../models/asset';
+import { ASSET_ICONS, AssetType } from '../../models/asset';
 import { AssetsComponent } from '../../components/assets/assets.component';
 import { AssetOverview } from '../../models/asset-overview';
 import { Transaction, TransactionType } from '../../models/transaction';
@@ -67,6 +67,7 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
   transactionsLoaded = false;
 
   readonly AssetType = AssetType;
+  readonly ASSET_ICONS = ASSET_ICONS;
 
   private currentAccountId: number;
   @ViewChild('transactionsList') private readonly transactionsList: TransactionsListComponent;
@@ -337,6 +338,10 @@ export class AccountComponent extends AssetsComponent implements OnInit, OnDestr
       this.allTransactions = [];
       this.transactionsLoaded = false;
       this.allTransactions = await this.portfolioService.getAccountTransactions(accId);
+      const requiredCurrencies: string[] = [];
+      this.allTransactions.forEach(tx => requiredCurrencies.push(tx.asset.currency));
+      await this.updateForexRates(requiredCurrencies);
+
       this.filterTransactions();
     } catch (err) {
       this.logger.error('An error occurred while loading account transactions!', err);

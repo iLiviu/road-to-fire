@@ -1,5 +1,98 @@
 @import '../../components/assets/assets.component.scss';
 
+/* Desktop Add Asset button in toolbar */
+.desktop-action-btn {
+  display: inline-flex !important;
+  align-items: center;
+  margin-right: 4px;
+
+  mat-icon {
+    margin-right: 4px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  @media (max-width: 600px) {
+    display: none !important;
+  }
+}
+
+/* Hero Section (Total Account Value Card) */
+.hero-total-card {
+  margin-bottom: 20px;
+
+  :host ::ng-deep & {
+    .card {
+      margin: 0;
+      border-radius: 8px;
+      border-left: 5px solid var(--rf-primary);
+      box-shadow: var(--rf-shadow-md);
+
+      mat-card-title {
+        font-size: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--rf-primary);
+        margin-bottom: 12px;
+      }
+    }
+  }
+}
+
+/* Responsive Grid for Asset Categories */
+.asset-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1080px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  :host ::ng-deep & {
+    app-tradeable-asset-sum-card,
+    app-cash-balances-card {
+      display: flex;
+      flex-direction: column;
+
+      .card {
+        margin: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+        border-radius: 8px;
+        box-shadow: var(--rf-shadow-sm);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+        &:hover {
+          box-shadow: var(--rf-shadow-hover);
+        }
+
+        mat-card-title {
+          font-size: 15px;
+          font-weight: 600;
+          opacity: 0.85;
+          margin-bottom: 10px;
+        }
+
+        mat-card-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+      }
+    }
+  }
+}
 
 .bottom-space {
   height: 70px;

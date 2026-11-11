@@ -1,54 +1,138 @@
 <form [formGroup]="assetForm">
-  <app-edit-dialog [form]="assetForm" title="Transfer from {{data.sourceAsset.description}}"
-    (close)="dialogClosed($event)">
-    <div class="text-content" fxLayout="column">
-      <mat-form-field *ngIf="!fullAssetTransfer">
-        <input matInput type="number" placeholder="Amount to transfer" required formControlName="amount">
-        <span matPrefix
-          *ngIf="cashOrDebtTransfer">{{data.sourceAsset.currency | currencySymbol}}</span>
-        <mat-error>Amount must be between 0 and {{maxAmount - (fee.value * (1 - debtFlag)) | number}}</mat-error>
-      </mat-form-field>
+  <app-edit-dialog [form]="assetForm" [title]="dialogTitle" (close)="dialogClosed($event)" #editDialog>
+    <div [ngClass]="{ 'handset': editDialog.isHandset }" class="trade-dialog-container">
+      <div class="single-tab-content">
+        <div [formGroup]="assetForm" class="form-layout">
 
-      <mat-form-field>
-        <mat-select placeholder="Destination Account" formControlName="destinationAccount" required>
-          <mat-option *ngFor="let account of data.accounts" [value]="account">
-            {{account.description}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+          <!-- Context Pill showing source account & balance/position -->
+          <div class="position-info-pill" *ngIf="data.sourceAsset">
+            <mat-icon class="pill-icon">{{ pillIcon }}</mat-icon>
+            <span class="pill-text">
+              From: <strong>{{ data.sourceAccount?.description }}</strong>
+              <ng-container *ngIf="cashOrDebtTransfer">
+                &bull; Balance: <strong>{{ data.sourceAsset.amount | currency: data.sourceAsset.currency }}</strong>
+              </ng-container>
+              <ng-container *ngIf="!cashOrDebtTransfer">
+                &bull; Available: <strong>{{ maxAmount }}</strong> units
+              </ng-container>
+            </span>
+          </div>
 
-      <mat-form-field *ngIf="cashOrDebtTransfer">
-        <mat-select placeholder="Destination cash sub-account" formControlName="destinationAsset" required>
-          <mat-option *ngFor="let asset of destinationCashAssets" [value]="asset">
-            {{asset.description}}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="destinationCashAssets.length === 0">This account has no {{data.sourceAsset.currency}} cash
-          accounts</mat-error>
-      </mat-form-field>
+          <!-- Section: Transfer Details -->
+          <section class="form-section">
 
-      <mat-form-field *ngIf="cashOrDebtTransfer">
-        <input matInput type="number" placeholder="Fee" formControlName="fee">
-        <span matPrefix>{{ data.sourceAsset.currency | currencySymbol }}</span>
-        <mat-error>Fee must be positive</mat-error>
-      </mat-form-field>
+            <!-- Cash or Debt Transfer: Amount & Fee in same row on desktop -->
+            <div class="form-row" *ngIf="cashOrDebtTransfer">
+              <mat-form-field class="form-col" *ngIf="!fullAssetTransfer">
+                <input matInput type="number" placeholder="Amount to transfer" required formControlName="amount">
+                <span matPrefix>{{ data.sourceAsset.currency | currencySymbol }}&nbsp;</span>
+                <mat-error>Amount must be between 0 and {{ maxAmount - (fee.value * (1 - debtFlag)) | number }}</mat-error>
+              </mat-form-field>
 
-      <mat-form-field>
-        <input matInput type="text" placeholder="Transaction Description" formControlName="description">
-      </mat-form-field>
+              <mat-form-field class="form-col">
+                <input matInput type="number" placeholder="Fee" formControlName="fee">
+                <span matPrefix>{{ data.sourceAsset.currency | currencySymbol }}&nbsp;</span>
+                <mat-error>Fee must be positive</mat-error>
+              </mat-form-field>
+            </div>
 
-      <mat-form-field>
-        <input matInput [max]="todayDate" [matDatepicker]="datepicker" required placeholder="Transaction Date"
-          formControlName="transactionDate">
-        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
-        <mat-datepicker #datepicker></mat-datepicker>
-        <mat-error>Transaction date can't be in the future</mat-error>
-      </mat-form-field>
+            <!-- Cash or Debt Transfer: Destination Account & Destination Cash Sub-Account in same row on desktop -->
+            <div class="form-row" *ngIf="cashOrDebtTransfer">
+              <mat-form-field class="form-col">
+                <mat-select placeholder="Destination Account" formControlName="destinationAccount" required>
+                  <mat-option *ngFor="let account of data.accounts" [value]="account">
+                    {{ account.description }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
 
-      <mat-checkbox  *ngIf="data.sourceAsset.type === AssetType.Cash" formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
-      <mat-card [hidden]="!enableRecurringTransaction.value">
-        <app-recurring-transaction-input [form]="assetForm" #recurringTransaction></app-recurring-transaction-input>
-      </mat-card>
+              <mat-form-field class="form-col">
+                <mat-select placeholder="Destination cash sub-account" formControlName="destinationAsset" required>
+                  <mat-option *ngFor="let asset of destinationCashAssets" [value]="asset">
+                    {{ asset.description }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="destinationCashAssets.length === 0">
+                  This account has no {{ data.sourceAsset.currency }} cash accounts
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <!-- Non-Cash / Tradeable Transfer: Amount & Destination Account in same row (or full-width if full transfer) -->
+            <div class="form-row" *ngIf="!cashOrDebtTransfer">
+              <mat-form-field class="form-col" *ngIf="!fullAssetTransfer">
+                <input matInput type="number" placeholder="Units to transfer" required formControlName="amount">
+                <mat-error>Amount must be between 0 and {{ maxAmount | number }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field [ngClass]="fullAssetTransfer ? 'form-col-full' : 'form-col'">
+                <mat-select placeholder="Destination Account" formControlName="destinationAccount" required>
+                  <mat-option *ngFor="let account of data.accounts" [value]="account">
+                    {{ account.description }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <!-- Description & Transaction Date in same row on desktop -->
+            <div class="form-row">
+              <mat-form-field class="form-col">
+                <input matInput type="text" placeholder="Transaction Description" formControlName="description">
+              </mat-form-field>
+
+              <mat-form-field class="form-col">
+                <input matInput [max]="todayDate" [matDatepicker]="datepicker" required placeholder="Transaction Date"
+                  formControlName="transactionDate">
+                <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+                <mat-datepicker #datepicker></mat-datepicker>
+                <mat-error>Transaction date can't be in the future</mat-error>
+              </mat-form-field>
+            </div>
+          </section>
+
+          <!-- Section: Recurring Transaction (Cash only) -->
+          <section class="form-section recurring-section" *ngIf="data.sourceAsset.type === AssetType.Cash">
+            <mat-checkbox formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
+            <mat-card [hidden]="!enableRecurringTransaction.value" class="recurring-card">
+              <app-recurring-transaction-input [form]="assetForm"
+                #recurringTransaction></app-recurring-transaction-input>
+            </mat-card>
+          </section>
+
+          <!-- Section: Summary Card -->
+          <section class="summary-section">
+            <div class="order-summary-card">
+              <div class="summary-row">
+                <div class="summary-breakdown">
+                  <span class="summary-item">
+                    <span class="summary-label">Transfer:</span>
+                    <span class="summary-value" *ngIf="cashOrDebtTransfer">{{ grossAmount | currency: data.sourceAsset.currency }}</span>
+                    <span class="summary-value" *ngIf="!cashOrDebtTransfer">{{ grossAmount }} units</span>
+                  </span>
+                  <span class="summary-item" *ngIf="cashOrDebtTransfer && fee?.value">
+                    <span class="summary-label">Fee:</span>
+                    <span class="summary-value">{{ (fee.value || 0) | currency: data.sourceAsset.currency }}</span>
+                  </span>
+                  <span class="summary-item" *ngIf="destinationAccount?.value">
+                    <span class="summary-label">To:</span>
+                    <span class="summary-value">{{ destinationAccount.value.description }}</span>
+                  </span>
+                </div>
+
+                <div class="summary-total" *ngIf="cashOrDebtTransfer">
+                  <span class="summary-total-label">Total Outflow:</span>
+                  <span class="summary-total-value">{{ totalTransferValue | currency: data.sourceAsset.currency }}</span>
+                </div>
+                <div class="summary-total" *ngIf="!cashOrDebtTransfer">
+                  <span class="summary-total-label">Total Transfer:</span>
+                  <span class="summary-total-value">{{ grossAmount }} units</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
     </div>
   </app-edit-dialog>
 </form>

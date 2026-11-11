@@ -1,58 +1,121 @@
 <form [formGroup]="assetForm">
-  <app-edit-dialog [form]="assetForm" title="{{paymentTypeStr | titlecase}} from {{asset.description}}"
-    (close)="dialogClosed($event)">
-    <div class="text-content" fxLayout="column">
-      <mat-form-field>
-        <mat-select placeholder="Cash account" formControlName="cashAsset" required>
-          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
-            {{asset.description}} ({{asset.amount | currency:asset.currency}})
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+  <app-edit-dialog [form]="assetForm" [title]="dialogTitle" (close)="dialogClosed($event)" #editDialog>
+    <div [ngClass]="{ 'handset': editDialog.isHandset }" class="trade-dialog-container">
+      <div class="single-tab-content">
+        <div [formGroup]="assetForm" class="form-layout">
 
-      <mat-form-field *ngIf="!isRentable">
-        <input matInput type="number" placeholder="Amount" formControlName="amount" required>
-        <mat-error *ngIf="amount.errors?.min">Value must be greater than 0</mat-error>
-        <mat-error *ngIf="amount.errors?.invalidInt">Value must be an integer value</mat-error>
-      </mat-form-field>
+          <!-- Context Pill if payer asset has position -->
+          <div class="position-info-pill" *ngIf="!isRentable && asset?.amount">
+            <mat-icon class="pill-icon">inventory_2</mat-icon>
+            <span class="pill-text">
+              Position: <strong>{{ asset.amount }}</strong> units
+            </span>
+          </div>
 
-      <mat-form-field>
-        <span matPrefix>@ {{assetCurrency | currencySymbol}}</span>
-        <input matInput type="number" placeholder="{{paymentTypeStr | titlecase}} value" formControlName="dividend"
-          required>
-        <mat-error>Value must be positive</mat-error>
-      </mat-form-field>
+          <!-- Section: Payment Details -->
+          <section class="form-section">
 
-      <mat-form-field>
-        <input matInput type="number" placeholder="Fee" formControlName="fee">
-        <span matPrefix>{{ assetCurrency | currencySymbol }}</span>
-        <mat-error>Fee must be positive</mat-error>
-      </mat-form-field>
+            <!-- Amount, Value & Fee in same row on desktop -->
+            <div class="form-row">
+              <mat-form-field *ngIf="!isRentable" class="form-col-3">
+                <input matInput type="number" placeholder="Amount" formControlName="amount" required>
+                <mat-error *ngIf="amount.errors?.min">Value must be greater than 0</mat-error>
+                <mat-error *ngIf="amount.errors?.invalidInt">Value must be an integer value</mat-error>
+              </mat-form-field>
 
-      <mat-checkbox formControlName="withholdTax">Withhold {{paymentTypeStr}} tax</mat-checkbox>
-      <mat-form-field *ngIf="withholdTax.value">
-        <input matInput type="number" placeholder="Tax rate" formControlName="taxRate">
-        <span matSuffix>%</span>
-        <mat-error>Value must be a number between 0 and 100</mat-error>
-      </mat-form-field>
+              <mat-form-field [ngClass]="isRentable ? 'form-col' : 'form-col-3'">
+                <span matPrefix>@ {{assetCurrency | currencySymbol}}&nbsp;</span>
+                <input matInput type="number" placeholder="{{paymentTypeStr | titlecase}} value"
+                  formControlName="dividend" required>
+                <mat-error>Value must be positive</mat-error>
+              </mat-form-field>
 
-      <mat-checkbox *ngIf="!dividendTx.id" formControlName="updateCashAssetBalance">
-        Automatically credit the cash account with {{(amount.value * dividend.value *
-      (withholdTax.value? (100 - taxRate.value) / 100 : 1)  - fee.value) | currency: assetCurrency}}
-      </mat-checkbox>
+              <mat-form-field [ngClass]="isRentable ? 'form-col' : 'form-col-3'">
+                <input matInput type="number" placeholder="Fee" formControlName="fee">
+                <span matPrefix>{{ assetCurrency | currencySymbol }}&nbsp;</span>
+                <mat-error>Fee must be positive</mat-error>
+              </mat-form-field>
+            </div>
 
-      <mat-form-field>
-        <input matInput [matDatepicker]="datepicker" required placeholder="Transaction Date"
-          formControlName="transactionDate" (dateInput)="onTxDateChanged()">
-        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
-        <mat-datepicker #datepicker></mat-datepicker>
-        <mat-hint *ngIf="isScheduledTx">Transaction will be scheduled</mat-hint>
-      </mat-form-field>
+            <!-- Cash Account & Transaction Date in same row on desktop -->
+            <div class="form-row">
+              <mat-form-field class="form-col">
+                <mat-select placeholder="Cash account" formControlName="cashAsset" required>
+                  <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                    {{asset.description}} ({{asset.amount | currency:asset.currency}})
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
 
-      <mat-checkbox formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
-      <mat-card [hidden]="!enableRecurringTransaction.value">
-        <app-recurring-transaction-input [form]="assetForm" #recurringTransaction></app-recurring-transaction-input>
-      </mat-card>
+              <mat-form-field class="form-col">
+                <input matInput [matDatepicker]="datepicker" required placeholder="Transaction Date"
+                  formControlName="transactionDate" (dateInput)="onTxDateChanged()" (dateChange)="onTxDateChanged()">
+                <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+                <mat-datepicker #datepicker></mat-datepicker>
+                <mat-hint *ngIf="isScheduledTx">Transaction will be scheduled</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <!-- Tax Withholding -->
+            <div class="form-row">
+              <div class="form-col tax-col" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="12px">
+                <mat-checkbox formControlName="withholdTax">Withhold {{paymentTypeStr}} tax</mat-checkbox>
+                <mat-form-field class="compact-tax-field" [style.visibility]="withholdTax.value ? 'visible' : 'hidden'"
+                  [attr.aria-hidden]="!withholdTax.value">
+                  <input matInput type="number" placeholder="Tax rate" formControlName="taxRate">
+                  <span matSuffix>%</span>
+                  <mat-error>0 to 100</mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+          </section>
+
+
+
+          <!-- Section: Recurring Transaction -->
+          <div class="recurring-section">
+            <mat-checkbox formControlName="enableRecurringTransaction">Recurring transaction</mat-checkbox>
+            <mat-card [hidden]="!enableRecurringTransaction.value" class="recurring-card">
+              <app-recurring-transaction-input [form]="assetForm"
+                #recurringTransaction></app-recurring-transaction-input>
+            </mat-card>
+          </div>
+
+          <!-- Section: Settlement & Summary Card -->
+          <section class="summary-section">
+            <div class="order-summary-card">
+              <div class="summary-row">
+                <div class="summary-breakdown">
+                  <span class="summary-item">
+                    <span class="summary-label">Gross:</span>
+                    <span class="summary-value">{{ grossDividendValue | currency: assetCurrency }}</span>
+                  </span>
+                  <span class="summary-item" *ngIf="withholdTax.value && taxAmount">
+                    <span class="summary-label">Tax:</span>
+                    <span class="summary-value">{{ taxAmount | currency: assetCurrency }}</span>
+                  </span>
+                  <span class="summary-item" *ngIf="fee.value">
+                    <span class="summary-label">Fee:</span>
+                    <span class="summary-value">{{ (fee.value || 0) | currency: assetCurrency }}</span>
+                  </span>
+                </div>
+
+                <div class="summary-total">
+                  <span class="summary-total-label">Total Proceeds:</span>
+                  <span class="summary-total-value">{{ totalDividendValue | currency: assetCurrency }}</span>
+                </div>
+              </div>
+
+              <div class="settlement-toggle" *ngIf="!dividendTx.id">
+                <mat-checkbox formControlName="updateCashAssetBalance">
+                  Auto-credit cash account with <strong>{{ totalDividendValue | currency: assetCurrency }}</strong>
+                </mat-checkbox>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
     </div>
   </app-edit-dialog>
 </form>

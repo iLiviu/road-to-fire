@@ -7,8 +7,9 @@
   </mat-toolbar-row>
 </mat-toolbar>
 
-<div class="page-content" fxLayout="column">
-  <div fxFlex>
+<div class="page-content portfolio-page-content" fxLayout="column">
+  <div class="portfolio-page-wrapper">
+    <div fxFlex>
     <mat-vertical-stepper linear labelPosition="bottom">
       <mat-step label="Welcome">
         <p>{{APP_CONSTS.TITLE}} lets you keep track of your financial assets. It's aimed at passive investors, who
@@ -156,9 +157,9 @@
 
     </mat-vertical-stepper>
   </div>
-  <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">
-    <div><a [routerLink]="['/privacy']">Privacy</a></div>
-    <div><a [routerLink]="['/about']">About</a></div>
+    <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px" style="padding: 16px 0;">
+      <div><a [routerLink]="['/privacy']">Privacy</a></div>
+      <div><a [routerLink]="['/about']">About</a></div>
+    </div>
   </div>
-
 </div>

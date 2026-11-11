@@ -2,10 +2,11 @@
 
 
   <mat-sidenav #drawer role="navigation" class="sidenav" fixedInViewport="true" [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-    [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false" [autoFocus]="false">
+    [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false" [autoFocus]="false"
+    (mouseenter)="onSidenavMouseEnter()" (mouseleave)="onSidenavMouseLeave()">
     <div fxLayout="column" fxFlexFill>
       <mat-nav-list fxFlex>
-        <app-menu-list-item *ngFor="let item of navItems" [item]="item"></app-menu-list-item>
+        <app-menu-list-item *ngFor="let item of navItems" [item]="item" (itemExpanded)="onMenuItemExpanded($event)"></app-menu-list-item>
         <mat-divider></mat-divider>
         <a mat-list-item class="level0" *ngIf="canInstallApp" (click)="installApp()">
           <mat-icon class="routeIcon">get_app</mat-icon>

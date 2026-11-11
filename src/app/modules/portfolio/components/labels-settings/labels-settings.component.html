@@ -1,59 +1,83 @@
-<div class="labels-container flex flex-col gap-4 max-w-2xl px-4 py-8">
-  <div class="flex flex-row justify-between items-center mb-4">
-    <h2 class="mat-h2 m-0 text-color">Labels Management</h2>
-    <div class="flex-grow"></div>
+<div class="labels-settings-wrapper">
+  <!-- Top Header with title, subtitle, and Add Category button -->
+  <div class="tab-section-header">
+    <div class="header-titles">
+      <h2 class="section-heading">Labels Management</h2>
+      <p class="section-subheading">Organize and tag your assets and transactions by custom strategies or categories</p>
+    </div>
+    <button mat-raised-button color="primary" type="button" (click)="addCategory()" class="add-category-btn">
+      <mat-icon>add</mat-icon>
+      <span>Add Category</span>
+    </button>
   </div>
 
-  <mat-accordion multi="true">
-    <mat-expansion-panel *ngFor="let category of categories">
+  <!-- Empty state when no categories exist -->
+  <mat-card *ngIf="categories.length === 0" class="card empty-state-card">
+    <div class="empty-state-icon">
+      <mat-icon class="empty-icon">label</mat-icon>
+    </div>
+    <h3 class="empty-state-title">No Categories Defined Yet</h3>
+    <p class="empty-state-text">
+      Create label categories (e.g. "Tax Status", "Investment Horizon", "Strategy") to group and filter your assets.
+    </p>
+    <button mat-stroked-button color="primary" type="button" (click)="addCategory()">
+      <mat-icon>add</mat-icon> Add Your First Category
+    </button>
+  </mat-card>
+
+  <!-- Categories Accordion / Cards List -->
+  <mat-accordion multi="true" class="categories-accordion" *ngIf="categories.length > 0">
+    <mat-expansion-panel *ngFor="let category of categories" class="category-panel card">
       <mat-expansion-panel-header>
-        <mat-panel-title class="flex-grow justify-between items-center pr-2">
-          <span>{{ category.name }}</span>
-          <div class="actions flex items-center">
-            <button mat-icon-button (click)="$event.stopPropagation(); editCategory(category)">
+        <mat-panel-title class="category-panel-title">
+          <div class="category-info">
+            <span class="category-name">{{ category.name }}</span>
+            <span class="category-count-badge">
+              {{ (labelsByCategory[category.id]?.length || 0) }} {{ (labelsByCategory[category.id]?.length === 1 ? 'label' : 'labels') }}
+            </span>
+          </div>
+
+          <!-- Actions: Stop propagation so clicking edit/delete does NOT toggle expansion -->
+          <div class="category-actions" (click)="$event.stopPropagation()">
+            <button mat-icon-button class="action-btn rename-btn" matTooltip="Rename Category" (click)="editCategory(category)" type="button">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="$event.stopPropagation(); deleteCategory(category)">
-              <mat-icon>delete</mat-icon>
+            <button mat-icon-button class="action-btn delete-btn" color="warn" matTooltip="Delete Category" (click)="deleteCategory(category)" type="button">
+              <mat-icon>delete_outline</mat-icon>
             </button>
           </div>
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <div class="labels-list flex flex-col gap-2 mt-2">
-        <div class="flex flex-row justify-end mb-2">
-          <button mat-button color="primary" (click)="addLabel(category)">
-            <mat-icon>add</mat-icon>
-            Add Label
-          </button>
-        </div>
-        <mat-list>
-          <mat-list-item *ngFor="let label of labelsByCategory[category.id]"
-            class="group hover:bg-black/5 dark:hover:bg-white/5 cursor-default transition-colors rounded-sm">
-            <span class="flex-grow text-color">{{ label.name }}</span>
-            <div class="actions flex ml-auto">
-              <button mat-icon-button (click)="editLabel(label)">
+      <!-- Panel Body: Labels inside this category -->
+      <div class="category-body">
+        <!-- Labels Chips / Tag Cloud -->
+        <div class="labels-chips-wrap">
+          <div *ngFor="let label of labelsByCategory[category.id]" class="label-chip">
+            <mat-icon class="chip-lead-icon">label</mat-icon>
+            <span class="chip-label-name" [title]="label.name">{{ label.name }}</span>
+            <div class="chip-actions">
+              <button type="button" class="chip-btn edit-chip-btn" matTooltip="Edit Label" (click)="editLabel(label)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" (click)="deleteLabel(label)">
-                <mat-icon>delete</mat-icon>
+              <button type="button" class="chip-btn delete-chip-btn" matTooltip="Delete Label" (click)="deleteLabel(label)">
+                <mat-icon>close</mat-icon>
               </button>
             </div>
-          </mat-list-item>
-          <p *ngIf="labelsByCategory[category.id]?.length === 0" class="text-sm text-gray-500 italic p-4 text-center">
-            No labels in this category.
-          </p>
-        </mat-list>
+          </div>
+
+          <!-- Quick Inline Add Label Button -->
+          <button type="button" class="add-label-chip-btn" (click)="addLabel(category)">
+            <mat-icon>add</mat-icon>
+            <span>Add Label</span>
+          </button>
+        </div>
+
+        <!-- Empty category note if 0 labels -->
+        <div *ngIf="labelsByCategory[category.id]?.length === 0" class="empty-category-hint">
+          <span>No labels in this category yet. Click <strong>"Add Label"</strong> above to create one.</span>
+        </div>
       </div>
     </mat-expansion-panel>
   </mat-accordion>
-
-  <div *ngIf="categories.length === 0" class="text-center p-8 text-color-secondary italic">
-    No categories defined yet. Start by creating a new category.
-  </div>
-</div>
-<div class="fab-bottom-right">
-  <button mat-fab matTooltip="Add Category" color="primary" (click)="addCategory()">
-    <mat-icon aria-label="Add Category">add</mat-icon>
-  </button>
 </div>

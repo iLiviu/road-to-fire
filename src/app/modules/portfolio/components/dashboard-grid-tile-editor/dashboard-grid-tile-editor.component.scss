@@ -62,7 +62,7 @@
 
 .desktop-header {
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  border-bottom: 1px solid var(--rf-border);
   margin-bottom: 12px;
 }
 
@@ -103,7 +103,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(128, 128, 128, 0.08);
+  background: var(--rf-surface-subtle);
   border-radius: 6px;
   padding: 0 10px;
   height: 38px;
@@ -112,8 +112,8 @@
   transition: background 0.2s, box-shadow 0.2s;
 
   &:focus-within {
-    background: rgba(128, 128, 128, 0.12);
-    box-shadow: 0 0 0 1px rgba(3, 169, 244, 0.5);
+    background: var(--rf-surface-muted);
+    box-shadow: 0 0 0 1px var(--rf-primary-border);
   }
 
   .search-icon {
@@ -165,8 +165,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(76, 175, 80, 0.12);
-  color: #2e7d32;
+  background: var(--rf-positive-bg);
+  color: var(--rf-positive);
   padding: 4px 10px;
   border-radius: 16px;
   font-size: 12px;
@@ -196,8 +196,8 @@
 
 /* Category Group Box (Contains items visually with distinct padding & border) */
 .category-group-box {
-  background: rgba(128, 128, 128, 0.04);
-  border: 1px solid rgba(128, 128, 128, 0.16);
+  background: var(--rf-surface-subtle);
+  border: 1px solid var(--rf-border);
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
@@ -218,7 +218,7 @@
   justify-content: space-between;
   margin-bottom: 10px;
   padding-bottom: 6px;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+  border-bottom: 1px solid var(--rf-border-subtle);
 }
 
 .category-title-group {
@@ -233,7 +233,7 @@
   font-size: 18px;
   width: 18px;
   height: 18px;
-  color: #0288d1;
+  color: var(--rf-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -295,8 +295,8 @@
   flex-wrap: nowrap !important;
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid rgba(128, 128, 128, 0.15);
-  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--rf-border);
+  background: var(--rf-surface-subtle);
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
   user-select: none;
@@ -307,13 +307,13 @@
   overflow: hidden;
 
   &:hover {
-    border-color: rgba(3, 169, 244, 0.4);
-    background: rgba(3, 169, 244, 0.04);
+    border-color: var(--rf-primary-border);
+    background: var(--rf-primary-hover);
   }
 
   &.active {
-    border-color: rgba(3, 169, 244, 0.4);
-    background: rgba(3, 169, 244, 0.08);
+    border-color: var(--rf-primary-border);
+    background: var(--rf-primary-bg);
   }
 }
 
@@ -335,13 +335,13 @@
   height: 20px;
   line-height: 20px;
   flex-shrink: 0;
-  color: #757575;
+  color: var(--rf-text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   &.active-icon {
-    color: #0288d1;
+    color: var(--rf-primary);
   }
 }
 
@@ -392,7 +392,7 @@ mat-slide-toggle {
 .dialog-actions {
   padding: 10px 0 0 !important;
   margin: 0 !important;
-  border-top: 1px solid rgba(128, 128, 128, 0.15);
+  border-top: 1px solid var(--rf-border-strong);
 }
 
 .actions-wrapper {
@@ -419,52 +419,4 @@ mat-slide-toggle {
 .done-btn {
   padding: 0 24px;
   font-weight: 600;
-}
-
-/* Dark Theme Adjustments */
-:host-context(.dark-theme) {
-  .active-badge {
-    background: rgba(76, 175, 80, 0.2);
-    color: #81c784;
-  }
-
-  .category-group-box {
-    background: rgba(255, 255, 255, 0.02);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  .tile-row {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.08);
-
-    &:hover {
-      border-color: rgba(3, 169, 244, 0.5);
-      background: rgba(3, 169, 244, 0.08);
-    }
-
-    &.active {
-      border-color: rgba(3, 169, 244, 0.5);
-      background: rgba(3, 169, 244, 0.12);
-    }
-  }
-
-  .tile-icon {
-    color: #9e9e9e;
-
-    &.active-icon {
-      color: #81d4fa;
-    }
-  }
-
-  .category-icon {
-    color: #81d4fa;
-  }
-
-  .search-box {
-    background: rgba(255, 255, 255, 0.06);
-
-    &:focus-within {
-      background: rgba(255, 255, 255, 0.1);
-    }
-  }
 }

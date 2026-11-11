@@ -1,63 +1,121 @@
 <form [formGroup]="assetForm">
-  <app-edit-dialog [form]="assetForm" title="Exchange" (close)="dialogClosed($event)">
-    <div class="text-content" fxLayout="column">
-      <mat-form-field *ngIf="!data.sourceAsset">
-        <mat-select placeholder="Source Account" formControlName="sourceAsset" required>
-          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
-            {{asset.description}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-select placeholder="Destination Account" formControlName="destinationAsset" required>
-          <mat-option *ngFor="let asset of cashAssets" [value]="asset">
-            {{asset.description}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput type="number" placeholder="Exchange Amount" required formControlName="amount">
-        <span matPrefix>{{data.sourceAsset.currency | currencySymbol}}</span>
-        <mat-error>
-          Amount must be between 0 and {{data.sourceAsset.amount - fee.value * (1 - debtFlag) | number}}
-        </mat-error>
+  <app-edit-dialog [form]="assetForm" [title]="dialogTitle" (close)="dialogClosed($event)" #editDialog>
+    <div [ngClass]="{ 'handset': editDialog.isHandset }" class="trade-dialog-container">
+      <div class="single-tab-content">
+        <div [formGroup]="assetForm" class="form-layout">
 
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput type="number" placeholder="Exchange rate" required formControlName="rate">
-        <mat-error>Rate must be positive</mat-error>
-      </mat-form-field>
+          <!-- Context Pill showing source asset balance -->
+          <div class="position-info-pill" *ngIf="data.sourceAsset">
+            <mat-icon class="pill-icon">account_balance_wallet</mat-icon>
+            <span class="pill-text">
+              {{ data.sourceAsset.description }}: <strong>{{ data.sourceAsset.amount | currency:
+                data.sourceAsset.currency }}</strong>
+            </span>
+          </div>
 
-      <mat-form-field>
-        <input matInput type="number" placeholder="Fee" formControlName="fee">
-        <span matPrefix>{{ data.sourceAsset.currency | currencySymbol }}</span>
-        <mat-error>Fee must be positive</mat-error>
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput type="text" placeholder="Transaction Description" formControlName="description">
-      </mat-form-field>
+          <!-- Section: Exchange Details -->
+          <section class="form-section">
 
-      <mat-form-field>
-        <input matInput [max]="todayDate" [matDatepicker]="datepicker" placeholder="Transaction Date"
-          formControlName="transactionDate" required>
-        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
-        <mat-datepicker #datepicker></mat-datepicker>
-        <mat-error>Transaction date can't be in the future</mat-error>
-      </mat-form-field>
-      <div>
-        <mat-checkbox formControlName="updateCashBalances" (change)="updateCashBalancesToggled()">Update cash
-          balances</mat-checkbox>
+            <div class="form-row">
+              <mat-form-field *ngIf="!data.sourceAsset" class="form-col">
+                <mat-select placeholder="Source Account" formControlName="sourceAsset" required>
+                  <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                    {{asset.description}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field class="form-col">
+                <mat-select placeholder="Destination Account" formControlName="destinationAsset" required>
+                  <mat-option *ngFor="let asset of cashAssets" [value]="asset">
+                    {{asset.description}} ({{asset.amount | currency:asset.currency}})
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+            </div>
+
+            <!-- Amount, Rate & Fee in same row on desktop (form-col-3) -->
+            <div class="form-row">
+              <mat-form-field class="form-col-3">
+                <input matInput type="number" placeholder="Exchange Amount" required formControlName="amount">
+                <span matPrefix>{{data.sourceAsset.currency | currencySymbol}}&nbsp;</span>
+                <mat-error>
+                  Amount must be between 0 and {{data.sourceAsset.amount - fee.value * (1 - debtFlag) | number}}
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field class="form-col-3">
+                <input matInput type="number" placeholder="Exchange rate" required formControlName="rate">
+                <span matPrefix>@&nbsp;</span>
+                <mat-error>Rate must be positive</mat-error>
+              </mat-form-field>
+
+              <mat-form-field class="form-col-3">
+                <input matInput type="number" placeholder="Fee" formControlName="fee">
+                <span matPrefix>{{ data.sourceAsset.currency | currencySymbol }}&nbsp;</span>
+                <mat-error>Fee must be positive</mat-error>
+              </mat-form-field>
+            </div>
+
+            <!-- Description and transaction date in same row -->
+            <div class="form-row">
+              <mat-form-field class="form-col">
+                <input matInput type="text" placeholder="Transaction Description" formControlName="description">
+              </mat-form-field>
+
+              <mat-form-field class="form-col">
+                <input matInput [max]="todayDate" [matDatepicker]="datepicker" placeholder="Transaction Date"
+                  formControlName="transactionDate" required>
+                <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+                <mat-datepicker #datepicker></mat-datepicker>
+                <mat-error>Transaction date can't be in the future</mat-error>
+              </mat-form-field>
+
+            </div>
+
+            <!-- Options Row -->
+            <div class="options-group">
+              <mat-checkbox formControlName="updateCashBalances" (change)="updateCashBalancesToggled()">
+                Update cash balances
+              </mat-checkbox>
+              <mat-checkbox formControlName="addForexPosition">
+                Add virtual Forex position
+              </mat-checkbox>
+            </div>
+          </section>
+
+          <!-- Section: Summary Card -->
+          <section class="summary-section">
+            <div class="order-summary-card">
+              <div class="summary-row">
+                <div class="summary-breakdown">
+                  <span class="summary-item">
+                    <span class="summary-label">Exchanging:</span>
+                    <span class="summary-value">{{ (amount.value || 0) | currency: data.sourceAsset.currency }}</span>
+                  </span>
+                  <span class="summary-item" *ngIf="rate.value">
+                    <span class="summary-label">Rate:</span>
+                    <span class="summary-value">@ {{ rate.value }}</span>
+                  </span>
+                  <span class="summary-item" *ngIf="fee.value">
+                    <span class="summary-label">Fee:</span>
+                    <span class="summary-value">{{ (fee.value || 0) | currency: data.sourceAsset.currency }}</span>
+                  </span>
+                </div>
+
+                <div class="summary-total">
+                  <span class="summary-total-label">Credited:</span>
+                  <span class="summary-total-value">
+                    {{ destinationAsset.value ? (creditedAmount | currency: destinationAsset.value.currency) : '—' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
       </div>
-      <div>
-        <mat-checkbox formControlName="addForexPosition">Add virtual Forex position</mat-checkbox>
-      </div>
-
-      <div *ngIf="destinationAsset.value">
-        {{destinationAsset.value.description}} will be credited with {{(amount.value - fee.value * debtFlag) *
-        rate.value |
-        currency:destinationAsset.value.currency}}
-      </div>
-
     </div>
   </app-edit-dialog>
 </form>
