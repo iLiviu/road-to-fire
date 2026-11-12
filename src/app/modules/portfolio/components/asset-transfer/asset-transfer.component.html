@@ -26,7 +26,7 @@
               <mat-form-field class="form-col" *ngIf="!fullAssetTransfer">
                 <input matInput type="number" placeholder="Amount to transfer" required formControlName="amount">
                 <span matPrefix>{{ data.sourceAsset.currency | currencySymbol }}&nbsp;</span>
-                <mat-error>Amount must be between 0 and {{ maxAmount - (fee.value * (1 - debtFlag)) | number }}</mat-error>
+                <mat-error>{{ amountErrorMessage }}</mat-error>
               </mat-form-field>
 
               <mat-form-field class="form-col">

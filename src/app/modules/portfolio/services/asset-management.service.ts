@@ -1850,8 +1850,15 @@ export class AssetManagementService {
       try {
         if (!this.isFutureDate(result.transactionDate)) {
           const newBalance = FloatingMath.fixRoundingError(asset.amount + amount - result.fee);
-          if (newBalance < 0) {
-            throw new Error('Not enough balance in cash account');
+          if (asset.isDebt()) {
+            if (newBalance > 0) {
+              throw new Error('Debt balance can\'t be positive');
+            }
+
+          } else {
+            if (newBalance < 0) {
+              throw new Error('Not enough balance in cash account');
+            }
           }
           asset.amount = newBalance;
           await this.portfolioService.updateAsset(asset, account);
@@ -2139,7 +2146,15 @@ export class AssetManagementService {
     destinationAccount: PortfolioAccount, amount: number, fee: number): Promise<Asset> {
     let creditAmount = amount;
     let debitAmount = amount;
-    if (debitAmount < 0 && !sourceAsset.isDebt()) {
+    if (sourceAsset.isDebt()) {
+      if (destinationAsset?.isDebt()) {
+        if (amount >= 0) {
+          throw new Error('Debt transfer amount must be negative');
+        }
+      } else if (amount <= 0) {
+        throw new Error(`Transfer amount can't be negative`);
+      }
+    } else if (debitAmount <= 0) {
       throw new Error(`Transfer amount can't be negative`);
     }
     if (sourceAsset.isCashOrDebt()) {
@@ -2148,6 +2163,12 @@ export class AssetManagementService {
       } else {
         // transferring debt, pass fee to destination
         creditAmount = FloatingMath.fixRoundingError(amount - fee);
+      }
+    }
+    if (destinationAsset?.isDebt()) {
+      const newDestBalance = FloatingMath.fixRoundingError(destinationAsset.amount + creditAmount);
+      if (newDestBalance > 0) {
+        throw new Error('Transfer amount exceeds destination debt balance');
       }
     }
     if (position) {
@@ -2167,7 +2188,7 @@ export class AssetManagementService {
         throw new Error('Transfer can only be made on part of a position or the entire asset');
       }
       if ((debitAmount < 0 && sourceAsset.amount > debitAmount) ||
-        (debitAmount > 0 && sourceAsset.amount < debitAmount)) {
+        (!sourceAsset.isDebt() && debitAmount > 0 && sourceAsset.amount < debitAmount)) {
         throw new Error('Transfer amount exceeds balance');
       }
       sourceAsset.amount = FloatingMath.fixRoundingError(sourceAsset.amount - debitAmount);

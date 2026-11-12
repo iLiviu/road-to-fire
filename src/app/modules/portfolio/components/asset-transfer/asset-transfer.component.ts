@@ -5,7 +5,7 @@ import { Subject } from 'rxjs';
 
 import { PortfolioAccount } from '../../models/portfolio-account';
 import { Asset, AssetType } from '../../models/asset';
-import { getDateAsISOString } from 'src/app/shared/util';
+import { FloatingMath, getDateAsISOString } from 'src/app/shared/util';
 import { RecurringTransactionInputComponent } from '../recurring-transaction-input/recurring-transaction-input.component';
 import { RecurringTransaction } from '../../models/recurring-transaction';
 import { takeUntil } from 'rxjs/operators';
@@ -35,23 +35,53 @@ export interface AssetTransferResponse {
 }
 
 /**
- * Validates the value of the amount control. If we are transferring debt,
- * fee will be passed to destination so do not substract from max amount.
- * @param maxAmount maximum allowed amount
+ * Validates the value of the amount control for cash, debt, and tradeable asset transfers.
+ * @param sourceAsset source asset being transferred from
+ * @param maxAmount maximum available amount on source (asset amount or position amount)
  * @param feeCtrl form control that holds the fee value
+ * @param destinationAssetCtrl form control that holds the destination asset
  */
-const amountValidator = (maxAmount: number, feeCtrl: UntypedFormControl) => {
+const amountValidator = (
+  sourceAsset: Asset,
+  maxAmount: number,
+  feeCtrl: UntypedFormControl,
+  destinationAssetCtrl: UntypedFormControl,
+) => {
   return (control: UntypedFormControl): ValidationErrors | null => {
     const amount = control.value;
-    let invalidRange: boolean;
-    if (maxAmount < 0) {
-      // validate debt and ignore fee
-      invalidRange = amount >= 0 || amount < maxAmount;
-    } else {
-      invalidRange = amount <= 0 || amount > (maxAmount - feeCtrl.value);
-
+    if (amount === null || amount === undefined || typeof amount !== 'number' || Number.isNaN(amount)) {
+      return { invalidRange: true };
     }
-    return invalidRange ? { 'invalidRange': true } : null;
+
+    const fee = Math.max(0, Number(feeCtrl?.value) || 0);
+    const destAsset: Asset | null = destinationAssetCtrl?.value || null;
+    let invalidRange: boolean;
+
+    if (sourceAsset?.isDebt()) {
+      if (destAsset?.isDebt()) {
+        // Debt -> Debt: negative amount only, capped by source negative balance (fee passed to destination)
+        invalidRange = amount >= 0 || amount < maxAmount;
+      } else if (destAsset) {
+        // Debt -> Cash: positive amount only, no max limit on negative source balance
+        invalidRange = amount <= 0;
+      } else {
+        // Destination not yet selected: allow positive (Debt -> Cash) or valid negative (Debt -> Debt)
+        invalidRange = amount === 0 || (amount < 0 && amount < maxAmount);
+      }
+    } else {
+      // Cash or tradeable source: ending balance must not fall below 0
+      const maxSourceAmount = FloatingMath.fixRoundingError(maxAmount - fee);
+      if (destAsset?.isDebt()) {
+        // Cash -> Debt: destination debt ending balance must be <= 0
+        const maxDestAmount = FloatingMath.fixRoundingError(-destAsset.amount);
+        const effectiveMax = Math.min(maxSourceAmount, maxDestAmount);
+        invalidRange = amount <= 0 || amount > effectiveMax;
+      } else {
+        invalidRange = amount <= 0 || amount > maxSourceAmount;
+      }
+    }
+
+    return invalidRange ? { invalidRange: true } : null;
   };
 };
 
@@ -120,6 +150,12 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => this.onDestinationAccountChanged());
     this.destinationAsset = new UntypedFormControl();
+    this.destinationAsset.valueChanges
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe(() => {
+        this.amount.updateValueAndValidity();
+        this.cdr.markForCheck();
+      });
     this.enableRecurringTransaction = new UntypedFormControl();
     this.fee = new UntypedFormControl(0, [Validators.min(0)]);
     this.fee.valueChanges
@@ -128,7 +164,10 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
         this.amount.updateValueAndValidity();
         this.cdr.markForCheck();
       });
-    this.amount = new UntypedFormControl(this.fullAssetTransfer ? this.maxAmount : 0, [amountValidator(this.maxAmount, this.fee)]);
+    this.amount = new UntypedFormControl(
+      this.fullAssetTransfer ? this.maxAmount : 0,
+      [amountValidator(this.data.sourceAsset, this.maxAmount, this.fee, this.destinationAsset)],
+    );
     this.amount.valueChanges
       .pipe(takeUntil(this.componentDestroyed$))
       .subscribe(() => {
@@ -176,7 +215,31 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
    */
   get totalTransferValue(): number {
     const feeVal = Number(this.fee?.value) || 0;
-    return this.debtFlag ? this.grossAmount : (this.grossAmount + feeVal);
+    return this.grossAmount < 0 ? this.grossAmount : FloatingMath.fixRoundingError(this.grossAmount + feeVal);
+  }
+
+  /**
+   * Validation error message for the transfer amount field
+   */
+  get amountErrorMessage(): string {
+    const destAsset: Asset | null = this.destinationAsset?.value || null;
+    if (this.data.sourceAsset?.isDebt()) {
+      if (destAsset?.isDebt()) {
+        return this.maxAmount < 0
+          ? `Amount must be between ${this.maxAmount} and 0`
+          : 'No debt available to transfer';
+      }
+      if (destAsset) {
+        return 'Amount must be greater than 0';
+      }
+      return 'Amount must be non-zero';
+    }
+    const feeVal = Math.max(0, Number(this.fee?.value) || 0);
+    const maxSource = FloatingMath.fixRoundingError(this.maxAmount - feeVal);
+    const maxAllowed = destAsset?.isDebt()
+      ? Math.max(0, Math.min(maxSource, FloatingMath.fixRoundingError(-destAsset.amount)))
+      : Math.max(0, maxSource);
+    return `Amount must be between 0 and ${maxAllowed}`;
   }
 
   /**
@@ -228,7 +291,7 @@ export class AssetTransferComponent implements OnInit, OnDestroy {
     }
     this.destinationCashAssets = (<PortfolioAccount>this.destinationAccount.value).assets?.filter(
       asset => asset.isCashOrDebt() &&
-        ((this.data.sourceAsset.amount > 0) || asset.isDebt()) &&
+        (this.data.sourceAsset.isDebt() || (!asset.isDebt() || asset.amount < 0)) &&
         asset.id !== this.data.sourceAsset.id &&
         asset.currency === this.data.sourceAsset.currency) || [];
     this.destinationCashAssets.sort((a, b) => a.description < b.description ? -1 : 1);
